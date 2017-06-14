@@ -99,3 +99,7 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# DS_Store Mac Nightmare
+.DS_Store
+
