@@ -2,13 +2,63 @@
 
 """Main module."""
 from keras.applications.inception_v3 import InceptionV3
-
+from keras.layers.merge import average
 
 class ImageFeaturizer:
     '''
     This object can load images, rescale, crop, and vectorize them into a
     uniform batch, and then featurize the images for use with custom classifiers.
     '''
+
+########--- HELPER FUNCTIONS ---#########
+    def decapitate_model(model, depth):
+        '''
+        This is a method that cuts off end layers of a model equal to the depth
+        of the desired outputs, and then removes the links connecting the new
+        outer layer to the old ones.
+
+        ## Parameters: ###
+            model: The model being decapitated
+
+            depth: The number of layers to pop off the top of the network
+        '''
+
+        # Pop the layers
+        for layer in range(depth):
+            model.layers.pop()
+
+        # Break the connections
+        model.outputs = [model.layers[-1].output]
+        model.layers[-1].outbound_nodes = []
+        model.output = model.layers[-1].output
+
+    def downsample_model_features(model, size_of_downsample):
+        '''
+        This takes in a model, and downsamples the featurizer layer to a specified size
+
+        ### Parameters: ###
+            model: the model being downsampled
+
+            size_of_downsample: The size that the features are being downsampled to
+        '''
+        output_shape = model.layers[-1].output.shape
+        num_features = output_shape[-1].__int__()
+
+        last_layer = model.layers[-1].output
+
+        # Find the pooling constant: I.E. If we want half the number of features,
+        # pooling constant will be 2.
+        pooling_constant = num_features/num_pooled_features
+
+        list_of_spliced_layers=[]
+
+        for i in range(pooling_constant):
+            spliced_output = Lambda(lambda last_layer: last_layer[:, i::pooling_constant])(last_layer)
+            list_of_spliced_layers.append(spliced_output)
+
+        downsampled_features = average(list_of_spliced_layers)
+
+        return downsampled_features
 
     def __init__(self,
                 images_files = None,
@@ -23,8 +73,11 @@ class ImageFeaturizer:
                 num_pooled_features = 1024
                 ):
 
+    '''
+    Initializer
+    '''
 
-        #### TYPE CHECKING ####
+        ######---- TYPE CHECKING ----#######
 
         # A dictionary of the boolean set for error-checking
         dict_of_booleans = {'random_crop': random_crop, 'isotropic_scaling': isotropic_scaling
@@ -60,35 +113,7 @@ class ImageFeaturizer:
                                 unpooled features.')
 
 
-        #### HELPER FUNCTIONS ####
-
-        def decapitate_model(model, depth):
-            '''
-            This is a method that cuts off end layers of a model equal to the depth
-            of the desired outputs, and then removes the links connecting the new
-            outer layer to the old ones.
-
-            ## Parameters: ###
-                model: The model being decapitated
-
-                depth: The number of layers to pop off the top of the network
-            '''
-
-            # Pop the layers
-            for layer in range(depth):
-                model.layers.pop()
-
-            # Break the connections
-            model.outputs = [model.layers[-1].output]
-
-            model.layers[-1].outbound_nodes = []
-
-
-        def downsample_features(layer, size_of_downsample):
-
-
-
-        #### BUILDING THE MODEL ####
+        ---###### BUILDING THE MODEL ######---
 
         # Initialize the model
         model = InceptionV3(weights=None)
@@ -96,44 +121,35 @@ class ImageFeaturizer:
         model_input = model.input
 
         # Choosing model depth:
+        depth_to_number_of_layers = {2: 19, 3: 33, 4:50}
+
+        ## Decapitating the model ##
         # If top_layer is set to True or depth is 1, we just use the top layer of the network
         if top_layer or depth_of_output==1:
             # Output layer here should already be (None, 2048)
-            decapitate(model, 1)
+            decapitate_model(model, 1)
+            model_output = model.layers[-1].output
 
         # Otherwise, we decapitate the model to the appropriate layers
-        elif depth_of_output == 2:
-            decapitate_model(model, 19)
-            x = model.layers[-1].output
+        else:
+            # Find the right depth from the dictionary and decapitate the model
+            decapitated_layers = depth_to_number_of_layers[depth_of_output]
+            decapitate_model(model, decapitated_layers)
 
-            # Output layer after global average should be (None, 2048)
-            x = GlobalAveragePooling2D(name='avg_pool')(x)
-
-
-        elif depth_of_output == 3:
-            decapitate_model(model, 33)
-            x = model.layers[-1].output
-
-            # Output layer after global average should be (None, 2048)
-            x = GlobalAveragePooling2D(name='avg_pool')(x)
-
-        elif depth_of_output == 4:
-            decapitate_model(model, 50)
-            x = model.layers[-1].output
-
-            # The output after global average should be (None, 1280)
-            x = GlobalAveragePooling2D(name='avg_pool')(x)
+            # Add the global avg pooling to the top of the new model. Output
+            # layer after global pooling should be (None, 2048)
+            model_output = GlobalAveragePooling2D(name='avg_pool')(model.layers[-1].output)
 
 
-        model = Model(input=model_input, output=x)
-        # Check output length
+        # Check the model's output shape is equal to 2! The first number should
+        # be the batch, the second should be the featurization size
         if not len(model.layers[-1].output_shape) == 2:
             raise ValueError('Something wrong with output! Should be a tuple of \
                             length 2, with the second value being equal to the \
                             number of features desired. It is not of length 2.')
 
-
-        # If we are pooling the features, we add a pooling layer to the outputs
+        ### Downsampling ###
+        # If we are downsampling the features, we add a pooling layer to the outputs
         # to bring it to the correct size.
         if downsample_features:
             shape_out = model.layers[-1].output_shape
@@ -146,11 +162,14 @@ class ImageFeaturizer:
                                 = ' + str(shape_out[1]) + '. The desired features \
                                 = '+ str(num_pooled_features) + '.')
 
-            # Find the pooling constant: I.E. If we want half the number of features,
-            # pooling constant will be 2.
-            pooling_constant = shape_out[1]/num_pooled_features
 
+            model_output = downsample_model_features(model, num_pooled_features)
 
+        # Finally save the model! Input is the same as usual.
+        # With no downsampling, output is equal to the last layer, which depends
+        # on the depth of the model. WITH downsampling, output is equal to a
+        # downsampled average of multiple splices of the last layer.
+        model = Model(input=model_input, output=model_output)
 
         # Images
         self.image_files = image_files
