@@ -48,11 +48,18 @@ class ImageFeaturizer:
 
         # Create the model!
         model = Xception(weights=None)
-        model.load_weights('..')
+        model.load_weights('../model/xception_weights_tf_dim_ordering_tf_kernels.h5')
+
+        # Pop off the last layer and get rid of the links
+        model.layers.pop()
+        model.outputs = [model.layers[-1].output]
+        model.layers[-1].outbound_nodes = []
+
 
         # Images
         self.image_files = image_files
         self.vectorized_images = vectorized_images
+        self.processed_images=  image_files
 
         # Model type
         self.model_string = model_string
@@ -74,3 +81,19 @@ class ImageFeaturizer:
         self.vertical_flip = vertical_flip
         self.horizontal_flip = horizontal_flip
         self.rotation = rotation
+        self.model = model
+
+
+    def preprocess_images(isotropic_scaling=self.isotropic_scaling
+                            whitening=self.whitening
+                            std_dev=self.std_dev
+                            contrast_norm=self.contrast_norm
+                            vertical_flip=self.vertical_flip
+                            horizontal_flip=self.horizontal_flip
+                            rotation=self.rotation
+                        ):
+
+        if whitening:
+
+
+        if isotropic_scaling:
