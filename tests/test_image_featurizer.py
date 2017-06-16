@@ -7,7 +7,7 @@ import pytest
 
 from click.testing import CliRunner
 
-from image_featurizer import image_featurizer
+#from image_featurizer import image_featurizer
 from image_featurizer import cli
 
 
