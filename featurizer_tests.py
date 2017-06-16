@@ -46,26 +46,6 @@ def test_decapitate_model():
     assert model.outputs == [model.layers[2].output]
     assert model.layers[-1].output_shape == (None, 20)
 
-def test_downsample_model_features():
-
-    # Create the spliced and averaged tensor via downsampling function
-    array = np.array([[1,2,3,4,5,6,7,8,9,10],
-                      [11,12,13,14,15,16,17,18,19,20],
-                      [21,22,23,24,25,26,27,28,29,30]
-                      ])
-    tensor = K.variable(array)
-
-    x = downsample_model_features(tensor, 5)
-
-    # Create the spliced and averaged tensor by hand
-    check_array=np.array([[1.5,3.5,5.5,7.5,9.5],
-                          [11.5,13.5,15.5,17.5,19.5],
-                          [21.5,23.5,25.5,27.5,29.5]
-                         ])
-    check_tensor = K.variable(check_array)
-
-    # Check that they are equal: that it returns the correct tensor!
-    assert np.array_equal(K.eval(check_tensor), K.eval(x))
 
 def test_splice_layer():
     tensor = K.constant(3, shape=(3,12))
@@ -115,6 +95,50 @@ def test_find_pooling_constant():
     # Check that it gives the right answer when formatted correctly
     assert find_pooling_constant(features, 6) == 10
 
+def test_downsample_model_features():
+
+    # Create the spliced and averaged tensor via downsampling function
+    array = np.array([[1,2,3,4,5,6,7,8,9,10],
+                      [11,12,13,14,15,16,17,18,19,20],
+                      [21,22,23,24,25,26,27,28,29,30]
+                      ])
+    tensor = K.variable(array)
+
+    x = downsample_model_features(tensor, 5)
+
+    # Create the spliced and averaged tensor by hand
+    check_array=np.array([[1.5,3.5,5.5,7.5,9.5],
+                          [11.5,13.5,15.5,17.5,19.5],
+                          [21.5,23.5,25.5,27.5,29.5]
+                         ])
+    check_tensor = K.variable(check_array)
+
+    # Check that they are equal: that it returns the correct tensor!
+    assert np.array_equal(K.eval(check_tensor), K.eval(x))
+
+def test_initialize_model():
+
+    # Initialize the model
+    model = initialize_model()
+
+    # Create the test array to be predicted on
+    test_array = np.zeros((1,299,299,3))
+
+    # I created this prediction earlier with the full model
+    check_prediction = np.load('inception_test_prediction.npy')
+
+    # Check that it predicts correctly to see if weights were correctly loaded
+    assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
+
+# def test_build_featurizer():
+#     model = build_featurizer(1,True,1024)
+#     model.summary()
+
+
 if __name__ == '__main__':
+    test_decapitate_model()
     test_splice_layer()
-    test_downsample_features()
+    test_find_pooling_constant()
+    test_downsample_model_features()
+    test_initialize_model()
+    #test_build_featurizer()

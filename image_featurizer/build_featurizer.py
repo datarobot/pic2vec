@@ -6,7 +6,7 @@ import pkg_resources
 import time
 from keras.models import Model
 from keras.datasets import cifar10
-
+from keras.layers import GlobalAvgPool2D
 
 def decapitate_model(model, depth):
     '''
@@ -45,6 +45,53 @@ def decapitate_model(model, depth):
     model.outputs = [model.layers[-1].output]
     model.layers[-1].outbound_nodes = []
 
+
+def find_pooling_constant(features, num_pooled_features):
+    '''
+    Given a tensor and an integer divisor for the desired downsampled features,
+    this will downsample the tensor to the desired number of features
+
+    ### Parameters: ###
+    features: the tensor to be downsampled
+    num_pooled_features: the desired number of features to downsample to
+
+    ### Outputs: ###
+    int(pooling_constant): the integer pooling constant required to correctly
+                           splice the tensor layer for downsampling
+    '''
+
+    # Initializing the outputs
+    output_shape = features.shape
+    num_features = output_shape[-1].__int__()
+
+    # Find the pooling constant
+    pooling_constant = num_features/float(num_pooled_features)
+
+    #------------------------------------------------#
+    ### ERROR CHECKING ###
+
+    if not isinstance(num_pooled_features,int):
+        raise TypeError('Number of features after pooling has to be an integer!')
+
+    # Throw an error if they try to "downsample" up
+    if pooling_constant < 1:
+        raise ValueError('You can\'t downsample to a number bigger than the original feature space!')
+
+
+    # Check that the number of downsampled features is an integer divisor of the original output
+    if not pooling_constant.is_integer():
+
+        # Store recommended downsample
+        recommended_downsample = num_features/int(pooling_constant)
+
+        raise ValueError('Trying to downsample features to non-integer divisor: from ' +
+                         str(num_features)+ ' features to ' + str(num_pooled_features) + '.' +
+                         ' \n \n Did you mean to downsample to ' + str(recommended_downsample)
+                         + '? Regardless, please choose an integer divisor.')
+    #------------------------------------------------#
+
+    # Cast the pooling constant back to an int from a float if it passes the tests
+    return int(pooling_constant)
 
 def splice_layer(tensor, number_splices):
     '''
@@ -94,39 +141,6 @@ def splice_layer(tensor, number_splices):
     return list_of_spliced_layers
 
 
-def find_pooling_constant(features, num_pooled_features):
-    # Initializing the outputs
-    output_shape = features.shape
-    num_features = output_shape[-1].__int__()
-
-    # Find the pooling constant
-    pooling_constant = num_features/float(num_pooled_features)
-
-    #------------------------------------------------#
-    ### ERROR CHECKING ###
-
-    if not isinstance(num_pooled_features,int):
-        raise TypeError('Number of features after pooling has to be an integer!')
-
-    # Throw an error if they try to "downsample" up
-    if pooling_constant < 1:
-        raise ValueError('You can\'t downsample to a number bigger than the original feature space!')
-
-
-    # Check that the number of downsampled features is an integer divisor of the original output
-    if not pooling_constant.is_integer():
-
-        # Store recommended downsample
-        recommended_downsample = num_features/int(pooling_constant)
-
-        raise ValueError('Trying to downsample features to non-integer divisor: from ' +
-                         str(num_features)+ ' features to ' + str(num_pooled_features) + '.' +
-                         ' \n \n We recommend you downsample to: ' + str(recommended_downsample))
-    #------------------------------------------------#
-
-    # Cast the pooling constant back to an int from a float if it passes the tests
-    return int(pooling_constant)
-
 
 def downsample_model_features(features, num_pooled_features):
     '''
@@ -174,25 +188,12 @@ def initialize_model():
 
 def build_featurizer(depth_of_featurizer, downsample_features, num_pooled_features):
     '''
-from image_featurizer.model import build_featurizer
-model = build_featurizer(1, False, 1024)
+    from image_featurizer.model import build_featurizer
+    model = build_featurizer(1, False, 1024)
     '''
-    ### INITIALIZING MODEL ###
-    this_dir, this_filename = os.path.split(__file__)
-    model_path = os.path.join(this_dir, "model", "inception_v3_weights_tf_dim_ordering_tf_kernels.h5")
-    # Initialize the model. If weights are already downloaded, pull them.
-    print model_path
 
-    if os.path.isfile(model_path):
-        model = InceptionV3(weights=None)
-        model.load_weights(model_path)
-        print "\n \nModel initialized and weights loaded successfully!"
-
-    # Otherwise, download them automatically
-    else:
-        print "Can't find weight file. Need to download weights from Keras!"
-        model = InceptionV3()
-        print "Model successfully initialized."
+    ### BUILDING INITIAL MODEL ###
+    model = initialize_model()
 
 
     ### DECAPITATING MODEL ###
@@ -206,7 +207,8 @@ model = build_featurizer(1, False, 1024)
 
     # If depth is 1, we don't add a pool because it's already there.
     if depth_of_featurizer != 1:
-        model_output = GlobalAveragePooling2D(name='avg_pool')(model.layers[-1].output)
+        out = GlobalAvgPool2D(name='avg_pool')(model.layers[-1].output)
+        model = Model(input=model.input, output=out)
 
     # Save the model output
     model_output = model.layers[-1].output
@@ -224,11 +226,12 @@ model = build_featurizer(1, False, 1024)
     # If we are downsampling the features, we add a pooling layer to the outputs
     # to bring it to the correct size.
     if downsample_features:
-        model_output = downsample_model_features(model, num_pooled_features)
+        model_output = downsample_model_features(model_output, num_pooled_features)
 
     # Finally save the model! Input is the same as usual.
     # With no downsampling, output is equal to the last layer, which depends
     # on the depth of the model. WITH downsampling, output is equal to a
     # downsampled average of multiple splices of the last layer.
     model = Model(input=model.input, output=model_output)
+
     return model
