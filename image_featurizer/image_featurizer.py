@@ -30,7 +30,6 @@ class ImageFeaturizer:
         # Break the connections
         model.outputs = [model.layers[-1].output]
         model.layers[-1].outbound_nodes = []
-        model.output = model.layers[-1].output
 
     def downsample_model_features(model, size_of_downsample):
         '''
@@ -65,11 +64,10 @@ class ImageFeaturizer:
                 scaled_size = (299, 299),
                 crop_size = (299, 299),
                 number_crops = 1,
-                random_crop = False
+                random_crop = False,
                 isotropic_scaling = True,
-                top_layer = True,
-                depth_of_output = 2,
-                downsample_features = False
+                depth_of_featurizer = 1,
+                downsample_features = False,
                 num_pooled_features = 1024
                 ):
 
@@ -80,8 +78,8 @@ class ImageFeaturizer:
         ######---- TYPE CHECKING ----#######
 
         # A dictionary of the boolean set for error-checking
-        dict_of_booleans = {'random_crop': random_crop, 'isotropic_scaling': isotropic_scaling
-                            'top_layer': top_layer, 'downsample_features': downsample_features}
+        dict_of_booleans = {'random_crop': random_crop, 'isotropic_scaling': isotropic_scaling,
+                            'downsample_features': downsample_features}
 
         if image_files == None:
             raise ValueError('Image files required.')
@@ -96,8 +94,8 @@ class ImageFeaturizer:
             raise ValueError('number_crops is not an integer! Please specify the \
                             number of random crops you would like to average')
 
-        if not isinstance(depth_of_output, int)
-            raise ValueError('depth_of_output is not an integer! Please specify the \
+        if not isinstance(depth_of_featurizer, int)
+            raise ValueError('depth_of_featurizer is not an integer! Please specify the \
                             number of layers you would like to remove from the top \
                             of the network for featurization. Can be between 1 and 4.')
 
@@ -121,23 +119,16 @@ class ImageFeaturizer:
         model_input = model.input
 
         # Choosing model depth:
-        depth_to_number_of_layers = {2: 19, 3: 33, 4:50}
+        depth_to_number_of_layers = {1: 1, 2: 19, 3: 33, 4:50}
 
         ## Decapitating the model ##
-        # If top_layer is set to True or depth is 1, we just use the top layer of the network
-        if top_layer or depth_of_output==1:
-            # Output layer here should already be (None, 2048)
-            decapitate_model(model, 1)
-            model_output = model.layers[-1].output
 
-        # Otherwise, we decapitate the model to the appropriate layers
-        else:
-            # Find the right depth from the dictionary and decapitate the model
-            decapitated_layers = depth_to_number_of_layers[depth_of_output]
-            decapitate_model(model, decapitated_layers)
+        # Find the right depth from the dictionary and decapitate the model
+        decapitated_layers = depth_to_number_of_layers[depth_of_featurizer]
+        decapitate_model(model, decapitated_layers)
 
-            # Add the global avg pooling to the top of the new model. Output
-            # layer after global pooling should be (None, 2048)
+        # If depth is 1, we don't add a pool because it's already there.
+        if depth_of_featurizer != 1:
             model_output = GlobalAveragePooling2D(name='avg_pool')(model.layers[-1].output)
 
 
