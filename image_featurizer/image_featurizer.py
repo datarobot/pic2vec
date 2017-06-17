@@ -26,9 +26,9 @@ class ImageFeaturizer:
         '''
         Initializer:
 
-        Loads an initial InceptionV3 pretrained network, decapitates it and downsamples
-        according to user specifications. Loads image file and csv, and stores model
-        to perform image featurization.
+        Loads an initial InceptionV3 pretrained network, decapitates it and
+        downsamples according to user specifications. Loads image file and csv,
+        and stores model to perform image featurization.
 
         ### Parameters: ###
             images_files: The file containing the images
@@ -37,19 +37,21 @@ class ImageFeaturizer:
 
             crop_size: If the image gets cropped, decides the size of the crop
 
-            number_crops: If 0, no cropping. Otherwise, the number of crops taken of the image
+            number_crops: If 0, no cropping. Otherwise, it represents the number
+                          of crops taken of the image
 
             random_crop: If False, only take the center crop. If True, take random crops
 
-            isotropic_scaling: If False, the image is scaled non-proportionally. If true,
-                           image is scaled keeping proportions, and then cropped to correct size
+            isotropic_scaling: If False, the image is scaled non-proportionally.
+                            If true, image is scaled keeping proportions, and
+                            then cropped to correct size
 
             depth: How many layers deep we're taking the model
 
             downsample: If True, feature layer is downsampled
 
-            downsample_size: If feature layer is downsampled, chooses number of features
-                                to downsample it to
+            downsample_size: If feature layer is downsampled, chooses number of
+                            features to downsample it to
         '''
 
         #------------------------------------------------#
@@ -85,8 +87,8 @@ class ImageFeaturizer:
         if not (isinstance(downsample_size, int) or isinstance(downsample_size, type(None))):
                 raise TypeError('Tried to set downsample_size to a non-integer value!' +
                                 ' Please set to an integer or leave uninitialized.'+
-                                ' Recommended value is 1024, but can be set to any integer divisor' +
-                                ' of the number of unpooled features.')
+                                ' Recommended value is 1024, but can be set to' +
+                                'any integer divisor of the number of unpooled features.')
 
         #----------------------------------------------------------------------#
 
