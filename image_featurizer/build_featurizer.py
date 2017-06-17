@@ -46,6 +46,7 @@ def decapitate_model(model, depth):
     model.layers[-1].outbound_nodes = []
 
 
+
 def find_pooling_constant(features, num_pooled_features):
     '''
     Given a tensor and an integer divisor for the desired downsampled features,

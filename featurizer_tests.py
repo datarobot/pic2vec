@@ -5,12 +5,24 @@ from keras.models import Sequential
 import keras.backend as K
 import numpy as np
 import pytest
-
+import random
 from image_featurizer.build_featurizer import *
 
-
+random.seed(5102020)
 
 def test_decapitate_model():
+    '''
+    This test creates a toy network, and checks that it calls the right errors:
+        If it is not passed a Model object
+        If it is passed a non-integer depth
+        If the depth given is >= (# of layers) - 1
+
+    And checks that it decapitates the network correctly:
+            It cuts the network to the correct depth
+            It clears the new top layer's outward connections
+            It updates the model output to the new top layer
+            It maintains the shape and integrity of the new top layer
+    '''
     # Create model
     model = Sequential([
         Dense(40, input_shape=(784,)),
@@ -48,11 +60,20 @@ def test_decapitate_model():
 
 
 def test_splice_layer():
+    '''
+    This test creates a toy tensor to splice, and checks that it raises errors:
+        If it is given a non-integer number of slices
+        If the number of slices is not an integer divisor of the feature space
+
+    And checks that it splices the tensor correctly:
+        It outputs a list of spliced layers with the correct dimensionality,
+        and that are merged to the correct hand-checked tensor
+    '''
     tensor = K.constant(3, shape=(3,12))
 
     # Check for Value Error with non-integer number of slices
     with pytest.raises(ValueError):
-        splice_layer(tensor, 1.5)
+        splice_layer(tensor, 1.0)
 
     # Check for Value Error when # slices is not an integer divisor of the
     # total number of features
@@ -78,6 +99,15 @@ def test_splice_layer():
 
 
 def test_find_pooling_constant():
+    '''
+    This test creates a toy tensor to pool, and checks that it raises errors:
+        If the number of 'downsampled' features is greater than size of the feature space
+        If the pool is not an integer divisor of the feature space
+
+    And checks that it returns the correct pooling factor when formatted correctly:
+        It automatically calculates the required pooling factor to splice the tensor
+        in order to downsample to the desired feature space.
+    '''
     features = K.constant(2, shape=(3,60))
 
     # Check for Value Error when user tries to upsample
@@ -96,7 +126,10 @@ def test_find_pooling_constant():
     assert find_pooling_constant(features, 6) == 10
 
 def test_downsample_model_features():
-
+    '''
+    This integration test creates a toy numpy array, and checks that the function
+    correctly downsamples the array into a hand-checked tensor
+    '''
     # Create the spliced and averaged tensor via downsampling function
     array = np.array([[1,2,3,4,5,6,7,8,9,10],
                       [11,12,13,14,15,16,17,18,19,20],
@@ -117,7 +150,10 @@ def test_downsample_model_features():
     assert np.array_equal(K.eval(check_tensor), K.eval(x))
 
 def test_initialize_model():
-
+    '''
+    This test initializes the non-decapitated network, and checks that it correctly
+    loaded the weights by checking its batch prediction on a pre-calculated, saved tensor.
+    '''
     # Initialize the model
     model = initialize_model()
 
@@ -131,7 +167,34 @@ def test_initialize_model():
     assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
 
 # def test_build_featurizer():
+#     '''
+#     This integration test builds the full featurizer, and checks that it
+#     correctly featurizers a pre-checked test image with multiple options
+#     '''
+#     model = build_featurizer(1,False,1024)
+#     check_image(model, image)
+#
 #     model = build_featurizer(1,True,1024)
+#     check_image(model, image)
+#
+#     model = build_featurizer(2,False,1024)
+#     check_image(model, image)
+#
+#     model = build_featurizer(2,True,1024)
+#     check_image(model, image)
+#
+#     model = build_featurizer(3,False,1024)
+#     check_image(model, image)
+#
+#     model = build_featurizer(3,True,1024)
+#     check_image(model, image)
+#
+#     model = build_featurizer(4,False,1024)
+#     check_image(model, image)
+#
+#     model = build_featurizer(4,True,640)
+#     check_image(model, image)
+#
 #     model.summary()
 
 

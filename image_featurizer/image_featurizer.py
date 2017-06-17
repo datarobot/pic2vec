@@ -167,8 +167,9 @@ class ImageFeaturizer:
         self.vectorized_images = vectorized_images
         self.processed_images=  image_files
 
+        # ADD THIS IF WE MAKE CHOICE OF MODEL
         # Model type
-        self.model_string = model_string
+        #self.model_string = model_string
 
         # Image scaling and cropping
         self.scaled_size = scaled_size
