@@ -25,7 +25,7 @@ def test_decapitate_model():
     '''
     # Create model
     model = Sequential([
-        Dense(40, input_shape=(784,)),
+        Dense(40, input_shape=(100,)),
         Activation('relu'),
         Dense(20),
         Activation('relu'),
