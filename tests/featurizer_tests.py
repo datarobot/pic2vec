@@ -184,7 +184,7 @@ def test_initialize_model():
     test_array = np.zeros((1,299,299,3))
 
     # I created this prediction earlier with the full model
-    check_prediction = np.load('inception_test_prediction.npy')
+    check_prediction = np.load('tests/featurizer_testing/test_initializer/inception_test_prediction.npy')
 
     # Check that it predicts correctly to see if weights were correctly loaded
     assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
