@@ -9,7 +9,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 from keras.applications.inception_v3 import preprocess_input
 
 
-def convert_single_image(image_header_type, image_path, target_size=(299,299), grayscale=False):
+def convert_single_image(image_source, image_path, target_size=(299,299), grayscale=False):
     '''
     This function takes in a path to an image (either by URL or in a native directory)
     and converts the image to a preprocessed 4D numpy array, ready to be plugged
@@ -29,9 +29,9 @@ def convert_single_image(image_header_type, image_path, target_size=(299,299), g
     '''
 
     # Retrieve the image, either from a given url or from a directory
-    if image_header_type == 'from_url':
+    if image_source == 'url':
         image_file = urllib.urlretrieve(image_path)[0]
-    elif image_header_type == 'from_directory':
+    elif image_source == 'directory':
         image_file = image_path
 
     # Load the image, and convert it to a numpy array with the target size
@@ -45,9 +45,6 @@ def convert_single_image(image_header_type, image_path, target_size=(299,299), g
 
     # Return the image array
     return image_array
-
-def _load_csv_data(csv_path, image_header_type, image_column_header):
-    csv = pandas.read_csv(csv_path)
 
 def _find_valid_image_paths(image_directory):
     '''
@@ -85,27 +82,47 @@ def _create_csv_with_image_names(list_of_images, csv_name, image_column_header):
     '''
 
     df = pd.DataFrame(list_of_images, columns=[image_column_header])
-    myfile = df.to_csv(csv_name, index=False)
-    return myfile
+    df.to_csv(csv_name, index=False)
 
 
+#TODO: add check on image_column_header: Initialize it to something like 'images_header'.
+#      if csv exists and does not contain image_column_header, throw error.
+def preprocess_data(image_column_header,
+                    image_directory_path=None,
+                    csv_path=None,
+                    new_csv_name='featurizer_csv/images_csv',
+                    target_size=(299,299),
+                    grayscale=False):
 
-def preprocess_data(image_header_type, image_column_header, image_directory=None, csv=None, new_csv_name='images_csv', target_size=(299,299), grayscale=False):
+    # If there is no image directory or csv, then something is wrong.
+    if image_directory_path == None and csv_path == None:
+        raise ValueError('Need to load either an image directory or a CSV with \
+                         URLs, if no image directory included.')
 
-    if image_directory==None and csv == None:
-        raise ValueError('Either need to load an image directory or a CSV (with URls, if no image directory included). ')
+    # If there is no image directory, the images must come from urls
+    if image_directory_path == None:
+        image_source == 'url'
+
+    # Otherwise, if there's an image directory, the source is a directory
+    else:
+        image_source == 'directory'
+
+        # If they just give a directory, write a new CSV with one column of the filenames
+        # and the rest of the featurization if image_directory != None:
+        if csv_path == None:
+
+            # Find list of images from the image directory
+            list_of_images = _find_valid_image_paths(image_directory_path)
+            csv_path = new_csv_name
+
+            # Create the new csv in a folder called 'featurizer_csv/'
+            _create_csv_with_image_names(list_of_images, csv_name=csv_path,\
+                    image_column_header=image_column_header)
 
 
-    # If they just give a directory, write a new CSV with one column of the filenames
-    # and the rest of the featurization
-    if image_directory != None:
-        list_of_images = _find_valid_image_paths(image_directory)
-        num_images = len(valid_image_paths)
-
-        if csv == None:
-            csv = _create_csv_with_image_names(list_of_images, csv_name=new_csv_name, image_column_header=image_column_header)
-
-
+    df = pd.read_csv(csv_path)
+    list_of_images = df[image_column_header].tolist()
+    num_images = len(list_of_images)
 
     # Initialize the full batch
     if grayscale:
@@ -117,8 +134,8 @@ def preprocess_data(image_header_type, image_column_header, image_directory=None
 
     # Create the full batch vectors
     i = 0
-    for image in valid_image_paths:
-        full_image_data[i,:,:,:] = convert_single_image(image_header_type, image, target_size = target_size)
+    for image in list_of_images:
+        full_image_data[i,:,:,:] = convert_single_image(image_source, image, target_size = target_size)
         i += 1
 
-    return full_image_data
+    return full_image_data, list_of_images

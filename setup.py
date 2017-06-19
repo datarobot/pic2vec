@@ -13,7 +13,10 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'Click>=6.0',
-    # TODO: put package requirements here
+    'keras',
+    'pandas',
+    'Pillow'
+    'numpy'
 ]
 
 setup_requirements = [
@@ -23,7 +26,8 @@ setup_requirements = [
 
 test_requirements = [
     'pytest',
-    # TODO: put package test requirements here
+    'keras',
+    'numpy'
 ]
 
 setup(
