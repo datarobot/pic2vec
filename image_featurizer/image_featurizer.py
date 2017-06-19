@@ -61,14 +61,21 @@ class ImageFeaturizer:
         # A dictionary of the boolean set for error-checking
         dict_of_booleans = {'random_crop': random_crop, 'isotropic_scaling': isotropic_scaling,
                             'downsample': downsample}
+
+        # List of valid headers for the image data: either downloading from URL,
+        # or linked to a directory full of images
         valid_header_types = ['from_url','from_directory']
 
         if not image_header_type in valid_header_types:
-            raise ValueError('image_header_type must be specified as either from_url \
-                             or from_directory. Please ')
+            raise ValueError('image_header_type must be specified as either \'from_url\' \
+                             or \'from_directory\'. If CSV contains URLs to be \
+                             downloaded, enter \'from_url\'. If it contains filenames \
+                             of images contained in an accompanying directory, enter \
+                             \'from_url\'.')
 
         if image_directory_path=None and image_header_type == 'from_directory':
-            raise ValueError('Image files required.')
+            raise ValueError('You have entered image_header_type as \'from_directory\', but have \
+            not entered an accompanying filepath to the directory. Directory filepath required.')
 
         if not isinstance(scaled_size, tuple):
             raise TypeError('scaled_size is not a tuple! Please list dimensions as a tuple')
