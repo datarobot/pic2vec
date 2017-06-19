@@ -12,7 +12,9 @@ class ImageFeaturizer:
 
 
     def __init__(self,
-                image_filepath = None,
+                image_column_header,
+                image_header_type,
+                image_directory_path=None,
                 scaled_size = (299, 299),
                 crop_size = (299, 299),
                 number_crops = 0,
@@ -59,8 +61,13 @@ class ImageFeaturizer:
         # A dictionary of the boolean set for error-checking
         dict_of_booleans = {'random_crop': random_crop, 'isotropic_scaling': isotropic_scaling,
                             'downsample': downsample}
+        valid_header_types = ['from_url','from_directory']
 
-        if image_files == None:
+        if not image_header_type in valid_header_types:
+            raise ValueError('image_header_type must be specified as either from_url \
+                             or from_directory. Please ')
+
+        if image_directory_path=None and image_header_type == 'from_directory':
             raise ValueError('Image files required.')
 
         if not isinstance(scaled_size, tuple):

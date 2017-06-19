@@ -3,13 +3,12 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 from keras.applications.inception_v3 import InceptionV3
 from keras.models import Model
 from keras.layers import GlobalAvgPool2D, Lambda, average
-import time
 
 def _decapitate_model(model, depth):
     '''
     This cuts off end layers of a model equal to the depth of the desired outputs,
     and then removes the links connecting the new outer layer to the old ones.
-
+``
     ## Parameters: ###
         model: The model being decapitated
         depth: The number of layers to pop off the top of the network
@@ -249,10 +248,7 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
     '''
 
     ### BUILDING INITIAL MODEL ###
-    t0 = time.time()
     model = _initialize_model()
-    t1 = time.time()
-    print t1-t0
     ### DECAPITATING MODEL ###
 
     # Choosing model depth:
@@ -264,10 +260,8 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
 
     # Add pooling layer to the top of the now-decapitated model as the featurizer
     out = GlobalAvgPool2D(name='featurizer')(model.layers[-1].output)
-    t0 = time.time()
     model = Model(inputs=model.input, outputs=out)
-    t1 = time.time()
-    print t1-t0
+
     # Save the model output
     model_output = model.layers[-1].output
     num_output_features = model_output.shape[-1].__int__()
