@@ -12,7 +12,7 @@ class ImageFeaturizer:
 
 
     def __init__(self,
-                image_files = None,
+                image_filepath = None,
                 scaled_size = (299, 299),
                 crop_size = (299, 299),
                 number_crops = 0,

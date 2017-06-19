@@ -6,7 +6,9 @@ import keras.backend as K
 import numpy as np
 import pytest
 import random
-from image_featurizer.build_featurizer import *
+from image_featurizer.build_featurizer import \
+    _decapitate_model, _find_pooling_constant, _splice_layer, _downsample_model_features, \
+    _initialize_model, _check_downsampling_mismatch, build_featurizer
 
 random.seed(5102020)
 
@@ -34,21 +36,21 @@ def test_decapitate_model():
         Dense(5),
         Activation('softmax'),])
 
-    decapitate_model(model, 5)
+    _decapitate_model(model, 5)
 
     # Check for Type Error when model is passed something that isn't a Model
     with pytest.raises(TypeError):
-        decapitate_model(K.constant(3, shape=(3,4)), 4)
+        _decapitate_model(K.constant(3, shape=(3,4)), 4)
     with pytest.raises(TypeError):
-        decapitate_model(model.layers[-1],1)
+        _decapitate_model(model.layers[-1],1)
 
     # Check for TypeError when depth is not passed an integer
     with pytest.raises(TypeError):
-        decapitate_model(model,2.0)
+        _decapitate_model(model,2.0)
 
     # Check for Value Error when passed a depth >= (# of layers in network) - 1
     with pytest.raises(ValueError):
-        decapitate_model(model,7)
+        _decapitate_model(model,7)
 
 
     # Make checks for all of the necessary features: the model outputs, the
@@ -73,19 +75,19 @@ def test_splice_layer():
 
     # Check for Value Error with non-integer number of slices
     with pytest.raises(ValueError):
-        splice_layer(tensor, 1.0)
+        _splice_layer(tensor, 1.0)
 
     # Check for Value Error when # slices is not an integer divisor of the
     # total number of features
     with pytest.raises(ValueError):
-        splice_layer(tensor, 5)
+        _splice_layer(tensor, 5)
     with pytest.raises(ValueError):
-        splice_layer(tensor,24)
+        _splice_layer(tensor,24)
 
     # Create spliced and added layers via splicing function
     tensor = K.constant(3, shape=(3,12))
 
-    list_of_spliced_layers = splice_layer(tensor, 3)
+    list_of_spliced_layers = _splice_layer(tensor, 3)
 
     # Add each of the layers together
     x = add(list_of_spliced_layers)
@@ -112,18 +114,18 @@ def test_find_pooling_constant():
 
     # Check for Value Error when user tries to upsample
     with pytest.raises(ValueError):
-        find_pooling_constant(features,120)
+        _find_pooling_constant(features,120)
 
     # Check for Type Error when pool is not a divisor of the number of features
     with pytest.raises(ValueError):
-        find_pooling_constant(features,40)
+        _find_pooling_constant(features,40)
 
     # Check for Type Error when number of pooled features is not an integer
     with pytest.raises(TypeError):
-        find_pooling_constant(features, 1.5)
+        _find_pooling_constant(features, 1.5)
 
     # Check that it gives the right answer when formatted correctly
-    assert find_pooling_constant(features, 6) == 10
+    assert _find_pooling_constant(features, 6) == 10
 
 def test_downsample_model_features():
     '''
@@ -137,7 +139,7 @@ def test_downsample_model_features():
                       ])
     tensor = K.variable(array)
 
-    x = downsample_model_features(tensor, 5)
+    x = _downsample_model_features(tensor, 5)
 
     # Create the spliced and averaged tensor by hand
     check_array=np.array([[1.5,3.5,5.5,7.5,9.5],
@@ -159,14 +161,14 @@ def test_check_downsampling_mismatch():
     by other functions. Just need to check it returns the right values when needed.
     '''
 
-    assert check_downsampling_mismatch(True,None,1) == (True, 1024)
-    assert check_downsampling_mismatch(False,None,1) == (False, None)
-    assert check_downsampling_mismatch(True,None,2) == (True, 1024)
-    assert check_downsampling_mismatch(False,None,2) == (False, None)
-    assert check_downsampling_mismatch(True,None,3) == (True, 1024)
-    assert check_downsampling_mismatch(False,None,3) == (False, None)
-    assert check_downsampling_mismatch(True,None,4) == (True, 640)
-    assert check_downsampling_mismatch(False,None,4) == (False, None)
+    assert _check_downsampling_mismatch(True,None,1) == (True, 1024)
+    assert _check_downsampling_mismatch(False,None,1) == (False, None)
+    assert _check_downsampling_mismatch(True,None,2) == (True, 1024)
+    assert _check_downsampling_mismatch(False,None,2) == (False, None)
+    assert _check_downsampling_mismatch(True,None,3) == (True, 1024)
+    assert _check_downsampling_mismatch(False,None,3) == (False, None)
+    assert _check_downsampling_mismatch(True,None,4) == (True, 640)
+    assert _check_downsampling_mismatch(False,None,4) == (False, None)
 
 
 def test_initialize_model():
@@ -174,8 +176,9 @@ def test_initialize_model():
     This test initializes the non-decapitated network, and checks that it correctly
     loaded the weights by checking its batch prediction on a pre-calculated, saved tensor.
     '''
+
     # Initialize the model
-    model = initialize_model()
+    model = _initialize_model()
 
     # Create the test array to be predicted on
     test_array = np.zeros((1,299,299,3))
