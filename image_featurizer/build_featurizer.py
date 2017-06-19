@@ -285,6 +285,7 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
     if downsample:
         model_output = _downsample_model_features(model_output, num_pooled_features)
     print "Model downsampled!"
+    
     # Finally save the model! Input is the same as usual.
     # With no downsampling, output is equal to the last layer, which depends
     # on the depth of the model. WITH downsampling, output is equal to a
