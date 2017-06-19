@@ -3,11 +3,9 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 from keras.applications.inception_v3 import InceptionV3
 from keras.models import Model
 from keras.layers import GlobalAvgPool2D, Lambda, average
+import time
 
-import os
-import pkg_resources
-
-def decapitate_model(model, depth):
+def _decapitate_model(model, depth):
     '''
     This cuts off end layers of a model equal to the depth of the desired outputs,
     and then removes the links connecting the new outer layer to the old ones.
@@ -46,7 +44,7 @@ def decapitate_model(model, depth):
 
 
 
-def find_pooling_constant(features, num_pooled_features):
+def _find_pooling_constant(features, num_pooled_features):
     '''
     Given a tensor and an integer divisor for the desired downsampled features,
     this will downsample the tensor to the desired number of features
@@ -93,7 +91,7 @@ def find_pooling_constant(features, num_pooled_features):
     # Cast the pooling constant back to an int from a float if it passes the tests
     return int(pooling_constant)
 
-def splice_layer(tensor, number_splices):
+def _splice_layer(tensor, number_splices):
     '''
     This helper function takes a layer, and splices it into a number of
     even slices through skipping. This downsamples the layer, and allows for
@@ -142,7 +140,7 @@ def splice_layer(tensor, number_splices):
 
 
 
-def downsample_model_features(features, num_pooled_features):
+def _downsample_model_features(features, num_pooled_features):
     '''
     This takes in a layer of a model, and downsamples layer to a specified size
 
@@ -157,17 +155,17 @@ def downsample_model_features(features, num_pooled_features):
     '''
 
     # Find the pooling constant needed
-    pooling_constant = find_pooling_constant(features, num_pooled_features)
+    pooling_constant = _find_pooling_constant(features, num_pooled_features)
 
     # Splice the top layer into n layers, where n = pooling constant.
-    list_of_spliced_layers = splice_layer(features, pooling_constant)
+    list_of_spliced_layers = _splice_layer(features, pooling_constant)
 
     # Average the spliced layers to downsample!
     downsampled_features = average(list_of_spliced_layers)
 
     return downsampled_features
 
-def initialize_model():
+def _initialize_model():
     '''
     This function initializes the InceptionV3 model with the saved weights, or
     if it can't find the weight file, it loads them automatically through Keras.
@@ -197,7 +195,7 @@ def initialize_model():
 
     return model
 
-def check_downsampling_mismatch(downsample, num_pooled_features, depth):
+def _check_downsampling_mismatch(downsample, num_pooled_features, depth):
 
     # If num_pooled_features left uninitialized, and they want to downsample
     # perform automatic downsampling
@@ -251,8 +249,10 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
     '''
 
     ### BUILDING INITIAL MODEL ###
-    model = initialize_model()
-
+    t0 = time.time()
+    model = _initialize_model()
+    t1 = time.time()
+    print t1-t0
     ### DECAPITATING MODEL ###
 
     # Choosing model depth:
@@ -260,19 +260,21 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
 
     # Find the right depth from the dictionary and decapitate the model
     decapitated_layers = depth_to_number_of_layers[depth_of_featurizer]
-    decapitate_model(model, decapitated_layers)
+    _decapitate_model(model, decapitated_layers)
 
     # Add pooling layer to the top of the now-decapitated model as the featurizer
     out = GlobalAvgPool2D(name='featurizer')(model.layers[-1].output)
+    t0 = time.time()
     model = Model(inputs=model.input, outputs=out)
-
+    t1 = time.time()
+    print t1-t0
     # Save the model output
     model_output = model.layers[-1].output
     num_output_features = model_output.shape[-1].__int__()
     print "Model decapitated!"
 
     # Checking that the user's downsampling flag matches the initialization of the downsampling
-    (downsample, num_pooled_features) = check_downsampling_mismatch(downsample, num_pooled_features, depth_of_featurizer)
+    (downsample, num_pooled_features) = _check_downsampling_mismatch(downsample, num_pooled_features, depth_of_featurizer)
 
 
     # Check that the model's output shape = (None, number_of_features)
@@ -287,7 +289,7 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
     # If we are downsampling the features, we add a pooling layer to the outputs
     # to bring it to the correct size.
     if downsample:
-        model_output = downsample_model_features(model_output, num_pooled_features)
+        model_output = _downsample_model_features(model_output, num_pooled_features)
     print "Model downsampled!"
     # Finally save the model! Input is the same as usual.
     # With no downsampling, output is equal to the last layer, which depends
