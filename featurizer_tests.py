@@ -149,6 +149,26 @@ def test_downsample_model_features():
     # Check that they are equal: that it returns the correct tensor!
     assert np.array_equal(K.eval(check_tensor), K.eval(x))
 
+def test_check_downsampling_mismatch():
+    '''
+    This test checks with the user if their downsample flag doesn't match
+    their input for the downsample_size (i.e. if they set flag to true but didn't
+    specify the downsample_size, or if they set flag to false but did specify one).
+
+    Not much error testing needed here because it will get passed through and handled
+    by other functions. Just need to check it returns the right values when needed.
+    '''
+
+    assert check_downsampling_mismatch(True,None,1) == (True, 1024)
+    assert check_downsampling_mismatch(False,None,1) == (False, None)
+    assert check_downsampling_mismatch(True,None,2) == (True, 1024)
+    assert check_downsampling_mismatch(False,None,2) == (False, None)
+    assert check_downsampling_mismatch(True,None,3) == (True, 1024)
+    assert check_downsampling_mismatch(False,None,3) == (False, None)
+    assert check_downsampling_mismatch(True,None,4) == (True, 640)
+    assert check_downsampling_mismatch(False,None,4) == (False, None)
+
+
 def test_initialize_model():
     '''
     This test initializes the non-decapitated network, and checks that it correctly
