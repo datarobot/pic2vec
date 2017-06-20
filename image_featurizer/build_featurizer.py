@@ -1,5 +1,7 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
+
+
 from keras.applications.inception_v3 import InceptionV3
 from keras.models import Model
 from keras.layers import GlobalAvgPool2D, Lambda, average
@@ -16,6 +18,7 @@ def _decapitate_model(model, depth):
     ### Output: ###
         No output. This function operates on the model directly.
     '''
+
     #------------------------------------------------#
     ### ERROR CHECKING ###
     # Make sure they actually passed a keras model
@@ -107,6 +110,7 @@ def _splice_layer(tensor, number_splices):
                                 layer, with neighboring nodes occupying the same
                                 indices across  splices
     '''
+
     # Initializing list of spliced layers
     list_of_spliced_layers=[]
 
@@ -184,13 +188,13 @@ def _initialize_model():
     if os.path.isfile(model_path):
         model = InceptionV3(weights=None)
         model.load_weights(model_path)
-        print "\nModel initialized and weights loaded successfully!"
+        print("\nModel initialized and weights loaded successfully!")
 
     # Otherwise, download them automatically
     else:
-        print '\nCan\'t find weight file. Need to download weights from Keras!'
+        print('\nCan\'t find weight file. Need to download weights from Keras!')
         model = InceptionV3()
-        print "\nModel successfully initialized."
+        print("\nModel successfully initialized.")
 
     return model
 
@@ -206,9 +210,9 @@ def _check_downsampling_mismatch(downsample, num_pooled_features, depth):
             temp_features = 2048
             num_pooled_features = 1024
 
-        print 'Automatic downsampling to ' + str(num_pooled_features) +\
+        print('Automatic downsampling to ' + str(num_pooled_features) +\
               '. If you would like to set custom downsampling, pass in an ' +\
-              'integer divisor of ' + str(temp_features) + ' to num_pooled_features!'
+              'integer divisor of ' + str(temp_features) + ' to num_pooled_features!')
 
     # If they have initialized num_pooled_features, but not turned on
     # downsampling, check that they don't actually want to downsample!
@@ -221,9 +225,9 @@ def _check_downsampling_mismatch(downsample, num_pooled_features, depth):
         downsample = raw_input("%s (y/N) " % msg).lower() in valid
 
         if downsample:
-            print "Ok! Downsampling to " + str(num_pooled_features)
+            print("Ok! Downsampling to " + str(num_pooled_features))
         else:
-            print "All right, no downsampling."
+            print("All right, no downsampling.")
 
     return (downsample, num_pooled_features)
 
@@ -244,7 +248,13 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
                              NOTE: Must be integer divisor of original number of features
 
     ### Output: ###
-        model: the decapitated, potentially downsampled, pre-trained image featurizer
+        model: The decapitated, potentially downsampled, pre-trained image featurizer.
+
+               With no downsampling, the output features are equal to the top densely-
+               connected layer of the network, which depends on the depth of the model.
+
+               With downsampling, the output is equal to a downsampled average of
+               multiple splices of the last densely connected layer.
     '''
 
     ### BUILDING INITIAL MODEL ###
@@ -265,17 +275,19 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
     # Save the model output
     model_output = model.layers[-1].output
     num_output_features = model_output.shape[-1].__int__()
-    print "Model decapitated!"
+    print("Model decapitated!")
 
     # Checking that the user's downsampling flag matches the initialization of the downsampling
     (downsample, num_pooled_features) = _check_downsampling_mismatch(downsample, num_pooled_features, depth_of_featurizer)
 
-
+    #------------------------------------------------#
+                ### ERROR CHECKING ###
     # Check that the model's output shape = (None, number_of_features)
     if not model.layers[-1].output_shape == (None, num_output_features):
         raise ValueError('Something wrong with output! Should have shape: (None, '
                         + str(num_pooled_features)+ ')' + '. Actually has shape: '
                         + str(model.layers[-1].output_shape))
+    #------------------------------------------------#
 
 
     ### DOWNSAMPLING FEATURES ###
@@ -284,18 +296,18 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
     # to bring it to the correct size.
     if downsample:
         model_output = _downsample_model_features(model_output, num_pooled_features)
-    print "Model downsampled!"
-    
-    # Finally save the model! Input is the same as usual.
-    # With no downsampling, output is equal to the last layer, which depends
-    # on the depth of the model. WITH downsampling, output is equal to a
-    # downsampled average of multiple splices of the last layer.
+    print("Model downsampled!")
+
+
+    # Finally save the model!
     model = Model(inputs=model.input, outputs=model_output)
 
-    print "Full featurizer is built!"
+
+
+    print("Full featurizer is built!")
     if downsample:
-         print "Final layer feature space downsampled to " + str(num_pooled_features)
+         print("Final layer feature space downsampled to " + str(num_pooled_features))
     else:
-        print "No downsampling! Final layer feature space has size " + str(num_output_features)
+        print("No downsampling! Final layer feature space has size " + str(num_output_features))
 
     return model
