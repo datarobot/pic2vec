@@ -12,8 +12,8 @@ class ImageFeaturizer:
     '''
 
     def load_data(image_column_header,
-                  image_directory_path=None,
-                  csv_path=None,
+                  image_directory_path='',
+                  csv_path='',
                   new_csv_name='featurizer_csv/generated_images_csv',
                   scaled_size = (299, 299),
                   grayscale=False
@@ -49,53 +49,53 @@ class ImageFeaturizer:
         #------------------------------------------------#
                     ### ERROR CHECKING ###
 
-        # Raise an error if image_column_header is not a string
-        if not isinstance(image_column_header, str):
-            raise TypeError('image_column_header must be passed a string! This '+
-                            'determines where to look for (or create) the column'+
-                            ' of image paths in the csv.')
-
-        # Raise an error if image_directory_path is not a string
-        if not isinstance(image_directory_path, str) or isinstance(image_directory_path, type(None)):
-            raise TypeError('image_directory_path must be passed a string, or left'+
-                            ' as None! This determines where to look for the folder of images,'+
-                            ' or says if it doesn\'t exist.')
-
-        # Raise an error if the image_directory_path doesn't point to a directory
-        if image_directory_path != None:
-            if not os.path.isdir(image_directory_path):
-                raise TypeError('image_directory_path must lead to a directory if '+
-                                'it is initialized! It is where the images are stored.')
-
-        # Raise an error if csv_path is not a string
-        if not isinstance(csv_path, str) or isinstance(csv_path, type(None)):
-            raise TypeError('csv_path must be passed a string, or left as None!'+
-                            ' This determines where to look for the csv,'+
-                            ' or says if it doesn\'t exist.')
-
-        # Raise an error if the csv_path doesn't point to a file
-        if csv_path != None:
-            if not os.path.isfile(csv_path):
-                raise TypeError('csv_path must lead to a file if it is initialized!'+
-                                ' This is the csv containing pointers to the images.')
-
-        # Raise an error if image_column_header is not a string
-        if not isinstance(new_csv_name, str):
-            raise TypeError('new_csv_name must be passed a string! This '+
-                            'determines where to create the new csv from images'+
-                            'if it doesn\'t already exist!.')
-
-        # Raise an error if scaled_size is not a tuple of integers
-        if not isinstance(scaled_size, tuple):
-            raise TypeError('scaled_size is not a tuple! Please list dimensions as a tuple')
-
-        for element in scaled_size:
-            if not isinstance(element, int):
-                raise TypeError('scaled_size must be a tuple of integers!')
-
-        if not isinstance(grayscale, bool):
-            raise TypeError('grayscale must be a boolean! This determines if the'+
-                            'images are grayscale or in color. Default is False')
+        # # Raise an error if image_column_header is not a string
+        # if not isinstance(image_column_header, str):
+        #     raise TypeError('image_column_header must be passed a string! This '+
+        #                     'determines where to look for (or create) the column'+
+        #                     ' of image paths in the csv.')
+        #
+        # # Raise an error if image_directory_path is not a string
+        # if not isinstance(image_directory_path, str) or isinstance(image_directory_path, type(None)):
+        #     raise TypeError('image_directory_path must be passed a string, or left'+
+        #                     ' as None! This determines where to look for the folder of images,'+
+        #                     ' or says if it doesn\'t exist.')
+        #
+        # # Raise an error if the image_directory_path doesn't point to a directory
+        # if image_directory_path != None:
+        #     if not os.path.isdir(image_directory_path):
+        #         raise TypeError('image_directory_path must lead to a directory if '+
+        #                         'it is initialized! It is where the images are stored.')
+        #
+        # # Raise an error if csv_path is not a string
+        # if not isinstance(csv_path, str) or isinstance(csv_path, type(None)):
+        #     raise TypeError('csv_path must be passed a string, or left as None!'+
+        #                     ' This determines where to look for the csv,'+
+        #                     ' or says if it doesn\'t exist.')
+        #
+        # # Raise an error if the csv_path doesn't point to a file
+        # if csv_path != None:
+        #     if not os.path.isfile(csv_path):
+        #         raise TypeError('csv_path must lead to a file if it is initialized!'+
+        #                         ' This is the csv containing pointers to the images.')
+        #
+        # # Raise an error if image_column_header is not a string
+        # if not isinstance(new_csv_name, str):
+        #     raise TypeError('new_csv_name must be passed a string! This '+
+        #                     'determines where to create the new csv from images'+
+        #                     'if it doesn\'t already exist!.')
+        #
+        # # Raise an error if scaled_size is not a tuple of integers
+        # if not isinstance(scaled_size, tuple):
+        #     raise TypeError('scaled_size is not a tuple! Please list dimensions as a tuple')
+        #
+        # for element in scaled_size:
+        #     if not isinstance(element, int):
+        #         raise TypeError('scaled_size must be a tuple of integers!')
+        #
+        # if not isinstance(grayscale, bool):
+        #     raise TypeError('grayscale must be a boolean! This determines if the'+
+        #                     'images are grayscale or in color. Default is False')
 
             # Error checking for options I have not yet implemented!
         # # Just a dictionary of the two booleans for easy error checking
@@ -151,7 +151,7 @@ class ImageFeaturizer:
     def __init__(self,
                 depth = 1,
                 downsample = False,
-                downsample_size = None
+                downsample_size = 0
                 ):
 
         '''
@@ -190,7 +190,7 @@ class ImageFeaturizer:
                             ' downsample the featurizer, please set to True. '+
                             'Otherwise, leave blank for default configuration.')
 
-        if not (isinstance(downsample_size, int) or isinstance(downsample_size, type(None))):
+        if not isinstance(downsample_size, int):
                 raise TypeError('Tried to set downsample_size to a non-integer value!' +
                                 ' Please set to an integer or leave uninitialized.'+
                                 ' Recommended value is 1024 for depths 1,2, or 3,' +
@@ -218,13 +218,13 @@ class ImageFeaturizer:
         self.visualize = model.summary
 
         # Initializing preprocessing variables for after we load the images
-        self.data = None
-        self.csv_path = None
-        self.image_paths = None
+        self.data = np.empty((1))
+        self.csv_path = ''
+        self.image_paths = ''
 
 
         # Image scaling and cropping
-        self.scaled_size = None
-        self.crop_size = None
-        self.number_crops = None
-        self.isotropic_scaling = None
+        self.scaled_size = (0,0)
+        self.crop_size = (0,0)
+        self.number_crops = 0
+        self.isotropic_scaling = False

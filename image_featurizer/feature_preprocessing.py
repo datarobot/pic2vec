@@ -145,7 +145,7 @@ def _image_paths_finder(image_directory_path,csv_path,image_column_header,new_cs
     '''
 
     # CASE 1: They only give an image directory with no CSV
-    if csv_path == None:
+    if csv_path == '':
 
         # Find list of images from the image directory
         list_of_image_paths = _find_directory_image_paths(image_directory_path)
@@ -162,7 +162,7 @@ def _image_paths_finder(image_directory_path,csv_path,image_column_header,new_cs
 
 
     # CASE 2: They only give a CSV with no directory
-    elif image_directory_path == None:
+    elif image_directory_path == '':
         # Create the list_of_image_paths from the csv
         list_of_image_paths = _find_csv_image_paths(csv_path, image_column_header)
 
@@ -222,8 +222,8 @@ def convert_single_image(image_source, image_path, target_size=(299,299), graysc
 ############################################################
 
 def preprocess_data(image_column_header,
-                    image_directory_path=None,
-                    csv_path=None,
+                    image_directory_path='',
+                    csv_path='',
                     new_csv_name='featurizer_csv/generated_images_csv',
                     target_size=(299,299),
                     grayscale=False):
@@ -261,12 +261,61 @@ def preprocess_data(image_column_header,
     '''
 
     #------------------------------------------------#
-    ### ERROR CHECKING ###
+                    ### ERROR CHECKING ###
+
 
     # If there is no image directory or csv, then something is wrong.
-    if image_directory_path == None and csv_path == None:
+    if image_directory_path == '' and csv_path == '':
         raise ValueError('Need to load either an image directory or a CSV with \
                          URLs, if no image directory included.')
+
+    # Raise an error if image_column_header is not a string
+    if not isinstance(image_column_header, str):
+        raise TypeError('image_column_header must be passed a string! This '+
+                        'determines where to look for (or create) the column'+
+                        ' of image paths in the csv.')
+
+    # Raise an error if image_directory_path is not a string
+    if not isinstance(image_directory_path, str):
+        raise TypeError('image_directory_path must be passed a string, or left blank'+
+                        '! This determines where to look for the folder of images,'+
+                        ' or says if it doesn\'t exist.')
+
+    # Raise an error if the image_directory_path doesn't point to a directory
+    if image_directory_path != '':
+        if not os.path.isdir(image_directory_path):
+            raise TypeError('image_directory_path must lead to a directory if '+
+                            'it is initialized! It is where the images are stored.')
+
+    # Raise an error if csv_path is not a string
+    if not isinstance(csv_path, str):
+        raise TypeError('csv_path must be passed a string, or left blank!'+
+                        ' This determines where to look for the csv,'+
+                        ' or says if it doesn\'t exist.')
+
+    # Raise an error if the csv_path doesn't point to a file
+    if csv_path != '':
+        if not os.path.isfile(csv_path):
+            raise TypeError('csv_path must lead to a file if it is initialized!'+
+                            ' This is the csv containing pointers to the images.')
+
+    # Raise an error if image_column_header is not a string
+    if not isinstance(new_csv_name, str):
+        raise TypeError('new_csv_name must be passed a string! This '+
+                        'determines where to create the new csv from images'+
+                        'if it doesn\'t already exist!.')
+
+    # Raise an error if target_size is not a tuple of integers
+    if not isinstance(target_size, tuple):
+        raise TypeError('target_size is not a tuple! Please list dimensions as a tuple')
+
+    for element in target_size:
+        if not isinstance(element, int):
+            raise TypeError('target_size must be a tuple of integers!')
+
+    if not isinstance(grayscale, bool):
+        raise TypeError('grayscale must be a boolean! This determines if the'+
+                        'images are grayscale or in color. Default is False')
     #------------------------------------------------#
 
 
@@ -278,7 +327,7 @@ def preprocess_data(image_column_header,
     ### IMAGE RETRIEVAL AND VECTORIZATION ###
 
     # Find image source: whether from url or directory
-    if image_directory_path == None:
+    if image_directory_path == '':
         image_source = 'url'
 
     else:
@@ -298,7 +347,7 @@ def preprocess_data(image_column_header,
     # Create the full image tensor!
     i = 0
     for image in list_of_image_paths:
-        if image_directory_path != None:
+        if image_directory_path != '':
             image = image_directory_path+image
         full_image_data[i,:,:,:] = convert_single_image(image_source, image, target_size = target_size)
         i += 1

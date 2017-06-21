@@ -59,10 +59,13 @@ def _find_pooling_constant(features, num_pooled_features):
     int(pooling_constant): the integer pooling constant required to correctly
                            splice the tensor layer for downsampling
     '''
-
     # Initializing the outputs
     output_shape = features.shape
     num_features = output_shape[-1].__int__()
+
+    if num_pooled_features == 0:
+        raise ValueError('Can\'t pool to zero! Something wrong with parents functions-'+
+                         ' should not be able to pass 0 to this function. Check traceback.')
 
     # Find the pooling constant
     pooling_constant = num_features/float(num_pooled_features)
@@ -202,7 +205,7 @@ def _check_downsampling_mismatch(downsample, num_pooled_features, depth):
 
     # If num_pooled_features left uninitialized, and they want to downsample
     # perform automatic downsampling
-    if num_pooled_features == None and downsample == True:
+    if num_pooled_features == 0 and downsample == True:
         if depth == 4:
             temp_features=1280
             num_pooled_features = 640
@@ -216,7 +219,7 @@ def _check_downsampling_mismatch(downsample, num_pooled_features, depth):
 
     # If they have initialized num_pooled_features, but not turned on
     # downsampling, check that they don't actually want to downsample!
-    elif num_pooled_features != None and downsample == False:
+    elif num_pooled_features != 0 and downsample == False:
         msg = '\n \n You initialized num_pooled_features, but did not set '+\
               'downsample_features to True. Do you want to downsample?'
 
@@ -265,8 +268,7 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
     depth_to_number_of_layers = {1: 2, 2: 19, 3: 33, 4:50}
 
     # Find the right depth from the dictionary and decapitate the model
-    decapitated_layers = depth_to_number_of_layers[depth_of_featurizer]
-    _decapitate_model(model, decapitated_layers)
+    _decapitate_model(model, depth_to_number_of_layers[depth_of_featurizer])
 
     # Add pooling layer to the top of the now-decapitated model as the featurizer
     out = GlobalAvgPool2D(name='featurizer')(model.layers[-1].output)
