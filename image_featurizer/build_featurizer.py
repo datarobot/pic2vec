@@ -6,6 +6,8 @@ from keras.applications.inception_v3 import InceptionV3
 from keras.models import Model
 from keras.layers import GlobalAvgPool2D, Lambda, average
 
+
+
 def _decapitate_model(model, depth):
     '''
     This cuts off end layers of a model equal to the depth of the desired outputs,
@@ -31,13 +33,13 @@ def _decapitate_model(model, depth):
 
     # Make sure the depth isn't greater than the number of layers (minus input)
     if depth >= len(model.layers):
-        raise ValueError('Can\'t go deeper than the number of layers in the model!' +
-                         ' Tried to pop ' + str(depth) + 'layers, but model only has ' + str(len(model.layers)-1))
+        raise ValueError('Can\'t go deeper than the number of layers in the model!' \
+                         ' Tried to pop {} layers, but model only has {}'.format(depth, len(model.layers)-1))
     #------------------------------------------------#
 
 
     # Pop the layers
-    for layer in range(depth):
+    for layer in xrange(depth):
         model.layers.pop()
 
     # Break the connections
@@ -63,8 +65,8 @@ def _find_pooling_constant(features, num_pooled_features):
     output_shape = features.shape
     num_features = output_shape[-1].__int__()
 
-    if num_pooled_features == 0:
-        raise ValueError('Can\'t pool to zero! Something wrong with parents functions-'+
+    if not num_pooled_features:
+        raise ValueError('Can\'t pool to zero! Something wrong with parents functions-' \
                          ' should not be able to pass 0 to this function. Check traceback.')
 
     # Find the pooling constant
@@ -87,10 +89,10 @@ def _find_pooling_constant(features, num_pooled_features):
         # Store recommended downsample
         recommended_downsample = num_features/int(pooling_constant)
 
-        raise ValueError('Trying to downsample features to non-integer divisor: from ' +
-                         str(num_features)+ ' features to ' + str(num_pooled_features) + '.' +
-                         ' \n \n Did you mean to downsample to ' + str(recommended_downsample)
-                         + '? Regardless, please choose an integer divisor.')
+        raise ValueError('Trying to downsample features to non-integer divisor: ' \
+                         'from {} to {}.\n\n Did you mean to downsample to' \
+                         ' {}? Regardless, please choose an integer divisor.'\
+                         .format(num_features, num_pooled_features, recommended_downsample))
     #------------------------------------------------#
 
     # Cast the pooling constant back to an int from a float if it passes the tests
@@ -114,9 +116,6 @@ def _splice_layer(tensor, number_splices):
                                 indices across  splices
     '''
 
-    # Initializing list of spliced layers
-    list_of_spliced_layers=[]
-
     #------------------------------------------------#
     ### ERROR CHECKING ###
 
@@ -125,25 +124,21 @@ def _splice_layer(tensor, number_splices):
     num_features = tensor.shape[-1].__int__()
 
     if not isinstance(number_splices, int):
-        raise ValueError('Must have integer number of splices! Trying to splice into ' +
-                         str(number_splices) + ' parts.')
+        raise ValueError('Must have integer number of splices! Trying to splice into ' \
+                         '{} parts.'.format(number_splices))
 
-    if not num_features % number_splices == 0:
-        raise ValueError('Number of splices needs to be an integer divisor of' +
-                         ' the number of features! Tried to split ' + str(num_features)
-                         + ' features into ' + str(number_splices) + ' equal parts.')
+    if num_features % number_splices:
+        raise ValueError('Number of splices needs to be an integer divisor of' \
+                         ' the number of features! Tried to split {} features into' \
+                         ' {} equal parts.'.format(num_features, number_splices))
     #------------------------------------------------#
 
 
     # Split the tensor into equal parts by skipping nodes equal to the number
     # of splices. This allows for merge operations over neighbor features
 
-    for i in range(number_splices):
-        spliced_output = Lambda(lambda features: features[:, i::number_splices])(tensor)
-        list_of_spliced_layers.append(spliced_output)
-
-    return list_of_spliced_layers
-
+    return [Lambda(lambda features: features[:, i::number_splices]\
+            (tensor) for i in xrange(number_splices)]
 
 
 def _downsample_model_features(features, num_pooled_features):
