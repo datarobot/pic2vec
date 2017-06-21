@@ -163,14 +163,14 @@ def test_check_downsampling_mismatch():
     by other functions. Just need to check it returns the right values when needed.
     '''
 
-    assert _check_downsampling_mismatch(True,None,1) == (True, 1024)
-    assert _check_downsampling_mismatch(False,None,1) == (False, None)
-    assert _check_downsampling_mismatch(True,None,2) == (True, 1024)
-    assert _check_downsampling_mismatch(False,None,2) == (False, None)
-    assert _check_downsampling_mismatch(True,None,3) == (True, 1024)
-    assert _check_downsampling_mismatch(False,None,3) == (False, None)
-    assert _check_downsampling_mismatch(True,None,4) == (True, 640)
-    assert _check_downsampling_mismatch(False,None,4) == (False, None)
+    assert _check_downsampling_mismatch(True,0,1) == (True, 1024)
+    assert _check_downsampling_mismatch(False,0,1) == (False, 0)
+    assert _check_downsampling_mismatch(True,0,2) == (True, 1024)
+    assert _check_downsampling_mismatch(False,0,2) == (False, 0)
+    assert _check_downsampling_mismatch(True,0,3) == (True, 1024)
+    assert _check_downsampling_mismatch(False,0,3) == (False, 0)
+    assert _check_downsampling_mismatch(True,0,4) == (True, 640)
+    assert _check_downsampling_mismatch(False,0,4) == (False, 0)
 
 
 def test_initialize_model():
