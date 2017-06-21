@@ -33,7 +33,7 @@ test_requirements = [
 setup(
     name='image_featurizer',
     version='0.1.0',
-    description="Featurize images using a small, contained, pre-trained deep learning network",
+    description="Featurize images using a decapitated, pre-trained deep learning network",
     long_description=readme + '\n\n' + history,
     author="Jett Oristaglio",
     author_email='jettori88@gmail.com',
@@ -48,7 +48,7 @@ setup(
     install_requires=requirements,
     license="BSD license",
     zip_safe=False,
-    keywords='image_featurizer',
+    keywords=['image_featurizer','featurize']
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

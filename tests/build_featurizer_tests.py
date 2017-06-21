@@ -16,16 +16,8 @@ random.seed(5102020)
 
 def test_decapitate_model():
     '''
-    This test creates a toy network, and checks that it calls the right errors:
-        If it is not passed a Model object
-        If it is passed a non-integer depth
-        If the depth given is >= (# of layers) - 1
-
-    And checks that it decapitates the network correctly:
-            It cuts the network to the correct depth
-            It clears the new top layer's outward connections
-            It updates the model output to the new top layer
-            It maintains the shape and integrity of the new top layer
+    This test creates a toy network, and checks that it calls the right errors
+    and checks that it decapitates the network correctly:
     '''
     # Create model
     model = Sequential([
@@ -65,14 +57,9 @@ def test_decapitate_model():
 
 def test_splice_layer():
     '''
-    This test creates a toy tensor to splice, and checks that it raises errors:
-        If it is given a non-integer number of slices
-        If the number of slices is not an integer divisor of the feature space
-
-    And checks that it splices the tensor correctly:
-        It outputs a list of spliced layers with the correct dimensionality,
-        and that are merged to the correct hand-checked tensor
+    Test method splices tensors correctly
     '''
+    # Create toy tensor
     tensor = K.constant(3, shape=(3,12))
 
     # Check for Value Error with non-integer number of slices
@@ -104,13 +91,8 @@ def test_splice_layer():
 
 def test_find_pooling_constant():
     '''
-    This test creates a toy tensor to pool, and checks that it raises errors:
-        If the number of 'downsampled' features is greater than size of the feature space
-        If the pool is not an integer divisor of the feature space
-
-    And checks that it returns the correct pooling factor when formatted correctly:
-        It automatically calculates the required pooling factor to splice the tensor
-        in order to downsample to the desired feature space.
+    Test method returns correct pooling constant, and raises errors with
+    badly formatted or incorrectly sized inputs
     '''
     features = K.constant(2, shape=(3,60))
 
@@ -131,7 +113,7 @@ def test_find_pooling_constant():
 
 def test_downsample_model_features():
     '''
-    This integration test creates a toy numpy array, and checks that the function
+    Test creates a toy numpy array, and checks that the method
     correctly downsamples the array into a hand-checked tensor
     '''
     # Create the spliced and averaged tensor via downsampling function
@@ -155,27 +137,29 @@ def test_downsample_model_features():
 
 def test_check_downsampling_mismatch():
     '''
-    This test checks with the user if their downsample flag doesn't match
-    their input for the downsample_size (i.e. if they set flag to true but didn't
-    specify the downsample_size, or if they set flag to false but did specify one).
-
-    Not much error testing needed here because it will get passed through and handled
-    by other functions. Just need to check it returns the right values when needed.
+    Test method correctly returns from mismatched downsample flags and inputs
     '''
 
+    # Depth 1
     assert _check_downsampling_mismatch(True,0,1) == (True, 1024)
     assert _check_downsampling_mismatch(False,0,1) == (False, 0)
+
+    # Depth 2
     assert _check_downsampling_mismatch(True,0,2) == (True, 1024)
     assert _check_downsampling_mismatch(False,0,2) == (False, 0)
+
+    # Depth 3
     assert _check_downsampling_mismatch(True,0,3) == (True, 1024)
     assert _check_downsampling_mismatch(False,0,3) == (False, 0)
+
+    # Depth 4
     assert _check_downsampling_mismatch(True,0,4) == (True, 640)
     assert _check_downsampling_mismatch(False,0,4) == (False, 0)
 
 
 def test_initialize_model():
     '''
-    This test initializes the non-decapitated network, and checks that it correctly
+    Test initializes the non-decapitated network, and checks that it correctly
     loaded the weights by checking its batch prediction on a pre-calculated, saved tensor.
     '''
 
