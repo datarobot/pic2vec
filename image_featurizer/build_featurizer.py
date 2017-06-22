@@ -258,7 +258,7 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
     '''
 
     ### BUILDING INITIAL MODEL ###
-    model = _initialize_model(target_size)
+    model = _initialize_model()
     ### DECAPITATING MODEL ###
 
     # Choosing model depth:

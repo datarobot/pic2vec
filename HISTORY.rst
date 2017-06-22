@@ -12,3 +12,8 @@ History
 
 * Second release on PyPI.
 * Install keras with tensorflow backend specifically
+
+0.2.1 (2017-06-22)
+------------------
+
+* Bug fixes
