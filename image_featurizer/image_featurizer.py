@@ -15,7 +15,6 @@ class ImageFeaturizer:
     This object can load images, rescale, crop, and vectorize them into a
     uniform batch, and then featurize the images for use with custom classifiers.
     '''
-
     def load_and_featurize_data(self,
                   image_column_header,
                   image_directory_path='',
@@ -69,6 +68,12 @@ class ImageFeaturizer:
             #                 then cropped to correct size
         '''
 
+        # If new csv_path is being generated, make sure
+        # the folder exists!
+        if (csv_path==''):
+            if not os.path.isdir(os.path.dirname(new_csv_name)):
+                os.makedirs(os.path.dirname(new_csv_name))
+
         # Save the full image tensor, the path to the csv, and the list of image paths
         (full_image_data, csv_path, list_of_image_paths) = \
             preprocess_data(image_column_header, image_directory_path, csv_path,
@@ -79,13 +84,13 @@ class ImageFeaturizer:
         self.csv_path = csv_path
         self.image_list = list_of_image_paths
         self.image_column_header = image_column_header
-
+        self.scaled_size = scaled_size
 
 
 
     def featurize(self):
         print("Checking array initialized.")
-        if np.array_equal(self.data, np.empty((1))):
+        if np.array_equal(self.data, np.zeros((1))):
             return IOError('Must load data into the model first! Call load_data.')
 
         print("Trying to featurize data!")
@@ -163,9 +168,11 @@ class ImageFeaturizer:
         self.visualize = model.summary
 
         # Initializing preprocessing variables for after we load the images
-        self.data = np.empty((1))
+        self.data = np.zeros((1))
+        self.featurized_data = np.zeros((1))
         self.csv_path = ''
         self.image_list = ''
+        self.image_column_header = ''
 
 
         # Image scaling and cropping
