@@ -201,7 +201,7 @@ class ImageFeaturizer:
     def featurize(self):
         print("Checking array initialized.")
         if np.array_equal(self.data, np.zeros((1))):
-            return IOError('Must load data into the model first! Call load_data.')
+            raise IOError('Must load data into the model first! Call load_data.')
 
         print("Trying to featurize data!")
         self.featurized_data = featurize_data(self.model, self.data)
