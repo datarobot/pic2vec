@@ -41,8 +41,8 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
 
     df_full = pd.concat([df, df_features], axis=1)
 
-    df_features.to_csv('csv_with_features', index=False)
+    df_features.to_csv('{}_features_only'.format(csv_path), index=False)
 
-    df_full.to_csv('{}_full'.format(csv_path))
+    df_full.to_csv('{}_full'.format(csv_path), index=False)
 
     return df_full

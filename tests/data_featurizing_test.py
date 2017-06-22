@@ -2,8 +2,12 @@ from keras.models import Sequential
 from keras.layers import Conv2D, Dense, Activation, Flatten
 
 import pytest
-import numpy as np
 import random
+import filecmp
+import os
+
+import pandas as pd
+import numpy as np
 
 from image_featurizer.data_featurizing import featurize_data, features_to_csv
 
@@ -37,4 +41,37 @@ def test_featurize_data():
     assert np.array_equal(featurize_data(model, init_array), check_array)
 
 def test_features_to_csv():
-    check_csv = 'tests/data_featurizing_testing/csv_testing/featurize_data_test_csv'
+    check_csv_images = 'tests/data_featurizing_testing/csv_testing/featurize_data_check_csv_images'
+    check_csv_full = 'tests/data_featurizing_testing/csv_testing/featurize_data_check_csv_full'
+
+
+    check_array = np.array([[1.,2.,3.],
+                            [4.,5.,6.],
+                            [0.,0.,0.],
+                            [7.,8.,9.]
+                            ])
+
+    error_array = np.zeros((4,3,2))
+
+    check_image_list = ['borges.jpg', 'arendt.bmp', 'sappho.png']
+
+    if os.path.isfile('{}_full'.format(check_csv_images)):
+        os.remove('{}_full'.format(check_csv_images))
+    if os.path.isfile('{}_features_only'.format(check_csv_images)):
+        os.remove('{}_features_only'.format(check_csv_images))
+
+    with pytest.raises(ValueError):
+        error_df = features_to_csv(check_array, check_csv_images, 'derp',check_image_list)
+    with pytest.raises(ValueError):
+        error_df = features_to_csv(error_array, check_csv_images, 'images',check_image_list)
+
+
+    full_test_dataframe = features_to_csv(check_array, check_csv_images, 'images',check_image_list)
+
+
+
+    assert np.array_equal(full_test_dataframe, pd.read_csv(check_csv_full))
+    assert filecmp.cmp('{}_full'.format(check_csv_images),check_csv_full)
+
+    os.remove('{}_full'.format(check_csv_images))
+    os.remove('{}_features_only'.format(check_csv_images))
