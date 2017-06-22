@@ -32,13 +32,13 @@ You can either clone the public repository:
 
 .. code-block:: console
 
-    $ git clone git://github.com/joristaglio/image_featurizer
+    $ git clone git://github.com/datarobot/imagefeaturizer
 
 Or download the `tarball`_:
 
 .. code-block:: console
 
-    $ curl  -OL https://github.com/joristaglio/image_featurizer/tarball/master
+    $ curl  -OL https://github.com/datarobot/imagefeaturizer/tarball/master
 
 Once you have a copy of the source, you can install it with:
 
@@ -47,5 +47,5 @@ Once you have a copy of the source, you can install it with:
     $ python setup.py install
 
 
-.. _Github repo: https://github.com/joristaglio/image_featurizer
-.. _tarball: https://github.com/joristaglio/image_featurizer/tarball/master
+.. _Github repo: https://github.com/datarobot/imagefeaturizer
+.. _tarball: https://github.com/datarobot/imagefeaturizer/tarball/master

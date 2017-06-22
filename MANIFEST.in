@@ -3,7 +3,6 @@ include CONTRIBUTING.rst
 include HISTORY.rst
 include LICENSE
 include README.rst
-include image_featurizer/model/inception_v3_weights_tf_dim_ordering_tf_kernels.h5
 
 recursive-include tests *
 recursive-exclude * __pycache__
