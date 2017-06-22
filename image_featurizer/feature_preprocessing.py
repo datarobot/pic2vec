@@ -161,7 +161,7 @@ def _image_paths_finder(image_directory_path,csv_path,image_column_header,new_cs
         _create_csv_with_image_paths(list_of_image_paths, new_csv_name=new_csv_name,\
                                     image_column_header=image_column_header)
 
-        print('Created csv from directory!')
+        print('Created csv from directory! Stored at {}'.format(new_csv_name))
 
     # CASE 2: They only give a CSV with no directory
     elif image_directory_path == '':
@@ -346,7 +346,7 @@ def preprocess_data(image_column_header,
     else:
         channels = 3
 
-    full_image_data = np.empty((num_images,target_size[0], target_size[1],channels))
+    full_image_data = np.zeros((num_images,target_size[0], target_size[1],channels))
 
     # Create the full image tensor!
     i = 0

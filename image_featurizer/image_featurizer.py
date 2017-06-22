@@ -60,7 +60,7 @@ class ImageFeaturizer:
         # Save all of the necessary data to the featurizer!
         self.data = full_image_data
         self.csv_path = csv_path
-        self.image_paths = list_of_image_paths
+        self.image_list = list_of_image_paths
         self.image_column_header = image_column_header
 
 
@@ -72,7 +72,7 @@ class ImageFeaturizer:
         print("Trying to featurize data!")
         self.featurized_data = featurize_data(self.model, self.data)
 
-        features_to_csv(self.featurized_data, self.csv_path, self.image_column_header, self.image_paths)
+        features_to_csv(self.featurized_data, self.csv_path, self.image_column_header, self.image_list)
 
 
     def __init__(self,
@@ -147,7 +147,7 @@ class ImageFeaturizer:
         # Initializing preprocessing variables for after we load the images
         self.data = np.empty((1))
         self.csv_path = ''
-        self.image_paths = ''
+        self.image_list = ''
 
 
         # Image scaling and cropping

@@ -36,14 +36,15 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
 
     num_features = full_feature_array.shape[1]
 
-    i = 0
     print('Adding image features to csv!')
 
+    print num_features
     array_column_headers = ['image_feature_{}'.format(str(feature)) for feature in xrange(num_features)]
+    print(array_column_headers)
+    df_features = pd.DataFrame(data=full_feature_array, columns=array_column_headers)
 
-    df_features = full_feature_array
+    df = pd.concat([df, df_features])
 
-
-        i += 1
+    df_features.to_csv('csv_with_features', index=False)
 
     df.to_csv(csv_path)

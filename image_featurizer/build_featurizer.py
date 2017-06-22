@@ -137,8 +137,7 @@ def _splice_layer(tensor, number_splices):
     # Split the tensor into equal parts by skipping nodes equal to the number
     # of splices. This allows for merge operations over neighbor features
 
-    return [Lambda(lambda features: features[:, i::number_splices]\
-            (tensor) for i in xrange(number_splices)]
+    return [Lambda(lambda features: features[:, i::number_splices])(tensor) for i in xrange(number_splices)]
 
 
 def _downsample_model_features(features, num_pooled_features):
