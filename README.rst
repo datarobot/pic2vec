@@ -6,15 +6,15 @@ Image Featurizer
 .. image:: https://img.shields.io/pypi/v/image_featurizer.svg
         :target: https://pypi.python.org/pypi/image_featurizer
 
-.. image:: https://img.shields.io/travis/joristaglio/image_featurizer.svg
-        :target: https://travis-ci.org/joristaglio/image_featurizer
+.. image:: https://img.shields.io/travis/datarobot/imagefeaturizer.svg
+        :target: https://travis-ci.org/datarobot/imagefeaturizer
 
 .. image:: https://readthedocs.org/projects/image-featurizer/badge/?version=latest
         :target: https://image-featurizer.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://pyup.io/repos/github/joristaglio/image_featurizer/shield.svg
-     :target: https://pyup.io/repos/github/joristaglio/image_featurizer/
+.. image:: https://pyup.io/repos/github/datarobot/imagefeaturizer/shield.svg
+     :target: https://pyup.io/repos/github/datarobot/imagefeaturizer/
      :alt: Updates
 
 

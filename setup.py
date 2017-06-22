@@ -14,6 +14,7 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     'Click>=6.0',
     'numpy',
+    'tensorflow',
     'keras',
     'pandas',
     'Pillow',
@@ -25,14 +26,14 @@ setup_requirements = [
 ]
 
 test_requirements = [
+    'numpy'
     'pytest',
     'keras',
-    'numpy'
 ]
 
 setup(
     name='image_featurizer',
-    version='0.1.0',
+    version='0.2.0',
     description="Featurize images using a decapitated, pre-trained deep learning network",
     long_description=readme + '\n\n' + history,
     author="Jett Oristaglio",
