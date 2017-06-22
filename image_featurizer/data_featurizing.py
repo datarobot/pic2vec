@@ -16,9 +16,6 @@ def featurize_data(model, array):
     print('Creating feature array!')
     full_feature_array = model.predict(array, verbose=1)
 
-    if full_feature_array.shape[0] != array.shape[0]:
-        raise ValueError('Prediction changed batch size or array shape!')
-
     print('Feature array created successfully.')
     return full_feature_array
 
@@ -40,11 +37,12 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
 
     print num_features
     array_column_headers = ['image_feature_{}'.format(str(feature)) for feature in xrange(num_features)]
-    print(array_column_headers)
     df_features = pd.DataFrame(data=full_feature_array, columns=array_column_headers)
 
-    df = pd.concat([df, df_features])
+    df_full = pd.concat([df, df_features], axis=1)
 
     df_features.to_csv('csv_with_features', index=False)
 
-    df.to_csv(csv_path)
+    df_full.to_csv('{}_full'.format(csv_path))
+
+    return df_full
