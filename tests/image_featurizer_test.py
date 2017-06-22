@@ -67,9 +67,12 @@ def test_ImageFeaturizer():
     f = ImageFeaturizer()
     test_featurizer_class(f, 0, '',False, '', '', (0,0),1,np.zeros((1)),np.zeros((1)))
 
+    print f.data
+
     # Raise error if attempting to featurize before loading data
     with pytest.raises(IOError):
         f.featurize()
+
 
     # Check loading the data
     f.load_data('images',image_directory_path='tests/preprocessing_testing/test_images/',\
@@ -79,6 +82,7 @@ def test_ImageFeaturizer():
 
     # Check featurization
     f.featurize()
+
     test_featurizer_class(f, 0, 'images',False, test_csv_name,\
         ['arendt.bmp','borges.jpg','sappho.png'], (299,299),1,check_features,check_data_array)
 
