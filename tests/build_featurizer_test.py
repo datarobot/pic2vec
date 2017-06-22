@@ -187,7 +187,7 @@ def test_initialize_model():
 def test_build_featurizer():
     '''
     This integration test builds the full featurizer, and checks that it
-    correctly featurizers a pre-checked test image with multiple options
+    correctly builds the model with multiple options
     '''
     def check_featurizer(model,length, output_shape):
         assert len(model.layers)==length
