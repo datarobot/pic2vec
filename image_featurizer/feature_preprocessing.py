@@ -370,7 +370,7 @@ def preprocess_data(image_column_header,
 
             # Progress Report
             if not i%100:
-                print('Converted another 100 images! Only {} images left to go!'.format(num_images-i))
+                print('Converted {} images! Only {} images left to go!'.format(i,num_images-i))
 
             i += 1
 

@@ -264,22 +264,13 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
     num_output_features = model_output.shape[-1].__int__()
     print("Model decapitated!")
 
-    # Checking that the user's downsampling flag matches the initialization of the downsampling
-    (downsample, num_pooled_features) = _check_downsampling_mismatch(downsample, num_pooled_features, depth_of_featurizer)
 
-    #------------------------------------------------#
-                ### ERROR CHECKING ###
-    # Check that the model's output shape == (None, number_of_features),
-    # with only 2 dimensions!
-    if not model.layers[-1].output_shape == (None, num_output_features):
-        raise ValueError('Something wrong with output! Should have shape: (None, ' \
-                        '{}). Actually has shape: {}'\
-                        .format(num_pooled_features,model.layers[-1].output_shape))
-
-    #------------------------------------------------#
 
 
     ### DOWNSAMPLING FEATURES ###
+
+    # Checking that the user's downsampling flag matches the initialization of the downsampling
+    (downsample, num_pooled_features) = _check_downsampling_mismatch(downsample, num_pooled_features, depth_of_featurizer)
 
     # If we are downsampling the features, we add a pooling layer to the outputs
     # to bring it to the correct size.
