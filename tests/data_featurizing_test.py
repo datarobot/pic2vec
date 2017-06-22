@@ -33,7 +33,8 @@ def test_featurize_data():
     with pytest.raises(ValueError):
         featurize_data(model, error_array)
 
-    check_array = np.load('tests/data_featurizing_testing/test_arrays/check_featurize.npy')
+    check_array = np.load('tests/data_featurizing_testing/array_testing/check_featurize.npy')
     assert np.array_equal(featurize_data(model, init_array), check_array)
 
-#def test_features_to_csv():
+def test_features_to_csv():
+    check_csv = 'tests/data_featurizing_testing/csv_testing/featurize_data_test_csv'

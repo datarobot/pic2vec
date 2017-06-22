@@ -16,6 +16,23 @@ class ImageFeaturizer:
     uniform batch, and then featurize the images for use with custom classifiers.
     '''
 
+    def load_and_featurize_data(self,
+                  image_column_header,
+                  image_directory_path='',
+                  csv_path='',
+                  new_csv_name='featurizer_csv/generated_images_csv',
+                  scaled_size = (299, 299),
+                  grayscale=False
+
+                   #crop_size = (299, 299),
+                   #number_crops = 0,
+                   #random_crop = False,
+                   #isotropic_scaling = True
+                  ):
+        load_data(*args, **kwargs)
+        return featurize()
+
+
     def load_data(self,
                   image_column_header,
                   image_directory_path='',
@@ -64,6 +81,8 @@ class ImageFeaturizer:
         self.image_column_header = image_column_header
 
 
+
+
     def featurize(self):
         print("Checking array initialized.")
         if np.array_equal(self.data, np.empty((1))):
@@ -72,8 +91,7 @@ class ImageFeaturizer:
         print("Trying to featurize data!")
         self.featurized_data = featurize_data(self.model, self.data)
 
-        features_to_csv(self.featurized_data, self.csv_path, self.image_column_header, self.image_list)
-
+        return features_to_csv(self.featurized_data, self.csv_path, self.image_column_header, self.image_list)
 
     def __init__(self,
                 depth = 1,
