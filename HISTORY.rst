@@ -17,3 +17,8 @@ History
 ------------------
 
 * Bug fixes
+
+0.2.2(2017-06-22)
+------------------
+
+* Full requirements for keras imported
