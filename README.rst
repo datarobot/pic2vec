@@ -28,7 +28,6 @@ Featurize images using a small, contained pre-trained deep learning network
 Features
 --------
 
-* TODO
 
 Credits
 ---------
@@ -37,4 +36,3 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
-
