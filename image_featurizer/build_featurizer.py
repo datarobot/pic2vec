@@ -7,17 +7,51 @@ from keras.models import Model
 from keras.layers import GlobalAvgPool2D, Lambda, average
 
 
+def _initialize_model():
+    '''
+    This function initializes the InceptionV3 model with the saved weights, or
+    if it can't find the weight file, it loads them automatically through Keras.
+
+    Parameters:
+    ----------
+        None
+
+    Returns:
+    -------
+        model: The initialized InceptionV3 model loaded with pre-trained weights
+    '''
+
+    # Create path to the saved model
+    this_dir, this_filename = os.path.split(__file__)
+    model_path = os.path.join(this_dir, "model", "inception_v3_weights_tf_dim_ordering_tf_kernels.h5")
+
+    # Initialize the model. If weights are already downloaded, pull them.
+    if os.path.isfile(model_path):
+        model = InceptionV3(weights=None)
+        model.load_weights(model_path)
+        print("\nModel initialized and weights loaded successfully!")
+
+    # Otherwise, download them automatically
+    else:
+        print('\nCan\'t find weight file. Need to download weights from Keras!')
+        model = InceptionV3()
+        print("\nModel successfully initialized.")
+
+    return model
+
 
 def _decapitate_model(model, depth):
     '''
     This cuts off end layers of a model equal to the depth of the desired outputs,
     and then removes the links connecting the new outer layer to the old ones.
 ``
-    ## Parameters: ###
+    Parameters:
+    ----------
         model: The model being decapitated
         depth: The number of layers to pop off the top of the network
 
-    ### Output: ###
+    Returns:
+    -------
         No output. This function operates on the model directly.
     '''
 
@@ -53,11 +87,13 @@ def _find_pooling_constant(features, num_pooled_features):
     Given a tensor and an integer divisor for the desired downsampled features,
     this will downsample the tensor to the desired number of features
 
-    ### Parameters: ###
+    Parameters:
+    ----------
     features: the tensor to be downsampled
     num_pooled_features: the desired number of features to downsample to
 
-    ### Outputs: ###
+    Returns:
+    -------
     int(pooling_constant): the integer pooling constant required to correctly
                            splice the tensor layer for downsampling
     '''
@@ -104,13 +140,15 @@ def _splice_layer(tensor, number_splices):
     even slices through skipping. This downsamples the layer, and allows for
     operations to be performed over neighbors.
 
-    ### Parameters: ###
+    Parameters:
+    ----------
         layer: the layer being spliced
 
         number_splices: the number of new layers the original layer is being spliced into.
                         NOTE: must be integer divisor of layer
 
-    ### Output: ###
+    Returns:
+    -------
         list_of_spliced_layers: a list of the spliced sections of the original
                                 layer, with neighboring nodes occupying the same
                                 indices across  splices
@@ -144,12 +182,14 @@ def _downsample_model_features(features, num_pooled_features):
     '''
     This takes in a layer of a model, and downsamples layer to a specified size
 
-    ### Parameters: ###
+    Parameters:
+    ----------
         features: the layer being downsampled
 
         size_of_downsample: the size that the features are being downsampled to
 
-    ### Output: ###
+    Returns:
+    -------
         downsampled_features: a tensor containing the downsampled features with
                               size = (?, num_pooled_features)
     '''
@@ -164,36 +204,6 @@ def _downsample_model_features(features, num_pooled_features):
     downsampled_features = average(list_of_spliced_layers)
 
     return downsampled_features
-
-def _initialize_model():
-    '''
-    This function initializes the InceptionV3 model with the saved weights, or
-    if it can't find the weight file, it loads them automatically through Keras.
-
-    ### Parameters: ###
-        None
-
-    ### Output: ###
-        model: The initialized InceptionV3 model loaded with pre-trained weights
-    '''
-
-    # Create path to the saved model
-    this_dir, this_filename = os.path.split(__file__)
-    model_path = os.path.join(this_dir, "model", "inception_v3_weights_tf_dim_ordering_tf_kernels.h5")
-
-    # Initialize the model. If weights are already downloaded, pull them.
-    if os.path.isfile(model_path):
-        model = InceptionV3(weights=None)
-        model.load_weights(model_path)
-        print("\nModel initialized and weights loaded successfully!")
-
-    # Otherwise, download them automatically
-    else:
-        print('\nCan\'t find weight file. Need to download weights from Keras!')
-        model = InceptionV3()
-        print("\nModel successfully initialized.")
-
-    return model
 
 def _check_downsampling_mismatch(downsample, num_pooled_features, depth):
 
@@ -227,7 +237,8 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
         Check if downsampling top-layer featurization
         If so, downsample to the desired feature space
 
-    ### Parameters: ###
+    Parameters:
+    ----------
         depth_of_featurizer: How deep to cut the network. Can be 1, 2, 3, or 4.
 
         downsample: Boolean indicating whether to perform downsampling
@@ -235,7 +246,8 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
         num_pooled_features: If we downsample, integer determining how small to downsample.
                              NOTE: Must be integer divisor of original number of features
 
-    ### Output: ###
+    Returns:
+    -------
         model: The decapitated, potentially downsampled, pre-trained image featurizer.
 
                With no downsampling, the output features are equal to the top densely-
@@ -246,7 +258,7 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
     '''
 
     ### BUILDING INITIAL MODEL ###
-    model = _initialize_model()
+    model = _initialize_model(target_size)
     ### DECAPITATING MODEL ###
 
     # Choosing model depth:

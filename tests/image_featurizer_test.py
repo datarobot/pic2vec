@@ -5,6 +5,10 @@ import os
 import pytest
 
 def test_ImageFeaturizer():
+    '''
+    Test the featurizer raises the necessary errors and performs its functions correctly
+    '''
+
     def test_featurizer_class(featurizer,
                               downsample_size,
                               image_column_header,
@@ -15,6 +19,11 @@ def test_ImageFeaturizer():
                               depth,
                               featurized_data,
                               data):
+
+        '''
+        This internal method simple checks the necessary assertions for
+        a featurizer image
+        '''
         assert featurizer.downsample_size == downsample_size
         assert featurizer.image_column_header == image_column_header
         assert featurizer.downsample == downsample
@@ -80,5 +89,5 @@ def test_ImageFeaturizer():
     test_featurizer_class(f, 0, 'images',False, test_csv_name,\
         ['arendt.bmp','borges.jpg','sappho.png'], (299,299),1,check_features,check_data_array)
 
-
+    # Remove the created csv after test finished
     shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')

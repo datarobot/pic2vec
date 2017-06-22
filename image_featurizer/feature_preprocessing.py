@@ -20,10 +20,12 @@ def _create_csv_with_image_paths(list_of_image_paths, new_csv_name, image_column
     This takes in a list of image names, and creates a new csv file where each
     image name is a new row
 
-    ### Parameters: ###
+    Parameters:
+    ----------
         list_of_image_paths: a sorted list containing each of the image names
 
-    ### Output: ###
+    Returns:
+    -------
         None. This simply builds a csv with each row holding the name of an
         image file, and saves it to the csv_name path
     '''
@@ -37,10 +39,12 @@ def _find_directory_image_paths(image_directory):
     This takes in an directory and parses which files in it are valid images for
     loading into the featurizer.
 
-    ### Parameters: ###
+    Parameters:
+    ----------
         image_directory: the filepath to the directory containing the images
 
-    ### Output: ###
+    Returns:
+    -------
         valid_image_paths: the list of full paths to each valid image
     '''
 
@@ -59,12 +63,14 @@ def _find_csv_image_paths(csv_path, image_column_header):
     '''
     Find the image paths in a csv without an image directory
 
-    ### Parameters: ###
+    Parameters:
+    ----------
         csv_path: string of the path to the csv
 
         image_column_header: string of the column containing the image paths
 
-    ### Output: ###
+    Returns:
+    -------
         list_of_image_paths: a list of the image paths contained in the csv
     '''
 
@@ -88,14 +94,16 @@ def _find_combined_image_paths(image_directory_path,csv_path, image_column_heade
     Find the image paths of a csv combined with a directory: take only the overlap
     to avoid errors
 
-    ### Parameters: ###
+    Parameters:
+    ----------
         image_directory_path: string of the path to the provided image directory
 
         csv_path: string of the path to the provided csv
 
         image_column_header: string of the column in the csv containing image paths
 
-    ### Output: ###
+    Returns:
+    -------
         list_of_image_paths: list of image paths contained in both the csv and directory
 
     '''
@@ -128,7 +136,8 @@ def _image_paths_finder(image_directory_path,csv_path,image_column_header,new_cs
     If it's just a directory, it's pulled from the directory. If it's both,
     the list is checked from the overlap between the directory and the csv.
 
-    ### Parameters: ###
+    Parameters:
+    ----------
         image_directory_path: string containing path to the image directory,
                               if it exists
 
@@ -139,7 +148,8 @@ def _image_paths_finder(image_directory_path,csv_path,image_column_header,new_cs
 
         new_csv_name: the name for the csv generated if one is not provided
 
-    ### Output: ###
+    Returns:
+    -------
         list_of_image_paths: a sorted list of the paths to all the images being
                              featurized
     '''
@@ -181,7 +191,8 @@ def convert_single_image(image_source, image_path, target_size=(299,299), graysc
     and converts the image to a preprocessed 4D numpy array, ready to be plugged
     into the featurizer.
 
-    ### Parameters: ###
+    Parameters:
+    ----------
         image_header_type: either 'from_url' or 'from_directory', depending on
                            where the images are stored
         image_path: either the URL or the full path to the image
@@ -190,7 +201,8 @@ def convert_single_image(image_source, image_path, target_size=(299,299), graysc
 
         grayscale: a boolean indicating whether the image is grayscale or not
 
-    ### Output: ###
+    Returns:
+    -------
         image_array: a numpy array that represents the loaded and preprocessed image
     '''
 
@@ -228,7 +240,8 @@ def preprocess_data(image_column_header,
     the list of valid images, and then converts each to an array and adds
     them to the full batch.
 
-    ### Parameters: ###
+    Parameters:
+    ----------
         image_directory_path: the path to the image directory, if it is being passed
 
         csv_path: the path to the csv, if it is being passed
@@ -243,7 +256,8 @@ def preprocess_data(image_column_header,
 
         grayscale: boolean describing if the images are grayscale or not
 
-    ### Output: ###
+    Returns:
+    -------
         full_image_data: a 4D numpy tensor containing all of the vectorized images
                         to be pushed through the featurizer
 
