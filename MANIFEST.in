@@ -8,4 +8,6 @@ recursive-include tests *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 
+exclude image_featurizer/model/inception_v3_weights_tf_dim_ordering_tf_kernels.h5
+
 recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
