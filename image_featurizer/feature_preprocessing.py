@@ -150,13 +150,6 @@ def _image_paths_finder(image_directory_path,csv_path,image_column_header,new_cs
         # Find list of images from the image directory
         list_of_image_paths = _find_directory_image_paths(image_directory_path)
 
-        # Warn user if new csv is generated and they haven't passed in their own
-        # value.
-        if new_csv_name == 'featurizer_csv/generated_images_csv':
-             warning.warn('Creating new csv, but new_csv_name was not passed in.'\
-                          ' Initializing to path \'./featurizer_csv/generated_images_csv\'. ')
-
-
         # Create the new csv in a folder called 'featurizer_csv/'
         _create_csv_with_image_paths(list_of_image_paths, new_csv_name=new_csv_name,\
                                     image_column_header=image_column_header)
@@ -312,7 +305,7 @@ def preprocess_data(image_column_header,
         raise TypeError('target_size is not a tuple! Please list dimensions as a tuple')
 
     for element in target_size:
-        if not isinstance(element, int):
+        if not (isinstance(element, int) and not isinstance(element, bool)) :
             raise TypeError('target_size must be a tuple of integers!')
 
     if not isinstance(grayscale, bool):
@@ -371,7 +364,7 @@ def preprocess_data(image_column_header,
                 image = '{}{}'.format(image_directory_path, image)
 
             # Place the vectorized image into the image data
-            full_image_data[i,:,:,:] = convert_single_image(image_source, image, target_size = target_size)
+            full_image_data[i,:,:,:] = convert_single_image(image_source, image, target_size = target_size, grayscale=grayscale)
 
             # Add the index to the dictionary to check in the future
 

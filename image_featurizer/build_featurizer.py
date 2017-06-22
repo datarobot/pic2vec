@@ -207,24 +207,15 @@ def _check_downsampling_mismatch(downsample, num_pooled_features, depth):
             temp_features = 2048
             num_pooled_features = 1024
 
-        print('Automatic downsampling to ' + str(num_pooled_features) +\
-              '. If you would like to set custom downsampling, pass in an ' +\
-              'integer divisor of ' + str(temp_features) + ' to num_pooled_features!')
+        print('Automatic downsampling to {}. If you would like to set custom '
+              'downsampling, pass in an integer divisor of {} to '
+              'num_pooled_features!'.format(num_pooled_features,temp_features))
 
     # If they have initialized num_pooled_features, but not turned on
     # downsampling, check that they don't actually want to downsample!
     elif num_pooled_features != 0 and downsample == False:
-        msg = '\n \n You initialized num_pooled_features, but did not set '+\
-              'downsample_features to True. Do you want to downsample?'
-
-        # Potential "yes" answers
-        valid = ['y', 'yes', 'ye', 'ya', 'yeah', 'yep']
-        downsample = raw_input("%s (y/N) " % msg).lower() in valid
-
-        if downsample:
-            print("Ok! Downsampling to " + str(num_pooled_features))
-        else:
-            print("All right, no downsampling.")
+        print('\n \n Downsampling to {}.'.format(num_pooled_features))
+        downsample = True
 
     return (downsample, num_pooled_features)
 
@@ -278,11 +269,13 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
 
     #------------------------------------------------#
                 ### ERROR CHECKING ###
-    # Check that the model's output shape = (None, number_of_features)
+    # Check that the model's output shape == (None, number_of_features),
+    # with only 2 dimensions!
     if not model.layers[-1].output_shape == (None, num_output_features):
-        raise ValueError('Something wrong with output! Should have shape: (None, '
-                        + str(num_pooled_features)+ ')' + '. Actually has shape: '
-                        + str(model.layers[-1].output_shape))
+        raise ValueError('Something wrong with output! Should have shape: (None, ' \
+                        '{}). Actually has shape: {}'\
+                        .format(num_pooled_features,model.layers[-1].output_shape))
+
     #------------------------------------------------#
 
 

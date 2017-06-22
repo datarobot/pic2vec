@@ -104,6 +104,10 @@ def test_find_pooling_constant():
     with pytest.raises(ValueError):
         _find_pooling_constant(features,40)
 
+    # Check for Type Error when pool is not a divisor of the number of features
+    with pytest.raises(ValueError):
+        _find_pooling_constant(features,0)
+
     # Check for Type Error when number of pooled features is not an integer
     with pytest.raises(TypeError):
         _find_pooling_constant(features, 1.5)
@@ -139,22 +143,27 @@ def test_check_downsampling_mismatch():
     '''
     Test method correctly returns from mismatched downsample flags and inputs
     '''
-
+    # Testing automatic downsampling at each depth
     # Depth 1
     assert _check_downsampling_mismatch(True,0,1) == (True, 1024)
     assert _check_downsampling_mismatch(False,0,1) == (False, 0)
+    assert _check_downsampling_mismatch(False,512,1) == (True, 512)
 
     # Depth 2
     assert _check_downsampling_mismatch(True,0,2) == (True, 1024)
     assert _check_downsampling_mismatch(False,0,2) == (False, 0)
+    assert _check_downsampling_mismatch(False,512,2) == (True, 512)
 
     # Depth 3
     assert _check_downsampling_mismatch(True,0,3) == (True, 1024)
     assert _check_downsampling_mismatch(False,0,3) == (False, 0)
+    assert _check_downsampling_mismatch(False,512,3) == (True, 512)
 
     # Depth 4
     assert _check_downsampling_mismatch(True,0,4) == (True, 640)
     assert _check_downsampling_mismatch(False,0,4) == (False, 0)
+    assert _check_downsampling_mismatch(False,640,4) == (True, 640)
+
 
 
 def test_initialize_model():
@@ -175,36 +184,66 @@ def test_initialize_model():
     # Check that it predicts correctly to see if weights were correctly loaded
     assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
 
-# def test_build_featurizer():
-#     '''
-#     This integration test builds the full featurizer, and checks that it
-#     correctly featurizers a pre-checked test image with multiple options
-#     '''
-#     model = build_featurizer(1,False,1024)
-#     check_image(model, image)
-#
-#     model = build_featurizer(1,True,1024)
-#     check_image(model, image)
-#
-#     model = build_featurizer(2,False,1024)
-#     check_image(model, image)
-#
-#     model = build_featurizer(2,True,1024)
-#     check_image(model, image)
-#
-#     model = build_featurizer(3,False,1024)
-#     check_image(model, image)
-#
-#     model = build_featurizer(3,True,1024)
-#     check_image(model, image)
-#
-#     model = build_featurizer(4,False,1024)
-#     check_image(model, image)
-#
-#     model = build_featurizer(4,True,640)
-#     check_image(model, image)
-#
-#     model.summary()
+def test_build_featurizer():
+    '''
+    This integration test builds the full featurizer, and checks that it
+    correctly featurizers a pre-checked test image with multiple options
+    '''
+    def check_featurizer(model,length, output_shape):
+        assert len(model.layers)==length
+        assert model.layers[-1].output_shape == output_shape
+
+    ## Checking Depth 1 ##
+    # Checking with downsampling
+    model = build_featurizer(1,False,1024)
+    check_featurizer(model, 315, (None,1024))
+
+    model = build_featurizer(1,True,512)
+    check_featurizer(model, 317, (None,512))
+
+    # Checking without downsampling
+    model = build_featurizer(1,False, 0)
+    check_featurizer(model, 312, (None,2048))
+
+
+    ## Checking Depth 2 ##
+    # Checking with downsampling
+    model = build_featurizer(2,False,1024)
+    check_featurizer(model, 285, (None,1024))
+
+    model = build_featurizer(2,True,512)
+    check_featurizer(model, 287, (None,512))
+
+    # Checking without downsampling
+    model = build_featurizer(2,False, 0)
+    check_featurizer(model, 282, (None,2048))
+
+
+    ## Checking Depth 3 ##
+    # Checking with downsampling
+    model = build_featurizer(3,False,1024)
+    check_featurizer(model, 284, (None,1024))
+
+    model = build_featurizer(3,True,512)
+    check_featurizer(model, 286, (None,512))
+
+    # Checking without downsampling
+    model = build_featurizer(3,False, 0)
+    check_featurizer(model, 281, (None,2048))
+
+
+    ## Checking Depth 4 ##
+    # Checking with downsampling
+    model = build_featurizer(4,False,640)
+    check_featurizer(model, 254, (None,640))
+
+    model = build_featurizer(4,True,320)
+    check_featurizer(model, 256, (None,320))
+
+    # Checking without downsampling
+    model = build_featurizer(4,False, 0)
+    check_featurizer(model, 251, (None,1280))
+
 
 
 if __name__ == '__main__':
