@@ -28,8 +28,10 @@ class ImageFeaturizer:
                    #random_crop = False,
                    #isotropic_scaling = True
                   ):
-        load_data(*args, **kwargs)
-        return featurize()
+
+        self.load_data(image_column_header,image_directory_path,csv_path,new_csv_name, \
+                       scaled_size,grayscale)
+        return self.featurize()
 
 
     def load_data(self,
