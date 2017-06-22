@@ -56,7 +56,7 @@ def test_find_csv_image_paths():
     Test method correctly finds image paths in the csv, and in the right order
     '''
     check_image_paths = ['borges.jpg','arendt.bmp','sappho.png']
-    test_image_paths = _find_csv_image_paths('{}csv_image_path_test'.format(CSV_PATH), IMG_COL_HEAD)
+    test_image_paths = _find_csv_image_paths('{}csv_image_path_check'.format(CSV_PATH), IMG_COL_HEAD)
 
     assert test_image_paths == check_image_paths
 
