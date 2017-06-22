@@ -294,7 +294,7 @@ def preprocess_data(image_column_header,
             raise TypeError('csv_path must lead to a file if it is initialized!' \
                             ' This is the csv containing pointers to the images.')
 
-    # Raise an error if image_column_header is not a string
+    # Raise an error if new_csv_name is not a string
     if not isinstance(new_csv_name, str):
         raise TypeError('new_csv_name must be passed a string! This ' \
                         'determines where to create the new csv from images' \
