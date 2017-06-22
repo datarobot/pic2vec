@@ -13,15 +13,15 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'Click>=6.0',
+    'numpy',
     'keras',
     'pandas',
     'Pillow',
-    'numpy'
 ]
 
 setup_requirements = [
     'pytest-runner',
-    # TODO(joristaglio): put setup requirements (distutils extensions, etc.) here
+    # TODO: put setup requirements (distutils extensions, etc.) here
 ]
 
 test_requirements = [
@@ -37,7 +37,7 @@ setup(
     long_description=readme + '\n\n' + history,
     author="Jett Oristaglio",
     author_email='jettori88@gmail.com',
-    url='https://github.com/joristaglio/image_featurizer',
+    url='https://github.com/datarobot/imagefeaturizer',
     packages=find_packages(include=['image_featurizer']),
     entry_points={
         'console_scripts': [
@@ -45,6 +45,11 @@ setup(
         ]
     },
     include_package_data=True,
+    package_data = {
+        'model' :
+            ['inception_v3_weights_tf_dim_ordering_tf_kernels.h5'
+            ]
+    },
     install_requires=requirements,
     license="BSD license",
     zip_safe=False,
@@ -57,10 +62,6 @@ setup(
         "Programming Language :: Python :: 2",
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
     ],
     test_suite='tests',
     tests_require=test_requirements,
