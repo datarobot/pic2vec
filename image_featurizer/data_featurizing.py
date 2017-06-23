@@ -6,12 +6,20 @@ from keras.models import Model
 def featurize_data(model, array):
 
     #------------------------------------#
+            ### Error Checking
+
+    # Raise error if it is not a numpy array
     if 'numpy' not in str(type(array)):
         raise TypeError('Must pass in a numpy array!')
-
+    # Raise error if the array has the wrong shape
     if len(array.shape) != 4:
         raise ValueError('Image array must be a 4D tensor, with dimensions: ' \
                          '[batch, height, width, channel]')
+
+    # Raise error if not passed a model
+    if not isinstance(model, Model):
+        raise TypeError('model must be a keras Model!')
+    #------------------------------------#
 
     print('Creating feature array!')
     full_feature_array = model.predict(array, verbose=1)

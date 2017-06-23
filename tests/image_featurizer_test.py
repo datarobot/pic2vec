@@ -73,7 +73,7 @@ def test_ImageFeaturizer():
 
 
     # Check loading the data
-    f.load_data('images',image_directory_path='tests/preprocessing_testing/test_images/',\
+    f.load_data('images',image_directory_path='tests/feature_preprocessing_testing/test_images/',\
                 new_csv_name=test_csv_name)
     test_featurizer_class(f, 0, 'images',False, test_csv_name,\
         ['arendt.bmp','borges.jpg','sappho.png'], (299,299),1,np.zeros((1)),check_data_array)
@@ -86,7 +86,7 @@ def test_ImageFeaturizer():
 
     # Check load and featurize at once
     f = ImageFeaturizer()
-    f.load_and_featurize_data('images',image_directory_path='tests/preprocessing_testing/test_images/',\
+    f.load_and_featurize_data('images',image_directory_path='tests/feature_preprocessing_testing/test_images/',\
                 new_csv_name=test_csv_name)
     test_featurizer_class(f, 0, 'images',False, test_csv_name,\
         ['arendt.bmp','borges.jpg','sappho.png'], (299,299),1,check_features,check_data_array)
