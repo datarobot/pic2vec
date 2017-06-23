@@ -33,8 +33,13 @@ History
 
 * Fixed more bugs in build_featurizer
 
-0.2.5(2017-06-22)
+0.2.5(2017-06-23)
 ------------------
 * 100% test coverage
 * Fixed a problem where a combined directory + csv was appending to the wrong
   rows when there was a mismatch between the directory and the csv.
+
+ 0.2.6(2017-06-23)
+ ------------------
+* Added features-only csv test, and got rid of the column headers in the file
+* Added Documentation to data featurization modeules
