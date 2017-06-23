@@ -56,7 +56,7 @@ def test_features_to_csv():
     # The paths to the toy csvs
     check_csv_images = 'tests/data_featurizing_testing/csv_testing/featurize_data_check_csv_images'
     check_csv_full = 'tests/data_featurizing_testing/csv_testing/featurize_data_check_csv_full'
-
+    check_csv_features_only = 'tests/data_featurizing_testing/csv_testing/featurize_data_check_csv_features_only'
     # Build the array to treat as the "full featurized data"
     check_array = np.array([[1.,2.,3.],
                             [4.,5.,6.],
@@ -89,6 +89,7 @@ def test_features_to_csv():
 
     # Assert that the dataframe returned is correct, and the csv was generated correclty
     assert np.array_equal(full_test_dataframe, pd.read_csv(check_csv_full))
+    assert filecmp.cmp('{}_features_only'.format(check_csv_images), check_csv_features_only)
     assert filecmp.cmp('{}_full'.format(check_csv_images),check_csv_full)
 
     # Remove the generated files
