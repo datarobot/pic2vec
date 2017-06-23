@@ -7,6 +7,7 @@ import numpy as np
 
 import pytest
 import random
+import os
 
 from image_featurizer.build_featurizer import \
     _decapitate_model, _find_pooling_constant, _splice_layer, _downsample_model_features, \
@@ -171,9 +172,26 @@ def test_initialize_model():
     Test initializes the non-decapitated network, and checks that it correctly
     loaded the weights by checking its batch prediction on a pre-calculated, saved tensor.
     '''
-
+    weight_path = 'image_featurizer/model/inception_v3_weights_tf_dim_ordering_tf_kernels.h5'
     # Initialize the model
     model = _initialize_model()
+
+    if os.path.isfile(weight_path):
+        try:
+            os.rename(weight_path,'image_featurizer/model/testing_download_weights')
+            model_downloaded_weights= _initialize_model()
+            os.rename('image_featurizer/model/testing_download_weights',weight_path)
+        except:
+             raise AssertionError('Problem loading weights from keras, or changing' \
+                                  'name of weight file!')
+
+    # Testing models are the same from loaded weights and downloaded from keras
+    assert len(model_downloaded_weights.layers) ==  len(model.layers)
+
+    for layer in range(len(model.layers)):
+        for array in range(len(model.layers[layer].get_weights())):
+            assert np.array_equal(model.layers[layer].get_weights()[array], model_downloaded_weights.layers[layer].get_weights()[array])
+
 
     # Create the test array to be predicted on
     test_array = np.zeros((1,299,299,3))
