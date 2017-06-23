@@ -74,20 +74,24 @@ def _find_csv_image_paths(csv_path, image_column_header):
         list_of_image_paths: a list of the image paths contained in the csv
     '''
 
-
+    # Create the dataframe from the csv
     df = pd.read_csv(csv_path)
 
     #------------------------------------------------#
                 ### ERROR CHECKING ###
 
+    # Raise an error if the image column header isn't in the dataframe
     if not image_column_header in df.columns:
         raise ValueError('image_column_header error: {} does not exist as a '\
                          'column in the csv file!'.format(image_column_header))
     #------------------------------------------------#
 
+    # Create the list of image paths from the column in the dataframe
     list_of_image_paths = df[image_column_header].tolist()
 
     return list_of_image_paths
+
+
 
 def _find_combined_image_paths(image_directory_path,csv_path, image_column_header):
     '''
@@ -108,21 +112,30 @@ def _find_combined_image_paths(image_directory_path,csv_path, image_column_heade
 
     '''
 
+    # Find the list of image paths in the csv
     csv_list = _find_csv_image_paths(csv_path, image_column_header)
 
+    # Find the list of image paths in the directory
     directory_list = _find_directory_image_paths(image_directory_path)
 
     list_of_image_paths = []
 
+    # Create the list of image paths by finding the overlap between the two,
+    # keeping the order in the csv
     for path in csv_list:
         if path in directory_list:
             list_of_image_paths.append(path)
+
+        # If the image is in the csv but not the directory, input an empty string
+        # as a placeholder. This image will eventually get vectorized to zeros.
+        else:
+            list_of_image_paths.append('')
 
     #------------------------------------------------#
                 ### ERROR CHECKING ###
 
     # Raise error if there are no shared images between the csv and the directory
-    if len(list_of_image_paths)==0:
+    if all(path == '' for path in list_of_image_paths):
         raise ValueError('Something is wrong! There are no shared images in the'\
                          ' csv and the image directory. Check formatting or files.')
     #------------------------------------------------#
@@ -365,6 +378,14 @@ def preprocess_data(image_column_header,
     # Iterate through each image in the list of image names
     for image in list_of_image_paths:
 
+        # If the image is in the csv, but not in the directory, set it to all zeros
+        # This allows the featurizer to correctly append features when there is
+        # mismatch between the csv and the directory. Otherwise it would lose rows
+        if image == '':
+            full_image_data[i,:,:,:] = 0
+            i += 1
+            continue
+
         # If the image has already been vectorized before, just copy that slice!
         if image in image_dict:
             full_image_data[i,:,:,:] = full_image_data[image_dict[image],:,:,:]
@@ -382,8 +403,8 @@ def preprocess_data(image_column_header,
 
             # Add the index to the dictionary to check in the future
 
-            # Progress Report
-            if not i%100:
+            # Progress report at the first image and after each 100 images
+            if (not i%100):
                 print('Converted {} images! Only {} images left to go!'.format(i,num_images-i))
 
             i += 1

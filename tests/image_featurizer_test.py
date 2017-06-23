@@ -12,7 +12,7 @@ def test_ImageFeaturizer():
     def test_featurizer_class(featurizer,
                               downsample_size,
                               image_column_header,
-                              downsample,
+                              automatic_downsample,
                               csv_path,
                               image_list,
                               scaled_size,
@@ -26,7 +26,7 @@ def test_ImageFeaturizer():
         '''
         assert featurizer.downsample_size == downsample_size
         assert featurizer.image_column_header == image_column_header
-        assert featurizer.downsample == downsample
+        assert featurizer.automatic_downsample == automatic_downsample
         assert featurizer.csv_path == csv_path
         assert featurizer.image_list == image_list
         assert featurizer.scaled_size == scaled_size
@@ -51,11 +51,11 @@ def test_ImageFeaturizer():
 
     # Raise error if downsample isn't a boolean
     with pytest.raises(TypeError):
-        f = ImageFeaturizer(downsample='True')
+        f = ImageFeaturizer(automatic_downsample='True')
     with pytest.raises(TypeError):
-        f = ImageFeaturizer(downsample=4)
+        f = ImageFeaturizer(automatic_downsample=4)
     with pytest.raises(TypeError):
-        f = ImageFeaturizer(downsample=(True,True))
+        f = ImageFeaturizer(automatic_downsample=(True,True))
 
     # Raise error if downsample_size isn't an integer
     with pytest.raises(TypeError):
@@ -66,8 +66,6 @@ def test_ImageFeaturizer():
     # Check initialization
     f = ImageFeaturizer()
     test_featurizer_class(f, 0, '',False, '', '', (0,0),1,np.zeros((1)),np.zeros((1)))
-
-    print f.data
 
     # Raise error if attempting to featurize before loading data
     with pytest.raises(IOError):

@@ -15,11 +15,11 @@ from image_featurizer.feature_preprocessing import _create_csv_with_image_paths,
 random.seed(5102020)
 
 # Initializing shared paths
-IMAGE_DIRECTORY_PATH = 'tests/preprocessing_testing/test_images/'
-CSV_PATH = 'tests/preprocessing_testing/csv_testing/'
+IMAGE_DIRECTORY_PATH = 'tests/feature_preprocessing_testing/test_images/'
+CSV_PATH = 'tests/feature_preprocessing_testing/csv_testing/'
 IMG_COL_HEAD = 'images'
 NEW_IMG_COL_HEAD = 'new_images'
-IMAGE_ARRAY_PATH = 'tests/preprocessing_testing/test_image_arrays/'
+IMAGE_ARRAY_PATH = 'tests/feature_preprocessing_testing/test_image_arrays/'
 
 
 
@@ -28,7 +28,7 @@ def test_create_csv_with_image_paths():
     Test method creates csv correctly from list of images
     '''
     list_of_images = ['arendt.bmp', 'borges.jpg', 'sappho.png']
-    new_csv_path = 'tests/preprocessing_testing/csv_testing/generated_create_csv_test'
+    new_csv_path = 'tests/feature_preprocessing_testing/csv_testing/generated_create_csv_test'
 
     assert not os.path.isfile(new_csv_path)
 
@@ -67,7 +67,7 @@ def test_find_combined_image_paths():
     '''
     Test that method only returns images that overlap between directory and csv
     '''
-    check_image_paths = ['arendt.bmp','sappho.png']
+    check_image_paths = ['','arendt.bmp','sappho.png']
 
     invalid_csv_image_path = 'heidegger.png'
     invalid_directory_image_path = 'borges.jpg'
@@ -144,7 +144,7 @@ def test_image_paths_finder():
                     'http://i2.wp.com/roadsandkingdoms.com/uploads/2013/11/Jorge_Luis_Borges.jpg',
                     'http://queerbio.com/wiki/images/thumb/8/8d/Sappho.png/200px-Sappho.png'
                     ]
-    case3_images = ['arendt.bmp','sappho.png']
+    case3_images = ['','arendt.bmp','sappho.png']
 
     # generated image lists
     case1 = _image_paths_finder(IMAGE_DIRECTORY_PATH,'',NEW_IMG_COL_HEAD,new_csv_name)
@@ -181,14 +181,14 @@ def test_preprocess_data():
                 'http://queerbio.com/wiki/images/thumb/8/8d/Sappho.png/200px-Sappho.png'
                 ]
     directory_list = ['arendt.bmp','borges.jpg','sappho.png']
-    combined_list = ['arendt.bmp', 'sappho.png', 'arendt.bmp']
+    combined_list = ['','arendt.bmp', 'sappho.png', 'arendt.bmp']
 
     # Loading the pre-tested arrays
-    arendt_test_array = np.load('tests/preprocessing_testing/test_preprocessing_arrays/arendt.npy')
-    borges_test_array = np.load('tests/preprocessing_testing/test_preprocessing_arrays/borges.npy')
-    sappho_test_array = np.load('tests/preprocessing_testing/test_preprocessing_arrays/sappho.npy')
-    arendt_grayscale_test_array = np.load('tests/preprocessing_testing/test_preprocessing_arrays/arendt_grayscale.npy')
-    sappho_grayscale_test_array = np.load('tests/preprocessing_testing/test_preprocessing_arrays/sappho_grayscale.npy')
+    arendt_test_array = np.load('tests/feature_preprocessing_testing/test_preprocessing_arrays/arendt.npy')
+    borges_test_array = np.load('tests/feature_preprocessing_testing/test_preprocessing_arrays/borges.npy')
+    sappho_test_array = np.load('tests/feature_preprocessing_testing/test_preprocessing_arrays/sappho.npy')
+    arendt_grayscale_test_array = np.load('tests/feature_preprocessing_testing/test_preprocessing_arrays/arendt_grayscale.npy')
+    sappho_grayscale_test_array = np.load('tests/feature_preprocessing_testing/test_preprocessing_arrays/sappho_grayscale.npy')
 
     #------------------------------------------------#
                     # Error Checking
@@ -337,12 +337,14 @@ def test_preprocess_data():
 
     # CHECK ALL THE CORRECT OUTPUTS FOR CASE 3:
     # Correct number of images vectorized
-    assert len(full_preprocessed_case_3[0])==3
+    assert len(full_preprocessed_case_3[0])==4
+    assert full_preprocessed_case_3[2] == combined_list
 
     # All data vectors correctly generated
-    assert np.array_equal(full_preprocessed_case_3[0][0], arendt_test_array)
-    assert np.array_equal(full_preprocessed_case_3[0][1], sappho_test_array)
-    assert np.array_equal(full_preprocessed_case_3[0][2], arendt_test_array)
+    assert np.array_equal(full_preprocessed_case_3[0][0], np.zeros(full_preprocessed_case_3[0][0].shape))
+    assert np.array_equal(full_preprocessed_case_3[0][1], arendt_test_array)
+    assert np.array_equal(full_preprocessed_case_3[0][2], sappho_test_array)
+    assert np.array_equal(full_preprocessed_case_3[0][3], arendt_test_array)
 
     # csv path and image list correctly returned
     assert full_preprocessed_case_3[1] == directory_csv_path
@@ -350,12 +352,13 @@ def test_preprocess_data():
 
     # CHECK ALL THE CORRECT OUTPUTS FOR GRAYSCALE TEST:
     # Correct number of images vectorized
-    assert len(grayscale_test[0])==3
+    assert len(grayscale_test[0])==4
 
     # All data vectors correctly generated
-    assert np.array_equal(grayscale_test[0][0], arendt_grayscale_test_array)
-    assert np.array_equal(grayscale_test[0][1], sappho_grayscale_test_array)
-    assert np.array_equal(grayscale_test[0][2], arendt_grayscale_test_array)
+    assert np.array_equal(grayscale_test[0][0], np.zeros(grayscale_test[0][0].shape))
+    assert np.array_equal(grayscale_test[0][1], arendt_grayscale_test_array)
+    assert np.array_equal(grayscale_test[0][2], sappho_grayscale_test_array)
+    assert np.array_equal(grayscale_test[0][3], arendt_grayscale_test_array)
 
     # csv path and image list correctly returned
     assert grayscale_test[1] == directory_csv_path

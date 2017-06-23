@@ -25,7 +25,7 @@ requirements = [
 
 setup_requirements = [
     'pytest-runner',
-    # TODO: put setup requirements (distutils extensions, etc.) here
+    # Put setup requirements (distutils extensions, etc.) here
 ]
 
 test_requirements = [
@@ -36,7 +36,7 @@ test_requirements = [
 
 setup(
     name='image_featurizer',
-    version='0.2.2',
+    version='0.2.5',
     description="Featurize images using a decapitated, pre-trained deep learning network",
     long_description=readme + '\n\n' + history,
     author="Jett Oristaglio",

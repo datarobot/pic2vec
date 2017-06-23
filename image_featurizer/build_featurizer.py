@@ -1,3 +1,14 @@
+'''
+This file deals with building the actual featurizer:
+1. Initializing the InceptionV3 model
+2. Decapitating it to the appropriate depth
+3. Downsampling, if desired
+
+The integrated function is the build_featurizer function, which takes the depth,
+a flag signalling downsampling, and the number of features to downsample to.
+'''
+
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
