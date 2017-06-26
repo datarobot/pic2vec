@@ -182,15 +182,18 @@ def test_initialize_model():
             model_downloaded_weights= _initialize_model()
             os.rename('image_featurizer/model/testing_download_weights',weight_path)
         except:
-             raise AssertionError('Problem loading weights from keras, or changing' \
+            if os.path.isfile('image_featurizer/model/testing_download_weights'):
+                os.rename('image_featurizer/model/testing_download_weights',weight_path)
+
+            raise AssertionError('Problem loading weights from keras, or changing' \
                                   'name of weight file!')
 
-    # Testing models are the same from loaded weights and downloaded from keras
-    assert len(model_downloaded_weights.layers) ==  len(model.layers)
+        # Testing models are the same from loaded weights and downloaded from keras
+        assert len(model_downloaded_weights.layers) ==  len(model.layers)
 
-    for layer in range(len(model.layers)):
-        for array in range(len(model.layers[layer].get_weights())):
-            assert np.array_equal(model.layers[layer].get_weights()[array], model_downloaded_weights.layers[layer].get_weights()[array])
+        for layer in range(len(model.layers)):
+            for array in range(len(model.layers[layer].get_weights())):
+                assert np.array_equal(model.layers[layer].get_weights()[array], model_downloaded_weights.layers[layer].get_weights()[array])
 
 
     # Create the test array to be predicted on

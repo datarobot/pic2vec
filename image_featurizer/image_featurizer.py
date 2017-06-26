@@ -28,7 +28,7 @@ Functionality:
                 or what the name of the column will be, if generating the csv
                 from a directory
 
-            image_directory_path : str
+            image_path : str
                 the path to the folder containing the images. If using URLs, leave blank
 
             csv_path : str
@@ -83,7 +83,7 @@ class ImageFeaturizer:
 
 
 
-        load_and_featurize_data(image_column_header, image_directory_path,
+        load_and_featurize_data(image_column_header, image_path,
                                 csv_path, new_csv_name, scaled_size, grayscale):
             --------------------------------
             Loads image directory and/or csv into the model, and
@@ -91,7 +91,7 @@ class ImageFeaturizer:
 
 
 
-        load_data(image_column_header, image_directory_path, csv_path,
+        load_data(image_column_header, image_path, csv_path,
                   new_csv_name, scaled_size, grayscale):
             --------------------------------
             Loads image directory and/or csv into the model, and vectorize the
@@ -188,7 +188,7 @@ class ImageFeaturizer:
         self.csv_path = ''
         self.image_list = ''
         self.image_column_header = ''
-
+        self.image_path = ''
 
         # Image scaling and cropping
         self.scaled_size = (0,0)
@@ -198,7 +198,7 @@ class ImageFeaturizer:
 
     def load_and_featurize_data(self,
                   image_column_header,
-                  image_directory_path='',
+                  image_path='',
                   csv_path='',
                   new_csv_name='featurizer_csv/generated_images_csv',
                   scaled_size = (299, 299),
@@ -220,7 +220,7 @@ class ImageFeaturizer:
                 or what the name of the column will be, if generating the csv
                 from a directory
 
-            image_directory_path : str
+            image_path : str
                 the path to the folder containing the images. If using URLs, leave blank
 
             csv_path : str
@@ -261,14 +261,14 @@ class ImageFeaturizer:
 
 
         '''
-        self.load_data(image_column_header,image_directory_path,csv_path,new_csv_name, \
+        self.load_data(image_column_header,image_path,csv_path,new_csv_name, \
                        scaled_size,grayscale)
         return self.featurize()
 
 
     def load_data(self,
                   image_column_header,
-                  image_directory_path='',
+                  image_path='',
                   csv_path='',
                   new_csv_name='featurizer_csv/generated_images_csv',
                   scaled_size = (299, 299),
@@ -290,7 +290,7 @@ class ImageFeaturizer:
                 or what the name of the column will be, if generating the csv
                 from a directory
 
-            image_directory_path : str
+            image_path : str
                 the path to the folder containing the images. If using URLs, leave blank
 
             csv_path : str
@@ -330,9 +330,13 @@ class ImageFeaturizer:
             if not os.path.isdir(path_to_new_csv) and path_to_new_csv !='':
                 os.makedirs(os.path.dirname(new_csv_name))
 
+        # Add backslash to end of image path if it is not there
+        if image_path != '' and image_path[-1] != "/":
+            image_path = '{}/'.format(image_path)
+
         # Save the full image tensor, the path to the csv, and the list of image paths
         (full_image_data, csv_path, list_of_image_paths) = \
-            preprocess_data(image_column_header, image_directory_path, csv_path,
+            preprocess_data(image_column_header, image_path, csv_path,
                             new_csv_name, scaled_size, grayscale)
 
         # Save all of the necessary data to the featurizer!
@@ -341,7 +345,7 @@ class ImageFeaturizer:
         self.image_list = list_of_image_paths
         self.image_column_header = image_column_header
         self.scaled_size = scaled_size
-
+        self.image_path = image_path
 
 
     def featurize(self):

@@ -15,7 +15,7 @@ from image_featurizer.feature_preprocessing import _create_csv_with_image_paths,
 random.seed(5102020)
 
 # Initializing shared paths
-IMAGE_DIRECTORY_PATH = 'tests/feature_preprocessing_testing/test_images/'
+IMAGE_PATH = 'tests/feature_preprocessing_testing/test_images/'
 CSV_PATH = 'tests/feature_preprocessing_testing/csv_testing/'
 IMG_COL_HEAD = 'images'
 NEW_IMG_COL_HEAD = 'new_images'
@@ -47,7 +47,7 @@ def test_find_directory_image_paths():
 
     check_image_paths = ['arendt.bmp','borges.jpg','sappho.png']
 
-    test_image_paths = _find_directory_image_paths(IMAGE_DIRECTORY_PATH)
+    test_image_paths = _find_directory_image_paths(IMAGE_PATH)
 
     assert test_image_paths == check_image_paths
 
@@ -73,11 +73,11 @@ def test_find_combined_image_paths():
     invalid_directory_image_path = 'borges.jpg'
 
 
-    test_image_path = _find_combined_image_paths(IMAGE_DIRECTORY_PATH,\
+    test_image_path = _find_combined_image_paths(IMAGE_PATH,\
                                 '{}directory_combined_image_path_test'.format(CSV_PATH),IMG_COL_HEAD)
 
     with pytest.raises(ValueError):
-        error_ = _find_combined_image_paths(IMAGE_DIRECTORY_PATH,\
+        error_ = _find_combined_image_paths(IMAGE_PATH,\
                                     '{}error_directory_combined_test'.format(CSV_PATH),IMG_COL_HEAD)
 
     assert invalid_csv_image_path not in test_image_path
@@ -92,7 +92,7 @@ def test_convert_single_image():
     url or from a local file, and generates the correct numpy arrays to be
     processed by the featurizer.
     '''
-    image = '{}borges.jpg'.format(IMAGE_DIRECTORY_PATH)
+    image = '{}borges.jpg'.format(IMAGE_PATH)
     image_url = 'http://i2.wp.com/roadsandkingdoms.com/uploads/2013/11/Jorge_Luis_Borges.jpg'
     # Loading the hand-saved image tests
     test_image_1 = np.load('{}image_test_default.npy'.format(IMAGE_ARRAY_PATH))
@@ -147,14 +147,14 @@ def test_image_paths_finder():
     case3_images = ['','arendt.bmp','sappho.png']
 
     # generated image lists
-    case1 = _image_paths_finder(IMAGE_DIRECTORY_PATH,'',NEW_IMG_COL_HEAD,new_csv_name)
+    case1 = _image_paths_finder(IMAGE_PATH,'',NEW_IMG_COL_HEAD,new_csv_name)
 
     assert os.path.isfile(new_csv_name)
     # remove the generated csv
     os.remove(new_csv_name)
 
     case2 = _image_paths_finder('',url_csv_path,IMG_COL_HEAD, '')
-    case3 = _image_paths_finder(IMAGE_DIRECTORY_PATH,directory_csv_path,IMG_COL_HEAD, '')
+    case3 = _image_paths_finder(IMAGE_PATH,directory_csv_path,IMG_COL_HEAD, '')
 
     # check the image lists match
     assert case1 == case1_images
@@ -199,26 +199,26 @@ def test_preprocess_data():
 
     # Raise an error if image_column_header is not a string
     with pytest.raises(TypeError):
-        error = preprocess_data(4, image_directory_path=IMAGE_DIRECTORY_PATH,new_csv_name=error_new_csv_name)
+        error = preprocess_data(4, image_path=IMAGE_PATH,new_csv_name=error_new_csv_name)
     with pytest.raises(TypeError):
-        error = preprocess_data(3.0, image_directory_path=IMAGE_DIRECTORY_PATH,new_csv_name=error_new_csv_name)
+        error = preprocess_data(3.0, image_path=IMAGE_PATH,new_csv_name=error_new_csv_name)
     with pytest.raises(TypeError):
-        error = preprocess_data(None, image_directory_path=IMAGE_DIRECTORY_PATH,new_csv_name=error_new_csv_name)
+        error = preprocess_data(None, image_path=IMAGE_PATH,new_csv_name=error_new_csv_name)
     with pytest.raises(TypeError):
-        error = preprocess_data(True, image_directory_path=IMAGE_DIRECTORY_PATH,new_csv_name=error_new_csv_name)
+        error = preprocess_data(True, image_path=IMAGE_PATH,new_csv_name=error_new_csv_name)
 
-    # Raise an error if image_directory_path is not a string
+    # Raise an error if image_path is not a string
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=4,new_csv_name=error_new_csv_name)
+        error = preprocess_data(IMG_COL_HEAD, image_path=4,new_csv_name=error_new_csv_name)
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=3.,new_csv_name=error_new_csv_name)
+        error = preprocess_data(IMG_COL_HEAD, image_path=3.,new_csv_name=error_new_csv_name)
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=None,new_csv_name=error_new_csv_name)
+        error = preprocess_data(IMG_COL_HEAD, image_path=None,new_csv_name=error_new_csv_name)
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=True,new_csv_name=error_new_csv_name)
+        error = preprocess_data(IMG_COL_HEAD, image_path=True,new_csv_name=error_new_csv_name)
 
 
-    # Raise an error if the image_directory_path doesn't point to a real directory
+    # Raise an error if the image_path doesn't point to a real directory
     error_dir = 'egaugnalymgnidnatsrednufoerusuoyera/emdaerohwuoy/'
 
     try:
@@ -226,7 +226,7 @@ def test_preprocess_data():
     except AssertionError:
         print('Whoops, that labyrinth exists. Change to error_dir to a directory path that does not exist.')
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=error_dir,new_csv_name=error_new_csv_name)
+        error = preprocess_data(IMG_COL_HEAD, image_path=error_dir,new_csv_name=error_new_csv_name)
 
 
     # Raise an error if csv_path is not a string
@@ -252,38 +252,38 @@ def test_preprocess_data():
 
     # Raise an error if new_csv_name is not a string
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=IMAGE_DIRECTORY_PATH,new_csv_name=3)
+        error = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH,new_csv_name=3)
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=IMAGE_DIRECTORY_PATH,new_csv_name=3.)
+        error = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH,new_csv_name=3.)
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=IMAGE_DIRECTORY_PATH,new_csv_name=None)
+        error = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH,new_csv_name=None)
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=IMAGE_DIRECTORY_PATH,new_csv_name=True)
+        error = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH,new_csv_name=True)
 
     # Raise an error if target_size is not a tuple of integers
 
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=IMAGE_DIRECTORY_PATH, \
+        error = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH, \
                     target_size=(299,299.),new_csv_name=error_new_csv_name)
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=IMAGE_DIRECTORY_PATH, \
+        error = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH, \
                     target_size=(299,True),new_csv_name=error_new_csv_name)
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=IMAGE_DIRECTORY_PATH, \
+        error = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH, \
                     target_size=(None,299),new_csv_name=error_new_csv_name)
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=IMAGE_DIRECTORY_PATH, \
+        error = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH, \
                     target_size=299,new_csv_name=error_new_csv_name)
 
     # Raise error if grayscale is not a boolean
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=IMAGE_DIRECTORY_PATH, \
+        error = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH, \
                     grayscale=4,new_csv_name=error_new_csv_name)
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=IMAGE_DIRECTORY_PATH, \
+        error = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH, \
                     grayscale=None,new_csv_name=error_new_csv_name)
     with pytest.raises(TypeError):
-        error = preprocess_data(IMG_COL_HEAD, image_directory_path=IMAGE_DIRECTORY_PATH, \
+        error = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH, \
                     grayscale='True',new_csv_name=error_new_csv_name)
 
 
@@ -294,12 +294,12 @@ def test_preprocess_data():
     assert not os.path.isfile(error_new_csv_name)
 
     # Create the full (data, csv_path, image_list) for each of the three cases
-    full_preprocessed_case_1 = preprocess_data(IMG_COL_HEAD, image_directory_path=IMAGE_DIRECTORY_PATH,new_csv_name=new_csv_name)
+    full_preprocessed_case_1 = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH,new_csv_name=new_csv_name)
     full_preprocessed_case_2 = preprocess_data(IMG_COL_HEAD, csv_path = url_csv_path,new_csv_name='{}breaking_test'.format(CSV_PATH))
-    full_preprocessed_case_3 = preprocess_data(IMG_COL_HEAD, image_directory_path=IMAGE_DIRECTORY_PATH,\
+    full_preprocessed_case_3 = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH,\
                                     csv_path = directory_csv_path,new_csv_name='{}breaking_test'.format(CSV_PATH))
 
-    grayscale_test = preprocess_data(IMG_COL_HEAD, grayscale=True,image_directory_path=IMAGE_DIRECTORY_PATH,\
+    grayscale_test = preprocess_data(IMG_COL_HEAD, grayscale=True,image_path=IMAGE_PATH,\
                                     csv_path = directory_csv_path,new_csv_name='{}breaking_test'.format(CSV_PATH))
 
     # Ensure a new csv wasn't created when they weren't needed, and that a new csv
