@@ -53,3 +53,8 @@ History
 0.2.8(2017-06-23)
 ------------------
 * Fixed variable name bugs
+
+
+0.2.9(2017-06-23)
+------------------
+* Fixed import problem that prevented generated csvs from saving
