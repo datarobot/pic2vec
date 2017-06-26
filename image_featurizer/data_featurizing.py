@@ -103,12 +103,15 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
     # Create the full combined csv+features dataframe
     df_full = pd.concat([df, df_features], axis=1)
 
+    # Save the name and extension separately, for robust naming
+    csv_name, ext = os.path.splitext(csv_path)
+
     # Save the features dataframe to a csv without index or headers, for easy modeling
-    df_features.to_csv('{}_features_only'.format(csv_path), index=False, header=False)
+    df_features.to_csv('{}_features_only{}'.format(csv_name,ext), index=False, header=False)
 
     # Save the combined csv+features to a csv with no index, but with column headers
     # for DR platform
-    df_full.to_csv('{}_full'.format(csv_path), index=False)
+    df_full.to_csv('{}_full{}'.format(csv_name,ext), index=False)
 
     # Return the full combined dataframe
     return df_full

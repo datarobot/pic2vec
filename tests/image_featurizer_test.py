@@ -72,8 +72,8 @@ def test_ImageFeaturizer():
         f.featurize()
 
 
-    # Check loading the data
-    f.load_data('images',image_path='tests/feature_preprocessing_testing/test_images/',\
+    # Check loading the data and test that the directory path works without a '/' at the end
+    f.load_data('images',image_path='tests/feature_preprocessing_testing/test_images',\
                 new_csv_name=test_csv_name)
     test_featurizer_class(f, 0, 'images',False, test_csv_name,\
         ['arendt.bmp','borges.jpg','sappho.png'], (299,299),1,np.zeros((1)),check_data_array)
