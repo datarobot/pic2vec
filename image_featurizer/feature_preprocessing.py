@@ -93,14 +93,14 @@ def _find_csv_image_paths(csv_path, image_column_header):
 
 
 
-def _find_combined_image_paths(image_directory_path,csv_path, image_column_header):
+def _find_combined_image_paths(image_path,csv_path, image_column_header):
     '''
     Find the image paths of a csv combined with a directory: take only the overlap
     to avoid errors
 
     Parameters:
     ----------
-        image_directory_path: string of the path to the provided image directory
+        image_path: string of the path to the provided image directory
 
         csv_path: string of the path to the provided csv
 
@@ -116,7 +116,7 @@ def _find_combined_image_paths(image_directory_path,csv_path, image_column_heade
     csv_list = _find_csv_image_paths(csv_path, image_column_header)
 
     # Find the list of image paths in the directory
-    directory_list = _find_directory_image_paths(image_directory_path)
+    directory_list = _find_directory_image_paths(image_path)
 
     list_of_image_paths = []
 
@@ -142,7 +142,7 @@ def _find_combined_image_paths(image_directory_path,csv_path, image_column_heade
 
     return list_of_image_paths
 
-def _image_paths_finder(image_directory_path,csv_path,image_column_header,new_csv_name):
+def _image_paths_finder(image_path,csv_path,image_column_header,new_csv_name):
     '''
     Given an image column header, and either a csv path or an image directory,
     find the list of image paths. If just a csv, it's pulled from the column.
@@ -151,7 +151,7 @@ def _image_paths_finder(image_directory_path,csv_path,image_column_header,new_cs
 
     Parameters:
     ----------
-        image_directory_path: string containing path to the image directory,
+        image_path: string containing path to the image directory,
                               if it exists
 
         csv_path: string containing the path to the csv, if it exists
@@ -171,7 +171,7 @@ def _image_paths_finder(image_directory_path,csv_path,image_column_header,new_cs
     if csv_path == '':
 
         # Find list of images from the image directory
-        list_of_image_paths = _find_directory_image_paths(image_directory_path)
+        list_of_image_paths = _find_directory_image_paths(image_path)
 
         # Create the new csv in a folder called 'featurizer_csv/'
         _create_csv_with_image_paths(list_of_image_paths, new_csv_name=new_csv_name,\
@@ -180,14 +180,14 @@ def _image_paths_finder(image_directory_path,csv_path,image_column_header,new_cs
         print('Created csv from directory! Stored at {}'.format(new_csv_name))
 
     # CASE 2: They only give a CSV with no directory
-    elif image_directory_path == '':
+    elif image_path == '':
         # Create the list_of_image_paths from the csv
         list_of_image_paths = _find_csv_image_paths(csv_path, image_column_header)
         print('Found image paths from csv!')
 
     # CASE 3: They give both a CSV and a directory
     else:
-        list_of_image_paths = _find_combined_image_paths(image_directory_path,csv_path,image_column_header)
+        list_of_image_paths = _find_combined_image_paths(image_path,csv_path,image_column_header)
         print('Found image paths that overlap between both the directory and the csv!')
 
     return list_of_image_paths
@@ -243,7 +243,7 @@ def convert_single_image(image_source, image_path, target_size=(299,299), graysc
 ############################################################
 
 def preprocess_data(image_column_header,
-                    image_directory_path='',
+                    image_path='',
                     csv_path='',
                     new_csv_name='featurizer_csv/generated_images_csv',
                     target_size=(299,299),
@@ -255,7 +255,7 @@ def preprocess_data(image_column_header,
 
     Parameters:
     ----------
-        image_directory_path: the path to the image directory, if it is being passed
+        image_path: the path to the image directory, if it is being passed
 
         csv_path: the path to the csv, if it is being passed
 
@@ -287,7 +287,7 @@ def preprocess_data(image_column_header,
                     ### ERROR CHECKING ###
 
     # If there is no image directory or csv, then something is wrong.
-    if image_directory_path == '' and csv_path == '':
+    if image_path == '' and csv_path == '':
         raise ValueError('Need to load either an image directory or a CSV with' \
                          ' URLs, if no image directory included.')
 
@@ -297,16 +297,16 @@ def preprocess_data(image_column_header,
                         'determines where to look for (or create) the column' \
                         ' of image paths in the csv.')
 
-    # Raise an error if image_directory_path is not a string
-    if not isinstance(image_directory_path, str):
-        raise TypeError('image_directory_path must be passed a string, or left blank' \
+    # Raise an error if image_path is not a string
+    if not isinstance(image_path, str):
+        raise TypeError('image_path must be passed a string, or left blank' \
                         '! This determines where to look for the folder of images,' \
                         ' or says if it doesn\'t exist.')
 
-    # Raise an error if the image_directory_path doesn't point to a directory
-    if image_directory_path != '':
-        if not os.path.isdir(image_directory_path):
-            raise TypeError('image_directory_path must lead to a directory if ' \
+    # Raise an error if the image_path doesn't point to a directory
+    if image_path != '':
+        if not os.path.isdir(image_path):
+            raise TypeError('image_path must lead to a directory if ' \
                             'it is initialized! It is where the images are stored.')
 
     # Raise an error if csv_path is not a string
@@ -342,7 +342,7 @@ def preprocess_data(image_column_header,
 
 
     ### BUILDING IMAGE PATH LIST ###
-    list_of_image_paths = _image_paths_finder(image_directory_path, csv_path,
+    list_of_image_paths = _image_paths_finder(image_path, csv_path,
                                             image_column_header, new_csv_name)
 
     if csv_path == '':
@@ -351,7 +351,7 @@ def preprocess_data(image_column_header,
     ### IMAGE RETRIEVAL AND VECTORIZATION ###
 
     # Find image source: whether from url or directory
-    if image_directory_path == '':
+    if image_path == '':
         image_source = 'url'
 
     else:
@@ -395,8 +395,8 @@ def preprocess_data(image_column_header,
             image_dict[image] = i
 
             # If an image directory exists, append its path to the image name
-            if image_directory_path != '':
-                image = '{}{}'.format(image_directory_path, image)
+            if image_path != '':
+                image = '{}{}'.format(image_path, image)
 
             # Place the vectorized image into the image data
             full_image_data[i,:,:,:] = convert_single_image(image_source, image, target_size = target_size, grayscale=grayscale)
@@ -404,7 +404,7 @@ def preprocess_data(image_column_header,
             # Add the index to the dictionary to check in the future
 
             # Progress report at the first image and after each 100 images
-            if (not i%100):
+            if (not i%1000):
                 print('Converted {} images! Only {} images left to go!'.format(i,num_images-i))
 
             i += 1

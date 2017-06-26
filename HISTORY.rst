@@ -43,3 +43,13 @@ History
  ------------------
 * Added features-only csv test, and got rid of the column headers in the file
 * Added Documentation to data featurization modeules
+
+0.2.7(2017-06-23)
+------------------
+* Changed image_directory_path to the more manageable image_path
+* Made testing module and preprocessing module slightly more robust.
+
+
+0.2.8(2017-06-23)
+------------------
+* Fixed variable name bugs
