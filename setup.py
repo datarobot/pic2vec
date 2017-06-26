@@ -36,7 +36,7 @@ test_requirements = [
 
 setup(
     name='image_featurizer',
-    version='0.2.8',
+    version='0.2.9',
     description="Featurize images using a decapitated, pre-trained deep learning network",
     long_description=readme + '\n\n' + history,
     author="Jett Oristaglio",
