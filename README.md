@@ -68,7 +68,7 @@ To get started, see the following example:
 
 Examples coming soon:
 1. [Hotdogs](examples/hotdogs): Dataset from unsupervised directory only, with PCA visualization
-1. [URLs](examples/imagenet): Dataset from CSV with URLs and no image directory
+1. [URLs](examples/): Dataset from CSV with URLs and no image directory
 
 
 ## Installation
