@@ -71,7 +71,7 @@ To get started, see the following examples:
 
 ## Installation
 
-See the [Installation Guide](docs/guides/installation.rst) for details.
+See the [Installation Guide](docs/guides/installation.md) for details.
 
 
 ## Using Featurizer Output With DataRobot
