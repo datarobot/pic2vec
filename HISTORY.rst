@@ -58,3 +58,7 @@ History
 0.2.9(2017-06-23)
 ------------------
 * Fixed import problem that prevented generated csvs from saving
+
+0.3.0 (2017-06-23)
+------------------
+* Created installation instructions and readme files, ready for prototype distribution.
