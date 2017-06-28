@@ -62,3 +62,7 @@ History
 0.3.0 (2017-06-23)
 ------------------
 * Created installation instructions and readme files, ready for prototype distribution
+
+0.4.0 (2017-06-23)
+------------------
+* Added ability to call multiple models, and packaged in SqueezeNet with weights.
