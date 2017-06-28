@@ -1,7 +1,7 @@
-import os
 import imghdr
+import os
 import urllib
-import warnings
+
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
 from keras.applications.inception_v3 import preprocess_input

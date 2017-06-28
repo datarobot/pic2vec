@@ -1,16 +1,13 @@
-from keras.models import Sequential
-from keras.layers import Conv2D, Dense, Activation, Flatten
-
-import pytest
-import random
 import filecmp
 import os
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pytest
+from keras.layers import Conv2D, Dense, Flatten
+from keras.models import Sequential
 
 from image_featurizer.data_featurizing import featurize_data, features_to_csv
-
 
 
 def test_featurize_data():
