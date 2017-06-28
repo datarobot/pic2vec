@@ -110,7 +110,8 @@ class ImageFeaturizer:
     def __init__(self,
                 depth = 1,
                 automatic_downsample = False,
-                downsample_size = 0
+                downsample_size = 0,
+                model= 'squeezenet'
                 ):
 
         '''
@@ -169,8 +170,8 @@ class ImageFeaturizer:
         ###### BUILDING THE MODEL ######
         print("\nBuilding the featurizer!")
 
-        model = build_featurizer(depth, automatic_downsample,
-                                 downsample_size)
+        featurizer = build_featurizer(depth, automatic_downsample,
+                                 downsample_size, model_str=model)
 
 
         # Saving initializations of model
@@ -180,6 +181,7 @@ class ImageFeaturizer:
 
         # Save the model
         self.model = model
+        self.featurizer = featurizer
         self.visualize = model.summary
 
         # Initializing preprocessing variables for after we load the images
@@ -201,7 +203,7 @@ class ImageFeaturizer:
                   image_path='',
                   csv_path='',
                   new_csv_name='featurizer_csv/generated_images_csv',
-                  scaled_size = (299, 299),
+                  scaled_size = (227, 227),
                   grayscale=False
 
                    #crop_size = (299, 299),

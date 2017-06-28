@@ -8,45 +8,93 @@ The integrated function is the build_featurizer function, which takes the depth,
 a flag signalling downsampling, and the number of features to downsample to.
 '''
 
-
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
+import warnings
 
-
-from keras.applications.inception_v3 import InceptionV3
+from keras.engine.topology import InputLayer
+from keras.applications import InceptionV3, ResNet50, VGG16, VGG19, Xception
 from keras.models import Model
 from keras.layers import GlobalAvgPool2D, Lambda, average
+from .squeezenet import SqueezeNet
 
-
-def _initialize_model():
+def _initialize_model(model_str):
     '''
     This function initializes the InceptionV3 model with the saved weights, or
     if it can't find the weight file, it loads them automatically through Keras.
 
     Parameters:
     ----------
-        None
+        model_str : str
+            String deciding which model to use for the featurizer
 
     Returns:
     -------
-        model: The initialized InceptionV3 model loaded with pre-trained weights
+        model : keras.model.Model
+            The initialized model loaded with pre-trained weights
     '''
+    #------------------------------------------------#
+                ### ERROR CHECKING ###
+    valid_models = ['squeezenet', 'inceptionv3', 'vgg16', 'vgg19', 'resnet50',
+                    'xception']
 
-    # Create path to the saved model
-    this_dir, this_filename = os.path.split(__file__)
-    model_path = os.path.join(this_dir, "model", "inception_v3_weights_tf_dim_ordering_tf_kernels.h5")
+    if not isinstance(model_str, str):
+        raise TypeError('model_str must be a string containing one of the following' \
+                        ' model names: squeezenet, inceptionv3, vgg16, vgg19, ' \
+                        'resnet50, xception')
 
-    # Initialize the model. If weights are already downloaded, pull them.
-    if os.path.isfile(model_path):
-        model = InceptionV3(weights=None)
-        model.load_weights(model_path)
-        print("\nModel initialized and weights loaded successfully!")
+    if model_str.lower() not in valid_models:
+        raise ValueError('model_str must be a string containing one of the following' \
+                         ' model names: squeezenet, inceptionv3, vgg16, vgg19, ' \
+                         'resnet50, xception')
+    #------------------------------------------------#
 
-    # Otherwise, download them automatically
-    else:
-        print('\nCan\'t find weight file. Need to download weights from Keras!')
+
+
+    # Special case for Squeezenet, because we have the weight file in the package
+    if model_str.lower() == 'squeezenet':
+
+        # Create path to the saved model
+        this_dir, this_filename = os.path.split(__file__)
+        model_path = os.path.join(this_dir, "model", "squeezenet_weights_tf_dim_ordering_tf_kernels.h5")
+
+        # Initialize the Squeezenet model. If weights are already downloaded, pull them.
+        if os.path.isfile(model_path):
+            model = SqueezeNet(weights=None)
+            model.load_weights(model_path)
+            print("\nModel initialized and weights loaded successfully!")
+
+        # Otherwise, download them automatically
+        else:
+            raise ValueError('Could not find the weights! Download another model' \
+                             ' or replace the SqueezeNet weights in the model folder.')
+
+    # Initializing all the other models automatically from Keras weights
+    elif model_str.lower() == 'vgg16':
+        print('Need to download VGG16 weights from Keras!')
+        model = VGG16()
+        print("\nModel successfully initialized.")
+
+    elif model_str.lower() == 'vgg19':
+        print('Need to download VGG19 weights from Keras!')
+        model = VGG19()
+        print("\nModel successfully initialized.")
+
+    elif model_str.lower() == 'resnet50':
+        print('Need to download ResNet50 weights from Keras!')
+        model = ResNet50()
+        print("\nModel successfully initialized.")
+
+    elif model_str.lower() == 'inceptionv3':
+        print('Need to download InceptionV3 weights from Keras!')
         model = InceptionV3()
         print("\nModel successfully initialized.")
+
+    elif model_str.lower() == 'xception':
+        print('Need to download Xception weights from Keras!')
+        model = Xception()
+        print("\nModel successfully initialized.")
+
 
     return model
 
@@ -67,7 +115,7 @@ def _decapitate_model(model, depth):
     '''
 
     #------------------------------------------------#
-    ### ERROR CHECKING ###
+                ### ERROR CHECKING ###
     # Make sure they actually passed a keras model
     if not isinstance(model, Model):
         raise TypeError('Please pass a model to the function. This is not a model.')
@@ -77,21 +125,24 @@ def _decapitate_model(model, depth):
         raise TypeError('Depth is not an integer! Must have integer decapitation depth.')
 
     # Make sure the depth isn't greater than the number of layers (minus input)
-    if depth >= len(model.layers):
+    if depth >= len(model.layers)-1:
         raise ValueError('Can\'t go deeper than the number of layers in the model!' \
                          ' Tried to pop {} layers, but model only has {}'.format(depth, len(model.layers)-1))
+
+    if not isinstance(model.layers[0],InputLayer):
+        warnings.warn('First layer of the model is not an input layer- ' \
+                      'may cause layer depth problems.')
     #------------------------------------------------#
 
 
-    # Pop the layers
-    for layer in xrange(depth):
-        model.layers.pop()
 
-    # Break the connections
-    model.outputs = [model.layers[-1].output]
-    model.layers[-1].outbound_nodes = []
+    # Get the intermediate output
+    new_model_output = model.layers[(depth+1) * -1].output
 
+    new_model = Model(inputs=model.input, outputs=new_model_output)
+    new_model.layers[-1].outbound_nodes = []
 
+    return new_model
 
 def _find_pooling_constant(features, num_pooled_features):
     '''
@@ -216,31 +267,29 @@ def _downsample_model_features(features, num_pooled_features):
 
     return downsampled_features
 
-def _check_downsampling_mismatch(downsample, num_pooled_features, depth):
+def _check_downsampling_mismatch(downsample, num_pooled_features, output_layer_size):
 
-    # If num_pooled_features left uninitialized, and they want to downsample
+    # If num_pooled_features left uninitialized, and they want to downsample,
     # perform automatic downsampling
     if num_pooled_features == 0 and downsample == True:
-        if depth == 4:
-            temp_features=1280
-            num_pooled_features = 640
+        if output_layer_size % 2 == 0:
+            num_pooled_features = output_layer_size // 2
+            print('Automatic downsampling to {}. If you would like to set custom '
+                  'downsampling, pass in an integer divisor of {} to '
+                  'num_pooled_features!'.format(num_pooled_features,output_layer_size))
         else:
-            temp_features = 2048
-            num_pooled_features = 1024
-
-        print('Automatic downsampling to {}. If you would like to set custom '
-              'downsampling, pass in an integer divisor of {} to '
-              'num_pooled_features!'.format(num_pooled_features,temp_features))
+            raise ValueError('Sorry, no automatic downsampling available for this model!')
 
     # If they have initialized num_pooled_features, but not turned on
-    # downsampling, check that they don't actually want to downsample!
+    # downsampling, downsample to what they entered!
     elif num_pooled_features != 0 and downsample == False:
         print('\n \n Downsampling to {}.'.format(num_pooled_features))
         downsample = True
 
     return (downsample, num_pooled_features)
 
-def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
+def build_featurizer(depth_of_featurizer, downsample, num_pooled_features,
+                     model_str='squeezenet', loaded_model=None):
     '''
     Create the full featurizer:
         Initialize the model
@@ -268,37 +317,54 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
                multiple splices of the last densely connected layer.
     '''
 
+    if not (isinstance(loaded_model, Model) or isinstance(loaded_model, type(None))):
+        raise TypeError('loaded_model is only for testing functionality. ' \
+                        'Needs to be either a Model or None type.' )
+
     ### BUILDING INITIAL MODEL ###
-    model = _initialize_model()
+    if loaded_model != None:
+        model = loaded_model
+
+    else:
+        model = _initialize_model(model_str=model_str)
+
     ### DECAPITATING MODEL ###
 
     # Choosing model depth:
-    depth_to_number_of_layers = {1: 2, 2: 19, 3: 33, 4:50}
+    squeezenet_dict = {1: 5, 2: 12, 3: 19, 4:26}
+    vgg16_dict = {1: 1, 2: 2, 3: 4, 4: 8}
+    vgg19_dict = {1: 1, 2: 2, 3: 4, 4: 9}
+    resnet50_dict = {1: 2, 2: 5, 3: 13, 4: 23}
+    inceptionv3_dict = {1: 2, 2: 19, 3: 33, 4:50}
+    xception_dict = {1: 1, 2: 8, 3: 18, 4:28 }
+
+    depth_dict = {'squeezenet': squeezenet_dict, 'vgg16': vgg16_dict, 'vgg19':\
+                   vgg19_dict, 'resnet50': resnet50_dict, 'inceptionv3': \
+                   inceptionv3_dict, 'xception': xception_dict}
 
     # Find the right depth from the dictionary and decapitate the model
-    _decapitate_model(model, depth_to_number_of_layers[depth_of_featurizer])
-
-    # Add pooling layer to the top of the now-decapitated model as the featurizer
-    out = GlobalAvgPool2D(name='featurizer')(model.layers[-1].output)
-    model = Model(inputs=model.input, outputs=out)
+    model = _decapitate_model(model, depth_dict[model_str][depth_of_featurizer])
+    model_output = model.layers[-1].output
+    # Add pooling layer to the top of the now-decapitated model as the featurizer,
+    # if it needs to be downsampled
+    if len(model.layers[-1].output_shape) > 2:
+        model_output = GlobalAvgPool2D(name='featurizer')(model_output)
 
     # Save the model output
-    model_output = model.layers[-1].output
     num_output_features = model_output.shape[-1].__int__()
     print("Model decapitated!")
-
-
 
 
     ### DOWNSAMPLING FEATURES ###
 
     # Checking that the user's downsampling flag matches the initialization of the downsampling
-    (downsample, num_pooled_features) = _check_downsampling_mismatch(downsample, num_pooled_features, depth_of_featurizer)
+    (downsample, num_pooled_features) = _check_downsampling_mismatch(downsample, num_pooled_features, num_output_features)
 
     # If we are downsampling the features, we add a pooling layer to the outputs
     # to bring it to the correct size.
     if downsample:
         model_output = _downsample_model_features(model_output, num_pooled_features)
+
     print("Model downsampled!")
 
 
