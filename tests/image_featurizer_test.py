@@ -5,9 +5,9 @@ import os
 import pytest
 
 def test_ImageFeaturizer():
-    '''
+    """
     Test the featurizer raises the necessary errors and performs its functions correctly
-    '''
+    """
 
     def test_featurizer_class(featurizer,
                               downsample_size,
@@ -20,10 +20,10 @@ def test_ImageFeaturizer():
                               featurized_data,
                               data):
 
-        '''
+        """
         This internal method simple checks the necessary assertions for
         a featurizer image
-        '''
+        """
         assert featurizer.downsample_size == downsample_size
         assert featurizer.image_column_header == image_column_header
         assert featurizer.automatic_downsample == automatic_downsample

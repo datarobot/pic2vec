@@ -4,7 +4,7 @@ import os
 from keras.models import Model
 
 def featurize_data(model, array):
-    '''
+    """
     Given a model and an array, perform error checking and return the prediction
     of the full feature array.
 
@@ -20,7 +20,7 @@ def featurize_data(model, array):
     --------
         full_feature_array : np.ndarray
             A numpy array containing the featurized images
-    '''
+    """
     #------------------------------------#
             ### Error Checking
 
@@ -47,7 +47,7 @@ def featurize_data(model, array):
 
 
 def features_to_csv(full_feature_array, csv_path, image_column_header, image_list):
-    '''
+    """
     Write the feature array to a new csv, and append the features to the appropriate
     rows of the given csv.
 
@@ -72,7 +72,7 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
 
         Method also writes new csvs at the path of the original csv, one containing
         just the features, and another containing the full combined csv and features
-    '''
+    """
 
     # Read the original csv
     df = pd.read_csv(csv_path)

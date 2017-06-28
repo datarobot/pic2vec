@@ -16,10 +16,10 @@ from image_featurizer.build_featurizer import \
 random.seed(5102020)
 
 def test_decapitate_model():
-    '''
+    """
     This test creates a toy network, and checks that it calls the right errors
     and checks that it decapitates the network correctly:
-    '''
+    """
     # Create model
     model = Sequential([
         Dense(40, input_shape=(100,)),
@@ -57,9 +57,9 @@ def test_decapitate_model():
 
 
 def test_splice_layer():
-    '''
+    """
     Test method splices tensors correctly
-    '''
+    """
     # Create toy tensor
     tensor = K.constant(3, shape=(3,12))
 
@@ -91,10 +91,10 @@ def test_splice_layer():
 
 
 def test_find_pooling_constant():
-    '''
+    """
     Test method returns correct pooling constant, and raises errors with
     badly formatted or incorrectly sized inputs
-    '''
+    """
     features = K.constant(2, shape=(3,60))
 
     # Check for Value Error when user tries to upsample
@@ -117,10 +117,10 @@ def test_find_pooling_constant():
     assert _find_pooling_constant(features, 6) == 10
 
 def test_downsample_model_features():
-    '''
+    """
     Test creates a toy numpy array, and checks that the method
     correctly downsamples the array into a hand-checked tensor
-    '''
+    """
     # Create the spliced and averaged tensor via downsampling function
     array = np.array([[1,2,3,4,5,6,7,8,9,10],
                       [11,12,13,14,15,16,17,18,19,20],
@@ -141,9 +141,9 @@ def test_downsample_model_features():
     assert np.array_equal(K.eval(check_tensor), K.eval(x))
 
 def test_check_downsampling_mismatch():
-    '''
+    """
     Test method correctly returns from mismatched downsample flags and inputs
-    '''
+    """
     # Testing automatic downsampling at each depth
     # Depth 1
     assert _check_downsampling_mismatch(True,0,1) == (True, 1024)
@@ -168,10 +168,10 @@ def test_check_downsampling_mismatch():
 
 
 def test_initialize_model():
-    '''
+    """
     Test initializes the non-decapitated network, and checks that it correctly
     loaded the weights by checking its batch prediction on a pre-calculated, saved tensor.
-    '''
+    """
     weight_path = 'image_featurizer/model/inception_v3_weights_tf_dim_ordering_tf_kernels.h5'
     # Initialize the model
     model = _initialize_model()
@@ -206,10 +206,10 @@ def test_initialize_model():
     assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
 
 def test_build_featurizer():
-    '''
+    """
     This integration test builds the full featurizer, and checks that it
     correctly builds the model with multiple options
-    '''
+    """
     def check_featurizer(model,length, output_shape):
         assert len(model.layers)==length
         assert model.layers[-1].output_shape == output_shape

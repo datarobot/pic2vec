@@ -16,7 +16,7 @@ import numpy as np
 ############################################################
 
 def _create_csv_with_image_paths(list_of_image_paths, new_csv_name, image_column_header):
-    '''
+    """
     This takes in a list of image names, and creates a new csv file where each
     image name is a new row
 
@@ -28,14 +28,14 @@ def _create_csv_with_image_paths(list_of_image_paths, new_csv_name, image_column
     -------
         None. This simply builds a csv with each row holding the name of an
         image file, and saves it to the csv_name path
-    '''
+    """
 
     df = pd.DataFrame(list_of_image_paths, columns=[image_column_header])
     df.to_csv(new_csv_name, index=False)
 
 
 def _find_directory_image_paths(image_directory):
-    '''
+    """
     This takes in an directory and parses which files in it are valid images for
     loading into the featurizer.
 
@@ -46,7 +46,7 @@ def _find_directory_image_paths(image_directory):
     Returns:
     -------
         valid_image_paths: the list of full paths to each valid image
-    '''
+    """
 
     image_list = os.listdir(image_directory)
 
@@ -60,7 +60,7 @@ def _find_directory_image_paths(image_directory):
     return list_of_image_paths
 
 def _find_csv_image_paths(csv_path, image_column_header):
-    '''
+    """
     Find the image paths in a csv without an image directory
 
     Parameters:
@@ -72,7 +72,7 @@ def _find_csv_image_paths(csv_path, image_column_header):
     Returns:
     -------
         list_of_image_paths: a list of the image paths contained in the csv
-    '''
+    """
 
     # Create the dataframe from the csv
     df = pd.read_csv(csv_path)
@@ -94,7 +94,7 @@ def _find_csv_image_paths(csv_path, image_column_header):
 
 
 def _find_combined_image_paths(image_path,csv_path, image_column_header):
-    '''
+    """
     Find the image paths of a csv combined with a directory: take only the overlap
     to avoid errors
 
@@ -110,7 +110,7 @@ def _find_combined_image_paths(image_path,csv_path, image_column_header):
     -------
         list_of_image_paths: list of image paths contained in both the csv and directory
 
-    '''
+    """
 
     # Find the list of image paths in the csv
     csv_list = _find_csv_image_paths(csv_path, image_column_header)
@@ -143,7 +143,7 @@ def _find_combined_image_paths(image_path,csv_path, image_column_header):
     return list_of_image_paths
 
 def _image_paths_finder(image_path,csv_path,image_column_header,new_csv_name):
-    '''
+    """
     Given an image column header, and either a csv path or an image directory,
     find the list of image paths. If just a csv, it's pulled from the column.
     If it's just a directory, it's pulled from the directory. If it's both,
@@ -165,7 +165,7 @@ def _image_paths_finder(image_path,csv_path,image_column_header,new_csv_name):
     -------
         list_of_image_paths: a sorted list of the paths to all the images being
                              featurized
-    '''
+    """
 
     # CASE 1: They only give an image directory with no CSV
     if csv_path == '':
@@ -199,7 +199,7 @@ def _image_paths_finder(image_path,csv_path,image_column_header,new_csv_name):
 ##################################################
 
 def convert_single_image(image_source, image_path, target_size=(299,299), grayscale=False):
-    '''
+    """
     This function takes in a path to an image (either by URL or in a native directory)
     and converts the image to a preprocessed 4D numpy array, ready to be plugged
     into the featurizer.
@@ -217,7 +217,7 @@ def convert_single_image(image_source, image_path, target_size=(299,299), graysc
     Returns:
     -------
         image_array: a numpy array that represents the loaded and preprocessed image
-    '''
+    """
 
     # Retrieve the image, either from a given url or from a directory
     if image_source == 'url':
@@ -248,7 +248,7 @@ def preprocess_data(image_column_header,
                     new_csv_name='featurizer_csv/generated_images_csv',
                     target_size=(299,299),
                     grayscale=False):
-    '''
+    """
     This receives the data (some combination of image directory + csv), finds
     the list of valid images, and then converts each to an array and adds
     them to the full batch.
@@ -281,7 +281,7 @@ def preprocess_data(image_column_header,
                              features to the correct row of the csv.
 
 
-    '''
+    """
 
     #------------------------------------------------#
                     ### ERROR CHECKING ###
