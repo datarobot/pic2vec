@@ -6,39 +6,36 @@ import pytest
 
 from image_featurizer.image_featurizer import ImageFeaturizer
 
+TEST_CSV_NAME = 'tests/ImageFeaturizer_testing/csv_tests/generated_images_csv_test'
 
-def test_ImageFeaturizer():
+def compare_featurizer_class(featurizer,
+                          downsample_size,
+                          image_column_header,
+                          automatic_downsample,
+                          csv_path,
+                          image_list,
+                          scaled_size,
+                          depth,
+                          featurized_data):
+    """
+    This method simply checks the necessary assertions for
+    a featurizer image
+    """
+    assert featurizer.downsample_size == downsample_size
+    assert featurizer.image_column_header == image_column_header
+    assert featurizer.automatic_downsample == automatic_downsample
+    assert featurizer.csv_path == csv_path
+    assert featurizer.image_list == image_list
+    assert featurizer.scaled_size == scaled_size
+    assert featurizer.depth == depth
+    assert np.array_equal(featurizer.featurized_data, featurized_data)
+
+def test_squeezenet_ImageFeaturizer():
     """
     Test the featurizer raises the necessary errors and performs its functions correctly
     """
 
-    def test_featurizer_class(featurizer,
-                              downsample_size,
-                              image_column_header,
-                              automatic_downsample,
-                              csv_path,
-                              image_list,
-                              scaled_size,
-                              depth,
-                              featurized_data,
-                              data):
-        """
-        This internal method simple checks the necessary assertions for
-        a featurizer image
-        """
-        assert featurizer.downsample_size == downsample_size
-        assert featurizer.image_column_header == image_column_header
-        assert featurizer.automatic_downsample == automatic_downsample
-        assert featurizer.csv_path == csv_path
-        assert featurizer.image_list == image_list
-        assert featurizer.scaled_size == scaled_size
-        assert featurizer.depth == depth
-        assert np.array_equal(featurizer.featurized_data, featurized_data)
-        assert np.array_equal(featurizer.data, data)
-
-    check_features = np.load('tests/ImageFeaturizer_testing/check_prediction_array_1_2048.npy')
-    check_data_array = np.load('tests/ImageFeaturizer_testing/check_data_array.npy')
-    test_csv_name = 'tests/ImageFeaturizer_testing/csv_tests/generated_images_csv_test'
+    check_features = np.load('tests/ImageFeaturizer_testing/check_prediction_array_squeezenet.npy')
 
     # Remove path to the generated csv
     if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests/'):
@@ -65,7 +62,7 @@ def test_ImageFeaturizer():
 
     # Check initialization
     f = ImageFeaturizer()
-    test_featurizer_class(f, 0, '', False, '', '', (0, 0), 1, np.zeros((1)), np.zeros((1)))
+    compare_featurizer_class(f, 0, '', False, '', '', (0, 0), 1, np.zeros((1)))
 
     # Raise error if attempting to featurize before loading data
     with pytest.raises(IOError):
@@ -73,26 +70,136 @@ def test_ImageFeaturizer():
 
     # Check loading the data and test that the directory path works without a '/' at the end
     f.load_data('images', image_path='tests/feature_preprocessing_testing/test_images',
-                new_csv_name=test_csv_name)
-    test_featurizer_class(f, 0, 'images', False, test_csv_name,
-                          ['arendt.bmp', 'borges.jpg', 'sappho.png'], (299, 299), 1, np.zeros((1)),
-                          check_data_array)
+                new_csv_name=TEST_CSV_NAME)
+    compare_featurizer_class(f, 0, 'images', False, TEST_CSV_NAME,
+                          ['arendt.bmp', 'borges.jpg', 'sappho.png'], (227, 227), 1, np.zeros((1)))
 
     # Check featurization
     f.featurize()
 
-    test_featurizer_class(f, 0, 'images', False, test_csv_name,
-                          ['arendt.bmp', 'borges.jpg', 'sappho.png'], (299, 299), 1, check_features,
-                          check_data_array)
+    compare_featurizer_class(f, 0, 'images', False, TEST_CSV_NAME,
+                          ['arendt.bmp', 'borges.jpg', 'sappho.png'], (227, 227), 1, check_features)
 
     # Check load and featurize at once
     f = ImageFeaturizer()
     f.load_and_featurize_data('images',
                               image_path='tests/feature_preprocessing_testing/test_images/',
-                              new_csv_name=test_csv_name)
-    test_featurizer_class(f, 0, 'images', False, test_csv_name,
-                          ['arendt.bmp', 'borges.jpg', 'sappho.png'], (299, 299), 1, check_features,
-                          check_data_array)
+                              new_csv_name=TEST_CSV_NAME)
+    compare_featurizer_class(f, 0, 'images', False, TEST_CSV_NAME,
+                          ['arendt.bmp', 'borges.jpg', 'sappho.png'], (227, 227), 1, check_features)
+
+    # Remove the created csv after test finished
+    shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')
+
+
+def test_vgg16_ImageFeaturizer():
+    """
+    Test the featurizer raises the necessary errors and performs its functions correctly
+    """
+
+    check_features = np.load('tests/ImageFeaturizer_testing/check_prediction_array_vgg16.npy')
+
+    # Remove path to the generated csv
+    if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests/'):
+        shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')
+
+    # Check load and featurize at once
+    f = ImageFeaturizer(model='vgg16')
+    f.load_and_featurize_data('images',
+                              image_path='tests/feature_preprocessing_testing/test_images/',
+                              new_csv_name=TEST_CSV_NAME)
+    compare_featurizer_class(f, 0, 'images', False, TEST_CSV_NAME,
+                          ['arendt.bmp', 'borges.jpg', 'sappho.png'], (224, 224), 1, check_features)
+
+    # Remove the created csv after test finished
+    shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')
+
+
+def test_vgg19_ImageFeaturizer():
+    """
+    Test the featurizer raises the necessary errors and performs its functions correctly
+    """
+
+    check_features = np.load('tests/ImageFeaturizer_testing/check_prediction_array_vgg19.npy')
+
+    # Remove path to the generated csv
+    if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests/'):
+        shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')
+
+    # Check load and featurize at once
+    f = ImageFeaturizer(model='vgg19')
+    f.load_and_featurize_data('images',
+                              image_path='tests/feature_preprocessing_testing/test_images/',
+                              new_csv_name=TEST_CSV_NAME)
+    compare_featurizer_class(f, 0, 'images', False, TEST_CSV_NAME,
+                          ['arendt.bmp', 'borges.jpg', 'sappho.png'], (224, 224), 1, check_features)
+
+    # Remove the created csv after test finished
+    shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')
+
+
+def test_resnet50_ImageFeaturizer():
+    """
+    Test the featurizer raises the necessary errors and performs its functions correctly
+    """
+
+    check_features = np.load('tests/ImageFeaturizer_testing/check_prediction_array_resnet50.npy')
+
+    # Remove path to the generated csv
+    if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests/'):
+        shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')
+
+    # Check load and featurize at once
+    f = ImageFeaturizer(model='resnet50')
+    f.load_and_featurize_data('images',
+                              image_path='tests/feature_preprocessing_testing/test_images/',
+                              new_csv_name=TEST_CSV_NAME)
+    compare_featurizer_class(f, 0, 'images', False, TEST_CSV_NAME,
+                          ['arendt.bmp', 'borges.jpg', 'sappho.png'], (224, 224), 1, check_features)
+
+    # Remove the created csv after test finished
+    shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')
+
+def test_inceptionv3_ImageFeaturizer():
+    """
+    Test the featurizer raises the necessary errors and performs its functions correctly
+    """
+
+    check_features = np.load('tests/ImageFeaturizer_testing/check_prediction_array_inceptionv3.npy')
+
+    # Remove path to the generated csv
+    if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests/'):
+        shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')
+
+    # Check load and featurize at once
+    f = ImageFeaturizer(model='inceptionv3')
+    f.load_and_featurize_data('images',
+                              image_path='tests/feature_preprocessing_testing/test_images/',
+                              new_csv_name=TEST_CSV_NAME)
+    compare_featurizer_class(f, 0, 'images', False, TEST_CSV_NAME,
+                          ['arendt.bmp', 'borges.jpg', 'sappho.png'], (299, 299), 1, check_features)
+
+    # Remove the created csv after test finished
+    shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')
+
+def test_xception_ImageFeaturizer():
+    """
+    Test the xception featurizer performs its functions correctly
+    """
+
+    check_features = np.load('tests/ImageFeaturizer_testing/check_prediction_array_xception.npy')
+
+    # Remove path to the generated csv
+    if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests/'):
+        shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')
+
+    # Check load and featurize at once
+    f = ImageFeaturizer(model='xception')
+    f.load_and_featurize_data('images',
+                              image_path='tests/feature_preprocessing_testing/test_images/',
+                              new_csv_name=TEST_CSV_NAME)
+    compare_featurizer_class(f, 0, 'images', False, TEST_CSV_NAME,
+                          ['arendt.bmp', 'borges.jpg', 'sappho.png'], (299, 299), 1, check_features)
 
     # Remove the created csv after test finished
     shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')

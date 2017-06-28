@@ -9,13 +9,15 @@ a flag signalling downsampling, and the number of features to downsample to.
 """
 
 import os
+import warnings
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-from keras.applications.inception_v3 import InceptionV3  # noqa: E402
+from keras.applications import InceptionV3, ResNet50, VGG16, VGG19, Xception # noqa: E402
+from keras.engine.topology import InputLayer
 from keras.layers import GlobalAvgPool2D, Lambda, average  # noqa: E402
 from keras.models import Model  # noqa: E402
-
+from .squeezenet import SqueezeNet
 
 def _initialize_model(model_str):
     """
@@ -42,7 +44,7 @@ def _initialize_model(model_str):
 
 
     if model_str.lower() not in valid_models:
-        raise TypeError('model_str must be one of the following model names:'
+        raise ValueError('model_str must be one of the following model names:'
                         ' squeezenet, inceptionv3, vgg16, vgg19, resnet50, xception')
     # ---------------------------- #
 
@@ -135,7 +137,7 @@ def _decapitate_model(model, depth):
     new_model = Model(inputs=model.input, outputs=new_model_output)
     new_model.layers[-1].outbound_nodes = []
 
-    return new model
+    return new_model
 
 def _find_pooling_constant(features, num_pooled_features):
     """
@@ -309,6 +311,7 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features,
     """
 
     if not (isinstance(loaded_model, Model) or isinstance(loaded_model, type(None))):
+        print loaded_model
         raise TypeError('loaded_model is only for testing functionality. ' \
                         'Needs to be either a Model or None type.' )
 
