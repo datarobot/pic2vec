@@ -76,7 +76,7 @@ The sources for Image Featurizer can be downloaded from the [Github repo](https:
 You can either clone the public repository:
 
 ```bash
-    $ git clone https://github.com/datarobot/imagefeaturizer.git
+    $ git clone git@github.com:datarobot/imagefeaturizer.git
 ```
 Or download the [tarball](https://github.com/datarobot/imagefeaturizer/tarball/master):
 
