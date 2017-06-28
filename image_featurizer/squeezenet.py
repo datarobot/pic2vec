@@ -1,4 +1,4 @@
-'''
+"""
 Code for this squeezenet implementation pulled directly from Refik Can Malli's
 Keras Squeezenet project:
 https://github.com/rcmalli/keras-squeezenet/blob/master/README.md
@@ -11,13 +11,13 @@ https://github.com/DeepScale/SqueezeNet
 
 Keras documentation:
 https://keras.io/
-'''
+"""
 
 
 from keras.applications.imagenet_utils import _obtain_input_shape
 from keras import backend as K
-from keras.layers import Input, Convolution2D, MaxPooling2D, Activation, concatenate, Dropout, GlobalAveragePooling2D, \
-    warnings
+from keras.layers import Input, Convolution2D, MaxPooling2D, Activation, concatenate, Dropout, \
+    GlobalAveragePooling2D, warnings
 from keras.models import Model
 from keras.engine.topology import get_source_inputs
 from keras.utils import get_file
@@ -28,11 +28,14 @@ exp1x1 = "expand1x1"
 exp3x3 = "expand3x3"
 relu = "relu_"
 
-WEIGHTS_PATH = "https://github.com/rcmalli/keras-squeezenet/releases/download/v1.0/squeezenet_weights_tf_dim_ordering_tf_kernels.h5"
+WEIGHTS_PATH = "https://github.com/rcmalli/keras-squeezenet/releases/download/v1.0/" \
+               "squeezenet_weights_tf_dim_ordering_tf_kernels.h5"
 
 # Modular function for Fire Node
 
+
 def fire_module(x, fire_id, squeeze=16, expand=64):
+    """Build special layer for SqueezeNet"""
     s_id = 'fire' + str(fire_id) + '/'
 
     if K.image_data_format() == 'channels_first':
@@ -58,9 +61,7 @@ def fire_module(x, fire_id, squeeze=16, expand=64):
 def SqueezeNet(input_tensor=None, input_shape=None,
                weights='imagenet',
                classes=1000):
-
-
-
+    """Build SqueezeNet model"""
     if weights not in {'imagenet', None}:
         raise ValueError('The `weights` argument should be either '
                          '`None` (random initialization) or `imagenet` '
@@ -69,7 +70,6 @@ def SqueezeNet(input_tensor=None, input_shape=None,
     if weights == 'imagenet' and classes != 1000:
         raise ValueError('If using `weights` as imagenet with `include_top`'
                          ' as true, `classes` should be 1000')
-
 
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=227,
@@ -84,7 +84,6 @@ def SqueezeNet(input_tensor=None, input_shape=None,
             img_input = Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor
-
 
     x = Convolution2D(64, (3, 3), strides=(2, 2), padding='valid', name='conv1')(img_input)
     x = Activation('relu', name='relu_conv1')(x)
@@ -122,8 +121,8 @@ def SqueezeNet(input_tensor=None, input_shape=None,
     if weights == 'imagenet':
 
         weights_path = get_file('squeezenet_weights_tf_dim_ordering_tf_kernels.h5',
-                                    WEIGHTS_PATH,
-                                    cache_subdir='models')
+                                WEIGHTS_PATH,
+                                cache_subdir='models')
         model.load_weights(weights_path)
         if K.backend() == 'theano':
             layer_utils.convert_all_kernels_in_model(model)

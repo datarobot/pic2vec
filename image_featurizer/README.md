@@ -3,7 +3,7 @@
 
 This notebook demonstrates the usage of ``image_featurizer`` using the Kaggle Cats vs. Dogs dataset.
 
-We will look at the usage of the ``ImageFeaturizer()`` class, which provides a convenient pipeline to quickly tackle image problems with DataRobot's platform. 
+We will look at the usage of the ``ImageFeaturizer()`` class, which provides a convenient pipeline to quickly tackle image problems with DataRobot's platform.
 
 It allows users to load image data into the featurizer, and then featurizes the images into a maximum of 2048 features. It appends these features to the CSV as extra columns in line with the image rows. If no CSV was passed in with an image directory, the featurizer generates a new CSV automatically and performs the same function.
 
@@ -23,8 +23,8 @@ from image_featurizer.image_featurizer import ImageFeaturizer
 
 'ImageFeaturizer' accepts as input either:
 1. An image directory
-2. A CSV with URL pointers to image downloads, or 
-3. A combined image directory + CSV with pointers to the included images. 
+2. A CSV with URL pointers to image downloads, or
+3. A combined image directory + CSV with pointers to the included images.
 
 For this example, we will load in the Kaggle Cats vs. Dogs dataset of 25,000 images, along with a CSV that includes each images class label.
 
@@ -143,11 +143,11 @@ Automatic downsampling means that this model will downsample the final layer fro
 featurizer = ImageFeaturizer(depth=1, automatic_downsample = True)
 ```
 
-    
+
     Building the featurizer!
-    
+
     Can't find weight file. Need to download weights from Keras!
-    
+
     Model successfully initialized.
     Model decapitated!
     Automatic downsampling to 1024. If you would like to set custom downsampling, pass in an integer divisor of 2048 to num_pooled_features!
@@ -156,7 +156,7 @@ featurizer = ImageFeaturizer(depth=1, automatic_downsample = True)
     Final layer feature space downsampled to 1024
 
 
-This featurizer was 'decapitated' to the first layer below the prediction layer, which will produce complex representations. Because it is so close to the final prediction layer, it will create more specialized feature representations, and therefore will be better suited for image datasets that are similar to classes within the original ImageNet dataset. Cats and dogs are present within ImageNet, so a depth of 1 should perform well. 
+This featurizer was 'decapitated' to the first layer below the prediction layer, which will produce complex representations. Because it is so close to the final prediction layer, it will create more specialized feature representations, and therefore will be better suited for image datasets that are similar to classes within the original ImageNet dataset. Cats and dogs are present within ImageNet, so a depth of 1 should perform well.
 
 ## Loading the Data
 
@@ -164,7 +164,7 @@ Now that the featurizer is built, we can load our data into the network. This wi
 
 The tensor will have the dimensions: [number of images, height, width, color channels]. In this case, the image tensor will have size [25000, 299, 299, 3].
 
-We have to pass in the name of the column in the CSV that contains pointers to the images, as well as the path to the image directory and the path to the CSV itself, which are both saved from earlier. 
+We have to pass in the name of the column in the CSV that contains pointers to the images, as well as the path to the image directory and the path to the CSV itself, which are both saved from earlier.
 
 If there are images in the directory that aren't in the CSV, or image names in the CSV that aren't in the directory, or even files that aren't valid image files in the directory, don't fear– the featurizer will only try to vectorize valid images that are in both the CSV and the directory. Any images present in the CSV but not the directory will be given zero vectors, and the order of the CSV is considered the canonical order for the images.
 
@@ -252,7 +252,7 @@ Now that the data is loaded, we're ready to featurize the data. This will push t
 
 It will then create and save a new CSV by appending these features to the end of the given CSV in line with each image's row. The features themselves will also be saved in a separate CSV file without the image names or other data. Both generated CSVs will be saved to the same path as the original CSV, with the features-only CSV appending '_features_only' and the combined CSV appending '_full' to the end of their respective filenames.
 
-The featurize( ) method requires no parameters, as it uses the data we just loaded into the network. This requires pushing images through the deep InceptionV3 network, and so relatively large datasets will require a GPU to perform in a reasonable amount of time. Using a mid-range GPU, it can take about 30 minutes to process the full 25,000 photos in the Dogs vs. Cats. 
+The featurize( ) method requires no parameters, as it uses the data we just loaded into the network. This requires pushing images through the deep InceptionV3 network, and so relatively large datasets will require a GPU to perform in a reasonable amount of time. Using a mid-range GPU, it can take about 30 minutes to process the full 25,000 photos in the Dogs vs. Cats.
 
 
 ```python
@@ -601,7 +601,7 @@ featurizer.featurized_data
              0.13497572,  0.53569233],
            [ 0.24703167,  0.18156832,  0.09762136, ...,  0.79905927,
              0.68165481,  0.57909489],
-           ..., 
+           ...,
            [ 0.21475141,  0.28709683,  0.24085702, ...,  0.50461513,
              0.49624115,  0.37900704],
            [ 0.29617372,  0.28131226,  0.42630851, ...,  0.53377748,
@@ -934,7 +934,7 @@ pd.read_csv('cat_vs_dog_classes_full.csv')
 
 
 
-But, for the purposes of this demo, we can simply test the performance of a linear classifier over the featurized data. First, we'll build the training and test sets. 
+But, for the purposes of this demo, we can simply test the performance of a linear classifier over the featurized data. First, we'll build the training and test sets.
 
 
 ```python
@@ -993,6 +993,6 @@ Unless you would like to examine the loaded data before featurizing it, steps 3 
 
 ## Next Steps
 
-We have not covered using only a CSV with URL pointers, or a more complex dataset. That will be the subject of another Notebook. 
+We have not covered using only a CSV with URL pointers, or a more complex dataset. That will be the subject of another Notebook.
 
 To have more control over the options in the featurizer, or to understand its internal functioning more fully, check out the full package documentation.
