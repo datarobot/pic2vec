@@ -638,7 +638,7 @@ pd.read_csv('cat_vs_dog_classes_full.csv')
     <tr style="text-align: right;">
       <th></th>
       <th>images</th>
-      <th>Animal</th>
+      <th>animal</th>
       <th>image_feature_0</th>
       <th>image_feature_1</th>
       <th>image_feature_2</th>
