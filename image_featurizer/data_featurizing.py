@@ -1,10 +1,11 @@
-import pandas as pd
-import numpy as np
 import os
+
+import pandas as pd
 from keras.models import Model
 
+
 def featurize_data(model, array):
-    '''
+    """
     Given a model and an array, perform error checking and return the prediction
     of the full feature array.
 
@@ -20,22 +21,23 @@ def featurize_data(model, array):
     --------
         full_feature_array : np.ndarray
             A numpy array containing the featurized images
-    '''
-    #------------------------------------#
-            ### Error Checking
+    """
+
+    # -------------- #
+    # ERROR CHECKING #
 
     # Raise error if it is not a numpy array
     if 'numpy' not in str(type(array)):
         raise TypeError('Must pass in a numpy array!')
     # Raise error if the array has the wrong shape
     if len(array.shape) != 4:
-        raise ValueError('Image array must be a 4D tensor, with dimensions: ' \
+        raise ValueError('Image array must be a 4D tensor, with dimensions: '
                          '[batch, height, width, channel]')
 
     # Raise error if not passed a model
     if not isinstance(model, Model):
         raise TypeError('model must be a keras Model!')
-    #------------------------------------#
+    # ---------------------------------- #
 
     # Perform predictions
     print('Creating feature array!')
@@ -47,7 +49,7 @@ def featurize_data(model, array):
 
 
 def features_to_csv(full_feature_array, csv_path, image_column_header, image_list):
-    '''
+    """
     Write the feature array to a new csv, and append the features to the appropriate
     rows of the given csv.
 
@@ -72,24 +74,24 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
 
         Method also writes new csvs at the path of the original csv, one containing
         just the features, and another containing the full combined csv and features
-    '''
+    """
 
     # Read the original csv
     df = pd.read_csv(csv_path)
 
-    #----------------------------------------#
-                ### Error Checking
+    # -------------- #
+    # ERROR CHECKING #
 
     # Raise error if the image_column_header is not in the csv
     if image_column_header not in df.columns:
-        raise ValueError('Must pass the name of the column where the images are ' \
+        raise ValueError('Must pass the name of the column where the images are '
                          'stored in the csv! The column passed was not in the csv.')
 
     # Raise error if the feature array has the wrong shape
     if len(full_feature_array.shape) != 2:
-        raise ValueError('Feature array must be 2D array, with shape: [batch, num_features]. ' \
+        raise ValueError('Feature array must be 2D array, with shape: [batch, num_features]. '
                          'Gave feature array of shape: {}'.format(full_feature_array.shape))
-    #----------------------------------------#
+    # --------------------------------------- #
 
     # Save number of features
     num_features = full_feature_array.shape[1]
@@ -97,7 +99,8 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
     print('Adding image features to csv!')
 
     # Create column headers for features, and the features dataframe
-    array_column_headers = ['image_feature_{}'.format(str(feature)) for feature in xrange(num_features)]
+    array_column_headers = ['image_feature_{}'.format(str(feature)) for feature in
+                            xrange(num_features)]
     df_features = pd.DataFrame(data=full_feature_array, columns=array_column_headers)
 
     # Create the full combined csv+features dataframe
@@ -107,11 +110,11 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
     csv_name, ext = os.path.splitext(csv_path)
 
     # Save the features dataframe to a csv without index or headers, for easy modeling
-    df_features.to_csv('{}_features_only{}'.format(csv_name,ext), index=False, header=False)
+    df_features.to_csv('{}_features_only{}'.format(csv_name, ext), index=False, header=False)
 
     # Save the combined csv+features to a csv with no index, but with column headers
     # for DR platform
-    df_full.to_csv('{}_full{}'.format(csv_name,ext), index=False)
+    df_full.to_csv('{}_full{}'.format(csv_name, ext), index=False)
 
     # Return the full combined dataframe
     return df_full
