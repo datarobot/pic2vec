@@ -50,7 +50,7 @@ setup(
     install_requires=requirements,
     license='BSD license',
     zip_safe=False,
-    keywords=['image_featurizer','featurize'],
+    keywords=['image_featurizer', 'featurize'],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

@@ -22,7 +22,6 @@ def test_ImageFeaturizer():
                               depth,
                               featurized_data,
                               data):
-
         """
         This internal method simple checks the necessary assertions for
         a featurizer image
@@ -58,41 +57,42 @@ def test_ImageFeaturizer():
     with pytest.raises(TypeError):
         f = ImageFeaturizer(automatic_downsample=4)
     with pytest.raises(TypeError):
-        f = ImageFeaturizer(automatic_downsample=(True,True))
+        f = ImageFeaturizer(automatic_downsample=(True, True))
 
     # Raise error if downsample_size isn't an integer
     with pytest.raises(TypeError):
-        f = ImageFeaturizer(downsample_size = 1.)
-
-
+        f = ImageFeaturizer(downsample_size=1.)
 
     # Check initialization
     f = ImageFeaturizer()
-    test_featurizer_class(f, 0, '',False, '', '', (0,0),1,np.zeros((1)),np.zeros((1)))
+    test_featurizer_class(f, 0, '', False, '', '', (0, 0), 1, np.zeros((1)), np.zeros((1)))
 
     # Raise error if attempting to featurize before loading data
     with pytest.raises(IOError):
         f.featurize()
 
-
     # Check loading the data and test that the directory path works without a '/' at the end
-    f.load_data('images',image_path='tests/feature_preprocessing_testing/test_images',\
+    f.load_data('images', image_path='tests/feature_preprocessing_testing/test_images',
                 new_csv_name=test_csv_name)
-    test_featurizer_class(f, 0, 'images',False, test_csv_name,\
-        ['arendt.bmp','borges.jpg','sappho.png'], (299,299),1,np.zeros((1)),check_data_array)
+    test_featurizer_class(f, 0, 'images', False, test_csv_name,
+                          ['arendt.bmp', 'borges.jpg', 'sappho.png'], (299, 299), 1, np.zeros((1)),
+                          check_data_array)
 
     # Check featurization
     f.featurize()
 
-    test_featurizer_class(f, 0, 'images',False, test_csv_name,\
-        ['arendt.bmp','borges.jpg','sappho.png'], (299,299),1,check_features,check_data_array)
+    test_featurizer_class(f, 0, 'images', False, test_csv_name,
+                          ['arendt.bmp', 'borges.jpg', 'sappho.png'], (299, 299), 1, check_features,
+                          check_data_array)
 
     # Check load and featurize at once
     f = ImageFeaturizer()
-    f.load_and_featurize_data('images',image_path='tests/feature_preprocessing_testing/test_images/',\
-                new_csv_name=test_csv_name)
-    test_featurizer_class(f, 0, 'images',False, test_csv_name,\
-        ['arendt.bmp','borges.jpg','sappho.png'], (299,299),1,check_features,check_data_array)
+    f.load_and_featurize_data('images',
+                              image_path='tests/feature_preprocessing_testing/test_images/',
+                              new_csv_name=test_csv_name)
+    test_featurizer_class(f, 0, 'images', False, test_csv_name,
+                          ['arendt.bmp', 'borges.jpg', 'sappho.png'], (299, 299), 1, check_features,
+                          check_data_array)
 
     # Remove the created csv after test finished
     shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')
