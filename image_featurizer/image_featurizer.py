@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 This file contains the full ImageFeaturizer class, which allows users to upload
 an image directory, a csv containing a list of image URLs, or a directory with a
 csv containing names of images in the directory.
@@ -56,7 +56,7 @@ Functionality:
         self.load_and_featurize_data function, which takes the same input as the
         load_data function and performs the featurization automatically.
 
-'''
+"""
 import os
 import numpy as np
 
@@ -67,7 +67,7 @@ from .data_featurizing import featurize_data, features_to_csv
 
 
 class ImageFeaturizer:
-    '''
+    """
     This object can load images, rescale, crop, and vectorize them into a
     uniform batch, and then featurize the images for use with custom classifiers.
 
@@ -105,7 +105,7 @@ class ImageFeaturizer:
             return the full dataframe
 
 
-    '''
+    """
 
     def __init__(self,
                 depth = 1,
@@ -113,7 +113,7 @@ class ImageFeaturizer:
                 downsample_size = 0
                 ):
 
-        '''
+        """
         Initializer:
 
         Loads an initial InceptionV3 pretrained network, decapitates it and
@@ -134,7 +134,7 @@ class ImageFeaturizer:
         Returns:
         --------
         None. Initializes and saves the featurizer object attributes.
-        '''
+        """
 
         #------------------------------------------------#
                     ### ERROR CHECKING ###
@@ -209,7 +209,7 @@ class ImageFeaturizer:
                    #random_crop = False,
                    #isotropic_scaling = True
                   ):
-        '''
+        """
         Loads image directory and/or csv, and vectorizes the images for input
         into the featurizer.
 
@@ -260,7 +260,7 @@ class ImageFeaturizer:
                 to the same path as the csv containing the list of names
 
 
-        '''
+        """
         self.load_data(image_column_header,image_path,csv_path,new_csv_name, \
                        scaled_size,grayscale)
         return self.featurize()
@@ -279,7 +279,7 @@ class ImageFeaturizer:
                   #random_crop = False,
                   #isotropic_scaling = True
                   ):
-        '''
+        """
         Loads image directory and/or csv, and vectorizes the images for input
         into the featurizer.
 
@@ -321,7 +321,7 @@ class ImageFeaturizer:
             # random_crop: bool
             #    If False, only take the center crop. If True, take random crop
             #
-        '''
+        """
 
         # If new csv_path is being generated, make sure
         # the folder exists!
@@ -349,7 +349,7 @@ class ImageFeaturizer:
 
 
     def featurize(self):
-        '''
+        """
         Featurize the loaded data, returning the dataframe and writing the features
         and the full combined data to csv
 
@@ -363,7 +363,7 @@ class ImageFeaturizer:
                 Dataframe containing the features appended to the original csv.
                 Also writes csvs containing the features only and the full dataframe
                 to the same path as the csv containing the list of names
-        '''
+        """
 
         print("Checking array initialized.")
         if np.array_equal(self.data, np.zeros((1))):

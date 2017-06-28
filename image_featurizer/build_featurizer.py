@@ -1,4 +1,4 @@
-'''
+"""
 This file deals with building the actual featurizer:
 1. Initializing the InceptionV3 model
 2. Decapitating it to the appropriate depth
@@ -6,7 +6,7 @@ This file deals with building the actual featurizer:
 
 The integrated function is the build_featurizer function, which takes the depth,
 a flag signalling downsampling, and the number of features to downsample to.
-'''
+"""
 
 
 import os
@@ -19,7 +19,7 @@ from keras.layers import GlobalAvgPool2D, Lambda, average
 
 
 def _initialize_model():
-    '''
+    """
     This function initializes the InceptionV3 model with the saved weights, or
     if it can't find the weight file, it loads them automatically through Keras.
 
@@ -30,7 +30,7 @@ def _initialize_model():
     Returns:
     -------
         model: The initialized InceptionV3 model loaded with pre-trained weights
-    '''
+    """
 
     # Create path to the saved model
     this_dir, this_filename = os.path.split(__file__)
@@ -52,7 +52,7 @@ def _initialize_model():
 
 
 def _decapitate_model(model, depth):
-    '''
+    """
     This cuts off end layers of a model equal to the depth of the desired outputs,
     and then removes the links connecting the new outer layer to the old ones.
 ``
@@ -64,7 +64,7 @@ def _decapitate_model(model, depth):
     Returns:
     -------
         No output. This function operates on the model directly.
-    '''
+    """
 
     #------------------------------------------------#
     ### ERROR CHECKING ###
@@ -94,7 +94,7 @@ def _decapitate_model(model, depth):
 
 
 def _find_pooling_constant(features, num_pooled_features):
-    '''
+    """
     Given a tensor and an integer divisor for the desired downsampled features,
     this will downsample the tensor to the desired number of features
 
@@ -107,7 +107,7 @@ def _find_pooling_constant(features, num_pooled_features):
     -------
     int(pooling_constant): the integer pooling constant required to correctly
                            splice the tensor layer for downsampling
-    '''
+    """
     # Initializing the outputs
     output_shape = features.shape
     num_features = output_shape[-1].__int__()
@@ -146,7 +146,7 @@ def _find_pooling_constant(features, num_pooled_features):
     return int(pooling_constant)
 
 def _splice_layer(tensor, number_splices):
-    '''
+    """
     This helper function takes a layer, and splices it into a number of
     even slices through skipping. This downsamples the layer, and allows for
     operations to be performed over neighbors.
@@ -163,7 +163,7 @@ def _splice_layer(tensor, number_splices):
         list_of_spliced_layers: a list of the spliced sections of the original
                                 layer, with neighboring nodes occupying the same
                                 indices across  splices
-    '''
+    """
 
     #------------------------------------------------#
     ### ERROR CHECKING ###
@@ -190,7 +190,7 @@ def _splice_layer(tensor, number_splices):
 
 
 def _downsample_model_features(features, num_pooled_features):
-    '''
+    """
     This takes in a layer of a model, and downsamples layer to a specified size
 
     Parameters:
@@ -203,7 +203,7 @@ def _downsample_model_features(features, num_pooled_features):
     -------
         downsampled_features: a tensor containing the downsampled features with
                               size = (?, num_pooled_features)
-    '''
+    """
 
     # Find the pooling constant needed
     pooling_constant = _find_pooling_constant(features, num_pooled_features)
@@ -241,7 +241,7 @@ def _check_downsampling_mismatch(downsample, num_pooled_features, depth):
     return (downsample, num_pooled_features)
 
 def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
-    '''
+    """
     Create the full featurizer:
         Initialize the model
         Decapitate it to the appropriate depth
@@ -266,7 +266,7 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
 
                With downsampling, the output is equal to a downsampled average of
                multiple splices of the last densely connected layer.
-    '''
+    """
 
     ### BUILDING INITIAL MODEL ###
     model = _initialize_model()

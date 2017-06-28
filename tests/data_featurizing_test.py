@@ -14,10 +14,10 @@ from image_featurizer.data_featurizing import featurize_data, features_to_csv
 
 
 def test_featurize_data():
-    '''
+    """
     Test that the featurize_data model correctly outputs the features of a toy
     network on a toy tensor
-    '''
+    """
     np.random.seed(5102020)
 
     # Create model
@@ -48,10 +48,10 @@ def test_featurize_data():
     assert np.array_equal(featurize_data(model, init_array), check_array)
 
 def test_features_to_csv():
-    '''
+    """
     Test that the model creates the correct csvs from a toy array, csv, and
      image list
-    '''
+    """
 
     # The paths to the toy csvs
     check_csv_images = 'tests/data_featurizing_testing/csv_testing/featurize_data_check_csv_images'
