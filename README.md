@@ -76,7 +76,7 @@ Examples coming soon:
 See the [Installation Guide](docs/guides/installation.md) for details.
 
 ### Installing Keras/Tensorflow
-Read the [Keras installation guide](https://keras.io/#installation) and  [Tensorflow installation guide](https://www.tensorflow.org/install/) for details about installing Keras/Tensorflow on your machine.
+If you run into trouble installing Keras or Tensorflow as a dependency, read the [Keras installation guide](https://keras.io/#installation) and  [Tensorflow installation guide](https://www.tensorflow.org/install/) for details about installing Keras/Tensorflow on your machine.
 
 
 
