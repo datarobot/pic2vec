@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 This file contains the full ImageFeaturizer class, which allows users to upload
 an image directory, a csv containing a list of image URLs, or a directory with a
@@ -46,7 +44,7 @@ Functionality:
                 The size that the images get scaled to. Default is (299, 299)
 
             grayscale : bool
-                Decides if image is grayscale or not. May get deprecated– don't
+                Decides if image is grayscale or not. May get deprecated. Don't
                 think it works on the InceptionV3 model due to input size.
 
     3. Featurize the data. The self.featurize() function takes no input, and featurizes
@@ -73,8 +71,6 @@ class ImageFeaturizer:
 
           Methods
     ------------------
-
-
         __init__(depth, automatic_downsample,
                  downsample_size):
             --------------------------------
@@ -113,9 +109,8 @@ class ImageFeaturizer:
                  downsample_size=0,
                  model='squeezenet'
                  ):
-
         """
-        Initializer:
+        Initializer.
 
         Loads an initial InceptionV3 pretrained network, decapitates it and
         downsamples according to user specifications.
@@ -135,8 +130,8 @@ class ImageFeaturizer:
         Returns:
         --------
         None. Initializes and saves the featurizer object attributes.
-        """
 
+        """
         # -------------- #
         # ERROR CHECKING #
         # -------------- #
@@ -162,12 +157,11 @@ class ImageFeaturizer:
             raise TypeError('Tried to set downsample_size to a non-integer value!'
                             ' Please set to an integer or leave uninitialized.')
 
-
         # BUILDING THE MODEL #
         print("\nBuilding the featurizer!")
 
         featurizer = build_featurizer(depth, automatic_downsample,
-                                 downsample_size, model_str=model.lower())
+                                      downsample_size, model_str=model.lower())
 
         # Saving initializations of model
         self.depth = depth
@@ -206,8 +200,8 @@ class ImageFeaturizer:
                                 # isotropic_scaling = True
                                 ):
         """
-        Loads image directory and/or csv, and vectorizes the images for input
-        into the featurizer.
+        Load image directory and/or csv, and vectorize the images for input into the featurizer.
+        Then, featurize the data.
 
         Parameters:
         ----------
@@ -231,7 +225,7 @@ class ImageFeaturizer:
                 be generated
 
             grayscale : bool
-                Decides if image is grayscale or not. May get deprecated– don't
+                Decides if image is grayscale or not. May get deprecated. Don't
                 think it works on the InceptionV3 model due to input size.
 
             ### These features haven't been implemented yet!
@@ -252,9 +246,7 @@ class ImageFeaturizer:
                 Also writes csvs containing the features only and the full dataframe
                 to the same path as the csv containing the list of names
 
-
         """
-
         self.load_data(image_column_header, image_path, csv_path, new_csv_name, grayscale)
         return self.featurize()
 
@@ -271,8 +263,7 @@ class ImageFeaturizer:
                   # isotropic_scaling = True
                   ):
         """
-        Loads image directory and/or csv, and vectorizes the images for input
-        into the featurizer.
+        Load image directory and/or csv, and vectorize the images for input into the featurizer.
 
         Parameters:
         ----------
@@ -296,7 +287,7 @@ class ImageFeaturizer:
                 be generated
 
             grayscale : bool
-                Decides if image is grayscale or not. May get deprecated– don't
+                Decides if image is grayscale or not. May get deprecated. Don't
                 think it works on the InceptionV3 model due to input size.
 
             ### These features haven't been implemented yet!
@@ -309,8 +300,8 @@ class ImageFeaturizer:
             # random_crop: bool
             #    If False, only take the center crop. If True, take random crop
             #
-        """
 
+        """
         size_dict = {'squeezenet': (227, 227), 'vgg16': (224, 224), 'vgg19': (224, 224),
                      'resnet50': (224, 224), 'inceptionv3': (299, 299), 'xception': (299, 299)}
 
@@ -355,8 +346,8 @@ class ImageFeaturizer:
                 Dataframe containing the features appended to the original csv.
                 Also writes csvs containing the features only and the full dataframe
                 to the same path as the csv containing the list of names
-        """
 
+        """
         print("Checking array initialized.")
         if np.array_equal(self.data, np.zeros((1))):
             raise IOError('Must load data into the model first! Call load_data.')

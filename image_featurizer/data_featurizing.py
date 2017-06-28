@@ -1,3 +1,12 @@
+"""
+This file deals with featurizing the data once the featurizer has been built and the data has been
+loaded and vectorized.
+
+It allows users to featurize the data with model.predict. It also lets the featurizer write the
+featurized data to the csv containing the images, appending the features to additional columns
+in-line with each image row.
+"""
+
 import os
 
 import pandas as pd
@@ -21,8 +30,8 @@ def featurize_data(model, array):
     --------
         full_feature_array : np.ndarray
             A numpy array containing the featurized images
-    """
 
+    """
     # -------------- #
     # ERROR CHECKING #
 
@@ -74,8 +83,8 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
 
         Method also writes new csvs at the path of the original csv, one containing
         just the features, and another containing the full combined csv and features
-    """
 
+    """
     # Read the original csv
     df = pd.read_csv(csv_path)
 

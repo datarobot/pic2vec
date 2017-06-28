@@ -1,3 +1,4 @@
+"""Test feature_preprocessing module"""
 import filecmp
 import os
 import random
@@ -24,9 +25,7 @@ IMAGE_ARRAY_PATH = 'tests/feature_preprocessing_testing/test_image_arrays/'
 
 
 def test_create_csv_with_image_paths():
-    """
-    Test method creates csv correctly from list of images
-    """
+    """Test method creates csv correctly from list of images"""
     list_of_images = ['arendt.bmp', 'borges.jpg', 'sappho.png']
     new_csv_path = 'tests/feature_preprocessing_testing/csv_testing/generated_create_csv_test'
 
@@ -44,7 +43,6 @@ def test_find_directory_image_paths():
     Test method returns a sorted list of valid image files
     to be fed into the featurizer from a directory.
     """
-
     check_image_paths = ['arendt.bmp', 'borges.jpg', 'sappho.png']
 
     test_image_paths = _find_directory_image_paths(IMAGE_PATH)
@@ -53,9 +51,7 @@ def test_find_directory_image_paths():
 
 
 def test_find_csv_image_paths():
-    """
-    Test method correctly finds image paths in the csv, and in the right order
-    """
+    """Test method correctly finds image paths in the csv, and in the right order"""
     check_image_paths = ['borges.jpg', 'arendt.bmp', 'sappho.png']
     test_image_paths = _find_csv_image_paths('{}csv_image_path_check'.format(CSV_PATH),
                                              IMG_COL_HEAD)
@@ -67,9 +63,7 @@ def test_find_csv_image_paths():
 
 
 def test_find_combined_image_paths():
-    """
-    Test that method only returns images that overlap between directory and csv
-    """
+    """Test that method only returns images that overlap between directory and csv"""
     check_image_paths = ['', 'arendt.bmp', 'sappho.png']
 
     invalid_csv_image_path = 'heidegger.png'
@@ -139,7 +133,6 @@ def test_image_paths_finder():
     Test the correct image paths returns for all three cases: directory only,
     csv only, and combined csv + directory
     """
-
     url_csv_path = '{}url_combined_image_path_test'.format(CSV_PATH)
     directory_csv_path = '{}directory_combined_image_path_test'.format(CSV_PATH)
     new_csv_name = '{}paths_finder_integration_test'.format(CSV_PATH)
@@ -177,7 +170,6 @@ def test_preprocess_data():
     Full integration test: check for Type and Value errors for badly passed variables,
     and make sure that the network preprocesses data correctly for all three cases!
     """
-
     # Saving paths
     new_csv_name = '{}generated_preprocess_system_test'.format(CSV_PATH)
     url_csv_path = '{}url_preprocess_system_test'.format(CSV_PATH)

@@ -46,9 +46,9 @@ setup(
         ]
     },
     include_package_data=True,
-    package_data = {
-    'image_featurizer': ['model/squeezenet_weights_tf_dim_ordering_tf_kernels.h5']
-    },
+    package_data={
+        'image_featurizer': ['model/squeezenet_weights_tf_dim_ordering_tf_kernels.h5']
+        },
     install_requires=requirements,
     license='BSD license',
     zip_safe=False,

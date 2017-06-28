@@ -7,22 +7,24 @@ This file deals with building the actual featurizer:
 The integrated function is the build_featurizer function, which takes the depth,
 a flag signalling downsampling, and the number of features to downsample to.
 """
+from keras.applications import InceptionV3, ResNet50, VGG16, VGG19, Xception  # noqa: E402
+from keras.engine.topology import InputLayer
+
+from keras.layers import GlobalAvgPool2D, Lambda, average  # noqa: E402
+from keras.models import Model  # noqa: E402
+
+from .squeezenet import SqueezeNet
 
 import os
 import warnings
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-from keras.applications import InceptionV3, ResNet50, VGG16, VGG19, Xception # noqa: E402
-from keras.engine.topology import InputLayer
-from keras.layers import GlobalAvgPool2D, Lambda, average  # noqa: E402
-from keras.models import Model  # noqa: E402
-from .squeezenet import SqueezeNet
 
 def _initialize_model(model_str):
     """
-    This function initializes the InceptionV3 model with the saved weights, or
-    if it can't find the weight file, it loads them automatically through Keras.
+    Initialize the InceptionV3 model with the saved weights, or
+    if the weight file can't be found, load them automatically through Keras.
 
     Parameters:
     ----------
@@ -33,8 +35,8 @@ def _initialize_model(model_str):
     -------
         model : keras.model.Model
             The initialized model loaded with pre-trained weights
-    """
 
+    """
     # -------------- #
     # ERROR CHECKING #
     valid_models = ['squeezenet', 'inceptionv3', 'vgg16', 'vgg19', 'resnet50', 'xception']
@@ -42,10 +44,9 @@ def _initialize_model(model_str):
     if not isinstance(model_str, str):
         raise TypeError('model_str must be a string!')
 
-
     if model_str.lower() not in valid_models:
         raise ValueError('model_str must be one of the following model names:'
-                        ' squeezenet, inceptionv3, vgg16, vgg19, resnet50, xception')
+                         ' squeezenet, inceptionv3, vgg16, vgg19, resnet50, xception')
     # ---------------------------- #
 
     # Special case for Squeezenet, because we have the weight file in the package
@@ -53,7 +54,9 @@ def _initialize_model(model_str):
 
         # Create path to the saved model
         this_dir, this_filename = os.path.split(__file__)
-        model_path = os.path.join(this_dir, "model", "squeezenet_weights_tf_dim_ordering_tf_kernels.h5")
+        model_path = os.path.join(this_dir,
+                                  "model",
+                                  "squeezenet_weights_tf_dim_ordering_tf_kernels.h5")
 
         # Initialize the Squeezenet model. If weights are already downloaded, pull them.
         if os.path.isfile(model_path):
@@ -63,7 +66,7 @@ def _initialize_model(model_str):
 
         # Otherwise, download them automatically
         else:
-            raise ValueError('Could not find the weights! Download another model' \
+            raise ValueError('Could not find the weights! Download another model'
                              ' or replace the SqueezeNet weights in the model folder.')
 
     # Initializing all the other models automatically from Keras weights
@@ -92,15 +95,14 @@ def _initialize_model(model_str):
         model = Xception()
         print("\nModel successfully initialized.")
 
-
     return model
 
 
 def _decapitate_model(model, depth):
     """
-    This cuts off end layers of a model equal to the depth of the desired outputs,
-    and then removes the links connecting the new outer layer to the old ones.
-``
+    Cutt off end layers of a model equal to the depth of the desired outputs,
+    and then remove the links connecting the new outer layer to the old ones.
+
     Parameters:
     ----------
         model: The model being decapitated
@@ -109,8 +111,8 @@ def _decapitate_model(model, depth):
     Returns:
     -------
         No output. This function operates on the model directly.
-    """
 
+    """
     # -------------- #
     # ERROR CHECKING #
 
@@ -123,7 +125,7 @@ def _decapitate_model(model, depth):
         raise TypeError('Depth is not an integer! Must have integer decapitation depth.')
 
     # Make sure the depth isn't greater than the number of layers (minus input)
-    if depth >= len(model.layers)-1:
+    if depth >= len(model.layers) - 1:
         raise ValueError('Can\'t go deeper than the number of layers in the model! Tried to pop '
                          '{} layers, but model only has {}'.format(depth, len(model.layers) - 1))
 
@@ -132,12 +134,13 @@ def _decapitate_model(model, depth):
     # -------------------------------------------------------- #
 
     # Get the intermediate output
-    new_model_output = model.layers[(depth+1) * -1].output
+    new_model_output = model.layers[(depth + 1) * -1].output
 
     new_model = Model(inputs=model.input, outputs=new_model_output)
     new_model.layers[-1].outbound_nodes = []
 
     return new_model
+
 
 def _find_pooling_constant(features, num_pooled_features):
     """
@@ -153,6 +156,7 @@ def _find_pooling_constant(features, num_pooled_features):
     -------
     int(pooling_constant): the integer pooling constant required to correctly
                            splice the tensor layer for downsampling
+
     """
     # Initializing the outputs
     output_shape = features.shape
@@ -192,9 +196,8 @@ def _find_pooling_constant(features, num_pooled_features):
 
 def _splice_layer(tensor, number_splices):
     """
-    This helper function takes a layer, and splices it into a number of
-    even slices through skipping. This downsamples the layer, and allows for
-    operations to be performed over neighbors.
+    Splice a layer into a number of even slices through skipping. This downsamples the layer,
+    and allows for operations to be performed over neighbors.
 
     Parameters:
     ----------
@@ -208,8 +211,8 @@ def _splice_layer(tensor, number_splices):
         list_of_spliced_layers: a list of the spliced sections of the original
                                 layer, with neighboring nodes occupying the same
                                 indices across  splices
-    """
 
+    """
     # -------------- #
     # ERROR CHECKING #
     # Need to check that the number of splices is an integer divisor of the feature
@@ -234,7 +237,7 @@ def _splice_layer(tensor, number_splices):
 
 def _downsample_model_features(features, num_pooled_features):
     """
-    This takes in a layer of a model, and downsamples layer to a specified size
+    Take in a layer of a model, and downsample the layer to a specified size.
 
     Parameters:
     ----------
@@ -246,8 +249,8 @@ def _downsample_model_features(features, num_pooled_features):
     -------
         downsampled_features: a tensor containing the downsampled features with
                               size = (?, num_pooled_features)
-    """
 
+    """
     # Find the pooling constant needed
     pooling_constant = _find_pooling_constant(features, num_pooled_features)
 
@@ -259,6 +262,7 @@ def _downsample_model_features(features, num_pooled_features):
 
     return downsampled_features
 
+
 def _check_downsampling_mismatch(downsample, num_pooled_features, output_layer_size):
 
     # If num_pooled_features left uninitialized, and they want to downsample,
@@ -268,7 +272,7 @@ def _check_downsampling_mismatch(downsample, num_pooled_features, output_layer_s
             num_pooled_features = output_layer_size // 2
             print('Automatic downsampling to {}. If you would like to set custom '
                   'downsampling, pass in an integer divisor of {} to '
-                  'num_pooled_features!'.format(num_pooled_features,output_layer_size))
+                  'num_pooled_features!'.format(num_pooled_features, output_layer_size))
         else:
             raise ValueError('Sorry, no automatic downsampling available for this model!')
 
@@ -284,11 +288,10 @@ def _check_downsampling_mismatch(downsample, num_pooled_features, output_layer_s
 def build_featurizer(depth_of_featurizer, downsample, num_pooled_features,
                      model_str='squeezenet', loaded_model=None):
     """
-    Create the full featurizer:
-        Initialize the model
-        Decapitate it to the appropriate depth
-        Check if downsampling top-layer featurization
-        If so, downsample to the desired feature space
+    Create the full featurizer.
+
+    Initialize the model, decapitate it to the appropriate depth, and check if downsampling
+    top-layer featurization. If so, downsample to the desired feature space
 
     Parameters:
     ----------
@@ -308,33 +311,32 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features,
 
                With downsampling, the output is equal to a downsampled average of
                multiple splices of the last densely connected layer.
-    """
 
+    """
     if not (isinstance(loaded_model, Model) or isinstance(loaded_model, type(None))):
         print loaded_model
-        raise TypeError('loaded_model is only for testing functionality. ' \
-                        'Needs to be either a Model or None type.' )
+        raise TypeError('loaded_model is only for testing functionality. '
+                        'Needs to be either a Model or None type.')
 
-    ### BUILDING INITIAL MODEL ###
-    if loaded_model != None:
+    # BUILDING INITIAL MODEL #
+    if loaded_model is not None:
         model = loaded_model
 
     else:
         model = _initialize_model(model_str=model_str)
 
-    ### DECAPITATING MODEL ###
-
+    # DECAPITATING MODEL #
     # Choosing model depth:
     squeezenet_dict = {1: 5, 2: 12, 3: 19, 4: 26}
     vgg16_dict = {1: 1, 2: 2, 3: 4, 4: 8}
     vgg19_dict = {1: 1, 2: 2, 3: 4, 4: 9}
     resnet50_dict = {1: 2, 2: 5, 3: 13, 4: 23}
     inceptionv3_dict = {1: 2, 2: 19, 3: 33, 4: 50}
-    xception_dict = {1: 1, 2: 8, 3: 18, 4: 28 }
+    xception_dict = {1: 1, 2: 8, 3: 18, 4: 28}
 
-    depth_dict = {'squeezenet': squeezenet_dict, 'vgg16': vgg16_dict, 'vgg19':\
-                   vgg19_dict, 'resnet50': resnet50_dict, 'inceptionv3': \
-                   inceptionv3_dict, 'xception': xception_dict}
+    depth_dict = {'squeezenet': squeezenet_dict, 'vgg16': vgg16_dict, 'vgg19':
+                  vgg19_dict, 'resnet50': resnet50_dict, 'inceptionv3':
+                  inceptionv3_dict, 'xception': xception_dict}
 
     # Find the right depth from the dictionary and decapitate the model
     model = _decapitate_model(model, depth_dict[model_str][depth_of_featurizer])

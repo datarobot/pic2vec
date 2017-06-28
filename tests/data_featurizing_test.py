@@ -1,3 +1,4 @@
+"""Test data_featurizing module"""
 import filecmp
 import os
 
@@ -48,9 +49,8 @@ def test_featurize_data():
 def test_features_to_csv():
     """
     Test that the model creates the correct csvs from a toy array, csv, and
-     image list
+    image list
     """
-
     # The paths to the toy csvs
     check_csv_images = 'tests/data_featurizing_testing/csv_testing/featurize_data_check_csv_images'
     check_csv_full = 'tests/data_featurizing_testing/csv_testing/featurize_data_check_csv_full'

@@ -1,3 +1,16 @@
+"""
+This file deals with preprocessing the images for the featurizer.
+
+It gives the user 3 options:
+1. Upload a CSV with URL pointers.
+2. Upload an image directory with no CSV. The featurizer will generate a CSV automatically.
+3. Upload a CSV with an image directory. The CSV will contain pointers to image in the directory.
+
+The integrated function is the preprocess_data function, which takes in the input and
+generates a 4D tensor containing the vectorized representations of the image to be featurized.
+"""
+
+
 import imghdr
 import os
 import urllib
@@ -16,8 +29,8 @@ from keras.preprocessing.image import load_img, img_to_array  # noqa: E402
 
 def _create_csv_with_image_paths(list_of_image_paths, new_csv_name, image_column_header):
     """
-    This takes in a list of image names, and creates a new csv file where each
-    image name is a new row
+    Take in a list of image names, and create a new csv file where each
+    image name is a new row.
 
     Parameters:
     ----------
@@ -27,15 +40,15 @@ def _create_csv_with_image_paths(list_of_image_paths, new_csv_name, image_column
     -------
         None. This simply builds a csv with each row holding the name of an
         image file, and saves it to the csv_name path
-    """
 
+    """
     df = pd.DataFrame(list_of_image_paths, columns=[image_column_header])
     df.to_csv(new_csv_name, index=False)
 
 
 def _find_directory_image_paths(image_directory):
     """
-    This takes in an directory and parses which files in it are valid images for
+    Take in a directory and parse which files in it are valid images for
     loading into the featurizer.
 
     Parameters:
@@ -45,8 +58,8 @@ def _find_directory_image_paths(image_directory):
     Returns:
     -------
         valid_image_paths: the list of full paths to each valid image
-    """
 
+    """
     image_list = os.listdir(image_directory)
 
     valid = ['jpeg', 'bmp', 'png']
@@ -61,7 +74,7 @@ def _find_directory_image_paths(image_directory):
 
 def _find_csv_image_paths(csv_path, image_column_header):
     """
-    Find the image paths in a csv without an image directory
+    Find the image paths in a csv without an image directory.
 
     Parameters:
     ----------
@@ -72,8 +85,8 @@ def _find_csv_image_paths(csv_path, image_column_header):
     Returns:
     -------
         list_of_image_paths: a list of the image paths contained in the csv
-    """
 
+    """
     # Create the dataframe from the csv
     df = pd.read_csv(csv_path)
 
@@ -94,7 +107,7 @@ def _find_csv_image_paths(csv_path, image_column_header):
 def _find_combined_image_paths(image_path, csv_path, image_column_header):
     """
     Find the image paths of a csv combined with a directory: take only the overlap
-    to avoid errors
+    to avoid errors.
 
     Parameters:
     ----------
@@ -109,7 +122,6 @@ def _find_combined_image_paths(image_path, csv_path, image_column_header):
         list_of_image_paths: list of image paths contained in both the csv and directory
 
     """
-
     # Find the list of image paths in the csv
     csv_list = _find_csv_image_paths(csv_path, image_column_header)
 
@@ -164,8 +176,8 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
     -------
         list_of_image_paths: a sorted list of the paths to all the images being
                              featurized
-    """
 
+    """
     # CASE 1: They only give an image directory with no CSV
     if csv_path == '':
 
@@ -198,8 +210,8 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
 
 def convert_single_image(image_source, image_path, target_size=(299, 299), grayscale=False):
     """
-    This function takes in a path to an image (either by URL or in a native directory)
-    and converts the image to a preprocessed 4D numpy array, ready to be plugged
+    Take in a path to an image (either by URL or in a native directory)
+    and convert the image to a preprocessed 4D numpy array, ready to be plugged
     into the featurizer.
 
     Parameters:
@@ -215,8 +227,8 @@ def convert_single_image(image_source, image_path, target_size=(299, 299), grays
     Returns:
     -------
         image_array: a numpy array that represents the loaded and preprocessed image
-    """
 
+    """
     # Retrieve the image, either from a given url or from a directory
     if image_source == 'url':
         image_file = urllib.urlretrieve(image_path)[0]
@@ -247,8 +259,8 @@ def preprocess_data(image_column_header,
                     target_size=(299, 299),
                     grayscale=False):
     """
-    This receives the data (some combination of image directory + csv), finds
-    the list of valid images, and then converts each to an array and adds
+    Receive the data (some combination of image directory + csv), find
+    the list of valid images, and then convert each to an array and adds
     them to the full batch.
 
     Parameters:
@@ -278,9 +290,7 @@ def preprocess_data(image_column_header,
                              of the numpy tensor. This will allow us to add the
                              features to the correct row of the csv.
 
-
     """
-
     # -------------- #
     # ERROR CHECKING #
     # -------------- #
