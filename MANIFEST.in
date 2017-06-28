@@ -8,6 +8,6 @@ recursive-include tests *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 
-recursive-include * *.h5
+recursive-include image_featurizer/model *
 
 recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
