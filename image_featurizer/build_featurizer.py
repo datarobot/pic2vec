@@ -8,14 +8,13 @@ The integrated function is the build_featurizer function, which takes the depth,
 a flag signalling downsampling, and the number of features to downsample to.
 """
 
-
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-from keras.applications.inception_v3 import InceptionV3
-from keras.models import Model
-from keras.layers import GlobalAvgPool2D, Lambda, average
+from keras.applications.inception_v3 import InceptionV3  # noqa: E402
+from keras.layers import GlobalAvgPool2D, Lambda, average  # noqa: E402
+from keras.models import Model  # noqa: E402
 
 
 def _initialize_model():
@@ -34,7 +33,8 @@ def _initialize_model():
 
     # Create path to the saved model
     this_dir, this_filename = os.path.split(__file__)
-    model_path = os.path.join(this_dir, "model", "inception_v3_weights_tf_dim_ordering_tf_kernels.h5")
+    model_path = os.path.join(this_dir, "model",
+                              "inception_v3_weights_tf_dim_ordering_tf_kernels.h5")
 
     # Initialize the model. If weights are already downloaded, pull them.
     if os.path.isfile(model_path):
@@ -66,8 +66,8 @@ def _decapitate_model(model, depth):
         No output. This function operates on the model directly.
     """
 
-    #------------------------------------------------#
-    ### ERROR CHECKING ###
+    # ------------------------------------------------#
+    # ERROR CHECKING ###
     # Make sure they actually passed a keras model
     if not isinstance(model, Model):
         raise TypeError('Please pass a model to the function. This is not a model.')
@@ -78,10 +78,9 @@ def _decapitate_model(model, depth):
 
     # Make sure the depth isn't greater than the number of layers (minus input)
     if depth >= len(model.layers):
-        raise ValueError('Can\'t go deeper than the number of layers in the model!' \
-                         ' Tried to pop {} layers, but model only has {}'.format(depth, len(model.layers)-1))
-    #------------------------------------------------#
-
+        raise ValueError('Can\'t go deeper than the number of layers in the model! Tried to pop '
+                         '{} layers, but model only has {}'.format(depth, len(model.layers) - 1))
+    # ------------------------------------------------#
 
     # Pop the layers
     for layer in xrange(depth):
@@ -90,7 +89,6 @@ def _decapitate_model(model, depth):
     # Break the connections
     model.outputs = [model.layers[-1].output]
     model.layers[-1].outbound_nodes = []
-
 
 
 def _find_pooling_constant(features, num_pooled_features):
@@ -113,37 +111,37 @@ def _find_pooling_constant(features, num_pooled_features):
     num_features = output_shape[-1].__int__()
 
     if not num_pooled_features:
-        raise ValueError('Can\'t pool to zero! Something wrong with parents functions-' \
+        raise ValueError('Can\'t pool to zero! Something wrong with parents functions-'
                          ' should not be able to pass 0 to this function. Check traceback.')
 
     # Find the pooling constant
-    pooling_constant = num_features/float(num_pooled_features)
+    pooling_constant = num_features / float(num_pooled_features)
 
-    #------------------------------------------------#
-    ### ERROR CHECKING ###
+    # ------------------------------------------------#
+    # ERROR CHECKING #
 
-    if not isinstance(num_pooled_features,int):
+    if not isinstance(num_pooled_features, int):
         raise TypeError('Number of features after pooling has to be an integer!')
 
     # Throw an error if they try to "downsample" up
     if pooling_constant < 1:
-        raise ValueError('You can\'t downsample to a number bigger than the original feature space!')
-
+        raise ValueError(
+            'You can\'t downsample to a number bigger than the original feature space!')
 
     # Check that the number of downsampled features is an integer divisor of the original output
     if not pooling_constant.is_integer():
-
         # Store recommended downsample
-        recommended_downsample = num_features/int(pooling_constant)
+        recommended_downsample = num_features / int(pooling_constant)
 
-        raise ValueError('Trying to downsample features to non-integer divisor: ' \
-                         'from {} to {}.\n\n Did you mean to downsample to' \
-                         ' {}? Regardless, please choose an integer divisor.'\
+        raise ValueError('Trying to downsample features to non-integer divisor: '
+                         'from {} to {}.\n\n Did you mean to downsample to'
+                         ' {}? Regardless, please choose an integer divisor.'
                          .format(num_features, num_pooled_features, recommended_downsample))
-    #------------------------------------------------#
+    # ------------------------------------------------#
 
     # Cast the pooling constant back to an int from a float if it passes the tests
     return int(pooling_constant)
+
 
 def _splice_layer(tensor, number_splices):
     """
@@ -165,28 +163,27 @@ def _splice_layer(tensor, number_splices):
                                 indices across  splices
     """
 
-    #------------------------------------------------#
-    ### ERROR CHECKING ###
+    # ------------------------------------------------#
+    # ERROR CHECKING #
 
     # Need to check that the number of splices is an integer divisor of the feature
     # size of the layer
     num_features = tensor.shape[-1].__int__()
 
     if not isinstance(number_splices, int):
-        raise ValueError('Must have integer number of splices! Trying to splice into ' \
+        raise ValueError('Must have integer number of splices! Trying to splice into '
                          '{} parts.'.format(number_splices))
 
     if num_features % number_splices:
-        raise ValueError('Number of splices needs to be an integer divisor of' \
-                         ' the number of features! Tried to split {} features into' \
+        raise ValueError('Number of splices needs to be an integer divisor of'
+                         ' the number of features! Tried to split {} features into'
                          ' {} equal parts.'.format(num_features, number_splices))
-    #------------------------------------------------#
-
-
+    # ------------------------------------------------#
     # Split the tensor into equal parts by skipping nodes equal to the number
     # of splices. This allows for merge operations over neighbor features
 
-    return [Lambda(lambda features: features[:, i::number_splices])(tensor) for i in xrange(number_splices)]
+    return [Lambda(lambda features: features[:, i::number_splices])(tensor) for i in
+            xrange(number_splices)]
 
 
 def _downsample_model_features(features, num_pooled_features):
@@ -216,13 +213,13 @@ def _downsample_model_features(features, num_pooled_features):
 
     return downsampled_features
 
-def _check_downsampling_mismatch(downsample, num_pooled_features, depth):
 
+def _check_downsampling_mismatch(downsample, num_pooled_features, depth):
     # If num_pooled_features left uninitialized, and they want to downsample
     # perform automatic downsampling
-    if num_pooled_features == 0 and downsample == True:
+    if num_pooled_features == 0 and downsample:
         if depth == 4:
-            temp_features=1280
+            temp_features = 1280
             num_pooled_features = 640
         else:
             temp_features = 2048
@@ -230,15 +227,16 @@ def _check_downsampling_mismatch(downsample, num_pooled_features, depth):
 
         print('Automatic downsampling to {}. If you would like to set custom '
               'downsampling, pass in an integer divisor of {} to '
-              'num_pooled_features!'.format(num_pooled_features,temp_features))
+              'num_pooled_features!'.format(num_pooled_features, temp_features))
 
     # If they have initialized num_pooled_features, but not turned on
     # downsampling, check that they don't actually want to downsample!
-    elif num_pooled_features != 0 and downsample == False:
+    elif num_pooled_features != 0 and not downsample:
         print('\n \n Downsampling to {}.'.format(num_pooled_features))
         downsample = True
 
-    return (downsample, num_pooled_features)
+    return downsample, num_pooled_features
+
 
 def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
     """
@@ -268,12 +266,12 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
                multiple splices of the last densely connected layer.
     """
 
-    ### BUILDING INITIAL MODEL ###
+    # BUILDING INITIAL MODEL #
     model = _initialize_model()
-    ### DECAPITATING MODEL ###
+    # DECAPITATING MODEL #
 
     # Choosing model depth:
-    depth_to_number_of_layers = {1: 2, 2: 19, 3: 33, 4:50}
+    depth_to_number_of_layers = {1: 2, 2: 19, 3: 33, 4: 50}
 
     # Find the right depth from the dictionary and decapitate the model
     _decapitate_model(model, depth_to_number_of_layers[depth_of_featurizer])
@@ -287,13 +285,12 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
     num_output_features = model_output.shape[-1].__int__()
     print("Model decapitated!")
 
-
-
-
-    ### DOWNSAMPLING FEATURES ###
+    # DOWNSAMPLING FEATURES #
 
     # Checking that the user's downsampling flag matches the initialization of the downsampling
-    (downsample, num_pooled_features) = _check_downsampling_mismatch(downsample, num_pooled_features, depth_of_featurizer)
+    (downsample, num_pooled_features) = _check_downsampling_mismatch(downsample,
+                                                                     num_pooled_features,
+                                                                     depth_of_featurizer)
 
     # If we are downsampling the features, we add a pooling layer to the outputs
     # to bring it to the correct size.
@@ -301,15 +298,12 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features):
         model_output = _downsample_model_features(model_output, num_pooled_features)
     print("Model downsampled!")
 
-
     # Finally save the model!
     model = Model(inputs=model.input, outputs=model_output)
 
-
-
     print("Full featurizer is built!")
     if downsample:
-         print("Final layer feature space downsampled to " + str(num_pooled_features))
+        print("Final layer feature space downsampled to " + str(num_pooled_features))
     else:
         print("No downsampling! Final layer feature space has size " + str(num_output_features))
 
