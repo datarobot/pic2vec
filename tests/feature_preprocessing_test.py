@@ -76,12 +76,12 @@ def test_find_combined_image_paths():
     invalid_directory_image_path = 'borges.jpg'
 
     test_image_path = _find_combined_image_paths(IMAGE_PATH,
-                                                 '{} directory_combined_image_path_test'.format(
+                                                 '{}directory_combined_image_path_test'.format(
                                                      CSV_PATH), IMG_COL_HEAD)
 
     with pytest.raises(ValueError):
         _find_combined_image_paths(IMAGE_PATH,
-                                   '{} error_directory_combined_test'.format(CSV_PATH),
+                                   '{}error_directory_combined_test'.format(CSV_PATH),
                                    IMG_COL_HEAD)
 
     assert invalid_csv_image_path not in test_image_path

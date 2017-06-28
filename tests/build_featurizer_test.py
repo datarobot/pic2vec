@@ -1,12 +1,13 @@
 import os
 import random
+import warnings
 
 import keras.backend as K
 import numpy as np
 import pytest
-from keras.layers import Dense, Activation
+from keras.layers import Dense, Activation, Input
 from keras.layers.merge import add
-from keras.models import Sequential
+from keras.models import Sequential, Model
 
 from image_featurizer.build_featurizer import (_decapitate_model, _find_pooling_constant,
                                                _splice_layer, _downsample_model_features,
@@ -24,38 +25,52 @@ def test_decapitate_model():
     and checks that it decapitates the network correctly:
     """
     # Create model
-    model = Sequential([
-        Dense(40, input_shape=(100,)),
-        Activation('relu'),
-        Dense(20),
-        Activation('relu'),
-        Dense(10),
-        Activation('relu'),
-        Dense(5),
-        Activation('softmax'), ])
 
-    model = _decapitate_model(model, 5)
+    input_layer = Input(shape=(100, ))
+    layer = Dense(40)(input_layer)
+    layer = Activation('relu')(layer)
+    layer = Dense(20)(layer)
+    layer = Activation('relu')(layer)
+    layer = Dense(10)(layer)
+    layer = Activation('relu')(layer)
+    layer = Dense(5)(layer)
+    output_layer = Activation('softmax')(layer)
+
+    check_model = Model(inputs=input_layer, outputs=output_layer)
+    test_model = _decapitate_model(check_model, 5)
+
+
+    # Raise warning when model has lazy input layer initialization
+    error_model = Sequential([
+        Dense(40, input_shape=(100,)),
+        Dense(20),
+        Activation('softmax')])
+
+    with warnings.catch_warnings(record=True) as warning_check:
+        _decapitate_model(error_model,1)
+        assert len(warning_check) == 1
+        assert "depth issues" in str(warning_check[-1].message)
 
     # Check for Type Error when model is passed something that isn't a Model
     with pytest.raises(TypeError):
         _decapitate_model(K.constant(3, shape=(3, 4)), 4)
     with pytest.raises(TypeError):
-        _decapitate_model(model.layers[-1], 1)
+        _decapitate_model(check_model.layers[-1], 1)
 
     # Check for TypeError when depth is not passed an integer
     with pytest.raises(TypeError):
-        _decapitate_model(model, 2.0)
+        _decapitate_model(check_model, 2.0)
 
     # Check for Value Error when passed a depth >= (# of layers in network) - 1
     with pytest.raises(ValueError):
-        _decapitate_model(model, 7)
+        _decapitate_model(check_model, 8)
 
     # Make checks for all of the necessary features: the model outputs, the
     # last layer, the last layer's connections, and the last layer's shape
-    assert model.layers[-1] == model.layers[3]
-    assert model.layers[3].outbound_nodes == []
-    assert model.outputs == [model.layers[3].output]
-    assert model.layers[-1].output_shape == (None, 20)
+    assert test_model.layers[-1] == test_model.layers[3]
+    assert test_model.layers[3].outbound_nodes == []
+    assert test_model.outputs == [test_model.layers[3].output]
+    assert test_model.layers[-1].output_shape == (None, 20)
 
 
 def test_splice_layer():
@@ -180,7 +195,7 @@ def test_initialize_model_squeezenet():
 
     weight_path = 'image_featurizer/model/squeezenet_weights_tf_dim_ordering_tf_kernels.h5'
     changed_weights_test = 'image_featurizer/model/changed_weight_name'
-    if os.isfile(weight_path):
+    if os.path.isfile(weight_path):
         os.rename(weight_path, changed_weights_test)
         try:
             with pytest.raises(ValueError):
@@ -208,7 +223,7 @@ def test_initialize_model_squeezenet():
 
     # I created this prediction earlier with the full model
     check_prediction = np.load(
-        'tests/featurizer_testing/test_initializer/squeezenet_test_prediction.npy')
+        'tests/build_featurizer_testing/squeezenet_test_prediction.npy')
 
     # Check that it predicts correctly to see if weights were correctly loaded
     assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
@@ -228,7 +243,7 @@ def test_initialize_model_inceptionv3():
 
     # I created this prediction earlier with the full model
     check_prediction = np.load(
-        'tests/featurizer_testing/test_initializer/inception_test_prediction.npy')
+        'tests/build_featurizer_testing/inception_test_prediction.npy')
 
     # Check that it predicts correctly to see if weights were correctly loaded
     assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
@@ -248,7 +263,7 @@ def test_initialize_model_vgg16():
 
     # I created this prediction earlier with the full model
     check_prediction = np.load(
-        'tests/featurizer_testing/test_initializer/vgg16_test_prediction.npy')
+        'tests/build_featurizer_testing/vgg16_test_prediction.npy')
 
     # Check that it predicts correctly to see if weights were correctly loaded
     assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
@@ -268,7 +283,7 @@ def test_initialize_model_vgg19():
 
     # I created this prediction earlier with the full model
     check_prediction = np.load(
-        'tests/featurizer_testing/test_initializer/vgg19_test_prediction.npy')
+        'tests/build_featurizer_testing/vgg19_test_prediction.npy')
 
     # Check that it predicts correctly to see if weights were correctly loaded
     assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
@@ -289,7 +304,7 @@ def test_initialize_model_resnet50():
 
     # I created this prediction earlier with the full model
     check_prediction = np.load(
-        'tests/featurizer_testing/test_initializer/resnet50_test_prediction.npy')
+        'tests/build_featurizer_testing/resnet50_test_prediction.npy')
 
     # Check that it predicts correctly to see if weights were correctly loaded
     assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
@@ -309,7 +324,7 @@ def test_initialize_model_xception():
 
     # I created this prediction earlier with the full model
     check_prediction = np.load(
-        'tests/featurizer_testing/test_initializer/xception_test_prediction.npy')
+        'tests/build_featurizer_testing/xception_test_prediction.npy')
 
     # Check that it predicts correctly to see if weights were correctly loaded
     assert np.array_equal(model.predict_on_batch(test_array), check_prediction)

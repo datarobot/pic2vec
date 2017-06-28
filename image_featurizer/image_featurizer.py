@@ -167,7 +167,7 @@ class ImageFeaturizer:
         print("\nBuilding the featurizer!")
 
         featurizer = build_featurizer(depth, automatic_downsample,
-                                 downsample_size, model_str=model)
+                                 downsample_size, model_str=model.lower())
 
         # Saving initializations of model
         self.depth = depth
@@ -175,9 +175,9 @@ class ImageFeaturizer:
         self.downsample_size = downsample_size
 
         # Save the model
-        self.model = model.lower()
+        self.model_name = model.lower()
         self.featurizer = featurizer
-        self.visualize = model.summary
+        self.visualize = featurizer.summary
 
         # Initializing preprocessing variables for after we load the images
         self.data = np.zeros((1))
@@ -198,7 +198,6 @@ class ImageFeaturizer:
                                 image_path='',
                                 csv_path='',
                                 new_csv_name='featurizer_csv/generated_images_csv',
-                                scaled_size=(227, 227),
                                 grayscale=False
 
                                 # crop_size = (299, 299),
@@ -231,9 +230,6 @@ class ImageFeaturizer:
                 If no csv exists, this is the path where the featurized csv will
                 be generated
 
-            scaled_size : tuple
-                The size that the images get scaled to. Default is (299, 299)
-
             grayscale : bool
                 Decides if image is grayscale or not. May get deprecated– don't
                 think it works on the InceptionV3 model due to input size.
@@ -258,8 +254,8 @@ class ImageFeaturizer:
 
 
         """
-        self.load_data(image_column_header, image_path, csv_path, new_csv_name,
-                       scaled_size, grayscale)
+
+        self.load_data(image_column_header, image_path, csv_path, new_csv_name, grayscale)
         return self.featurize()
 
     def load_data(self,
@@ -267,7 +263,6 @@ class ImageFeaturizer:
                   image_path='',
                   csv_path='',
                   new_csv_name='featurizer_csv/generated_images_csv',
-                  scaled_size=(299, 299),
                   grayscale=False
 
                   # crop_size = (299, 299),
@@ -300,9 +295,6 @@ class ImageFeaturizer:
                 If no csv exists, this is the path where the featurized csv will
                 be generated
 
-            scaled_size : tuple
-                The size that the images get scaled to. Default is (299, 299)
-
             grayscale : bool
                 Decides if image is grayscale or not. May get deprecated– don't
                 think it works on the InceptionV3 model due to input size.
@@ -318,6 +310,11 @@ class ImageFeaturizer:
             #    If False, only take the center crop. If True, take random crop
             #
         """
+
+        size_dict = {'squeezenet': (227, 227), 'vgg16': (224, 224), 'vgg19': (224, 224),
+                     'resnet50': (224, 224), 'inceptionv3': (299, 299), 'xception': (299, 299)}
+
+        scaled_size = size_dict[self.model_name]
 
         # If new csv_path is being generated, make sure
         # the folder exists!
@@ -365,7 +362,7 @@ class ImageFeaturizer:
             raise IOError('Must load data into the model first! Call load_data.')
 
         print("Trying to featurize data!")
-        self.featurized_data = featurize_data(self.model, self.data)
+        self.featurized_data = featurize_data(self.featurizer, self.data)
         full_dataframe = features_to_csv(self.featurized_data, self.csv_path,
                                          self.image_column_header, self.image_list)
         return full_dataframe
