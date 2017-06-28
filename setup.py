@@ -49,11 +49,6 @@ setup(
         ]
     },
     include_package_data=True,
-    # package_data = {
-    #     'model' :
-    #         ['inception_v3_weights_tf_dim_ordering_tf_kernels.h5'
-    #         ]
-    # },
     install_requires=requirements,
     license="BSD license",
     zip_safe=False,
