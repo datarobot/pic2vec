@@ -8,6 +8,6 @@ recursive-include tests *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 
-recursive-include image_featurizer/model/squeezenet_weights_tf_dim_ordering_tf_kernels.h5
+recursive-include * squeezenet_weights_tf_dim_ordering_tf_kernels.h5
 
 recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
