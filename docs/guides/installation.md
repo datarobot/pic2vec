@@ -85,6 +85,7 @@ Or download the [tarball](https://github.com/datarobot/imagefeaturizer/tarball/m
 ```
 
 Once you have a copy of the source, you can install it from inside the directory with:
+FIXME: this actually isn't working, at least in Ubuntu16.04 this fails on dependencies installation.
 
 ```bash
     $ python setup.py install
