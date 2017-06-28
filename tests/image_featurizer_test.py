@@ -1,8 +1,11 @@
-from image_featurizer.image_featurizer import ImageFeaturizer
-import numpy as np
-import shutil
 import os
+import shutil
+
+import numpy as np
 import pytest
+
+from image_featurizer.image_featurizer import ImageFeaturizer
+
 
 def test_ImageFeaturizer():
     """

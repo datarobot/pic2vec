@@ -1,17 +1,17 @@
-from keras.layers import Dense, Activation
-from keras.layers.merge import average, add
-from keras.models import Sequential
+import os
+import random
 
 import keras.backend as K
 import numpy as np
-
 import pytest
-import random
-import os
+from keras.layers import Dense, Activation
+from keras.layers.merge import add
+from keras.models import Sequential
 
-from image_featurizer.build_featurizer import \
-    _decapitate_model, _find_pooling_constant, _splice_layer, _downsample_model_features, \
-    _initialize_model, _check_downsampling_mismatch, build_featurizer
+from image_featurizer.build_featurizer import (_decapitate_model, _find_pooling_constant,
+                                               _splice_layer, _downsample_model_features,
+                                               _initialize_model, _check_downsampling_mismatch,
+                                               build_featurizer)
 
 random.seed(5102020)
 

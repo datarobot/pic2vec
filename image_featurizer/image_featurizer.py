@@ -58,12 +58,12 @@ Functionality:
 
 """
 import os
+
 import numpy as np
 
 from .build_featurizer import build_featurizer
-from .feature_preprocessing import preprocess_data
 from .data_featurizing import featurize_data, features_to_csv
-
+from .feature_preprocessing import preprocess_data
 
 
 class ImageFeaturizer:
