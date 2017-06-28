@@ -89,3 +89,14 @@ Once you have a copy of the source, you can install it from inside the directory
 ```bash
     $ python setup.py install
 ```
+
+
+Troubleshooting
+---------------
+
+If you see error similar to `TypeError: find_packages() got an unexpected
+keyword argument 'include'` then you need to upgrade your setuptools.
+
+```bash
+pip install -U setuptools
+```
