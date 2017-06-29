@@ -26,7 +26,7 @@ setup_requirements = [
 ]
 
 test_requirements = [
-    'numpy'
+    'numpy',
     'pytest',
     'keras',
 ]
