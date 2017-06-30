@@ -50,14 +50,6 @@ def test_decapitate_model():
         _decapitate_model(error_model, 1)
         assert len(warning_check) == 1
         assert "depth issues" in str(warning_check[-1].message)
-    # Check for Type Error when model is passed something that isn't a Model
-    with pytest.raises(TypeError):
-        _decapitate_model(K.constant(3, shape=(3, 4)), 4)
-    with pytest.raises(TypeError):
-        _decapitate_model(check_model.layers[-1], 1)
-    # Check for TypeError when depth is not passed an integer
-    with pytest.raises(TypeError):
-        _decapitate_model(check_model, 2.0)
     # Check for Value Error when passed a depth >= (# of layers in network) - 1
     with pytest.raises(ValueError):
         _decapitate_model(check_model, 8)
@@ -72,26 +64,11 @@ def test_decapitate_model():
 
 def test_splice_layer():
     """Test method splices tensors correctly"""
-    # Create toy tensor
-    tensor = K.constant(3, shape=(3, 12))
-    # Check for Value Error with non-integer number of slices
-    with pytest.raises(ValueError):
-        _splice_layer(tensor, 1.0)
-    # Check for Value Error when # slices is not an integer divisor of the
-    # total number of features
-    with pytest.raises(ValueError):
-        _splice_layer(tensor, 5)
-    with pytest.raises(ValueError):
-        _splice_layer(tensor, 24)
-
     # Create spliced and added layers via splicing function
     tensor = K.constant(3, shape=(3, 12))
-
     list_of_spliced_layers = _splice_layer(tensor, 3)
-
     # Add each of the layers together
     x = add(list_of_spliced_layers)
-
     # Create the spliced and added layers by hand
     check_layer = K.constant(9, shape=(3, 4))
     # Check the math is right by hand
@@ -107,15 +84,12 @@ def test_find_pooling_constant():
     # Check for Value Error when user tries to upsample
     with pytest.raises(ValueError):
         _find_pooling_constant(features, 120)
-    # Check for Type Error when pool is not a divisor of the number of features
+    # Check for Value Error when pool is not a divisor of the number of features
     with pytest.raises(ValueError):
         _find_pooling_constant(features, 40)
-    # Check for Type Error when pool is not a divisor of the number of features
+    # Check for Value Error when pool is not a divisor of the number of features
     with pytest.raises(ValueError):
         _find_pooling_constant(features, 0)
-    # Check for Type Error when number of pooled features is not an integer
-    with pytest.raises(TypeError):
-        _find_pooling_constant(features, 1.5)
     # Check that it gives the right answer when formatted correctly
     assert _find_pooling_constant(features, 6) == 10
 
@@ -169,25 +143,18 @@ def check_model_equal(model1, model2):
 
 def test_initialize_model_squeezenet():
     """Test the initialization of the loaded SqueezeNet model"""
-    with pytest.raises(TypeError):
-        _initialize_model(4)
-    with pytest.raises(ValueError):
-        _initialize_model('error!')
-
     weight_path = 'image_featurizer/model/squeezenet_weights_tf_dim_ordering_tf_kernels.h5'
     changed_weights_test = 'image_featurizer/model/changed_weight_name'
     if os.path.isfile(weight_path):
         os.rename(weight_path, changed_weights_test)
         try:
             with pytest.raises(ValueError):
-                model = _initialize_model('squeezenet')
+                _initialize_model('squeezenet')
+        finally:
             os.rename(changed_weights_test, weight_path)
-        except Exception as err:
-            os.rename(changed_weights_test, weight_path)
-            raise err
 
     # Initialize the model
-    model = _initialize_model('SqueEzEneT')
+    model = _initialize_model('squeezenet')
 
     try:
         model_downloaded_weights = SqueezeNet()
@@ -351,10 +318,6 @@ def test_build_featurizer_vgg16():
     correctly builds the VGG16 model with multiple options
     """
     vgg16 = _initialize_model('vgg16')
-
-    # Check for error with badly passed loaded_model
-    with pytest.raises(TypeError):
-        build_featurizer(1, False, 1024, model_str='vgg16', loaded_model=4)
 
     # Checking Depth 1 #
     # With downsampling

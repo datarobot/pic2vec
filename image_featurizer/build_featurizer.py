@@ -60,7 +60,7 @@ supported_model_types = {
 }
 
 
-@t.guard(model_str=t.Enum(supported_model_types.keys()))
+@t.guard(model_str=t.Enum(*supported_model_types.keys()))
 def _initialize_model(model_str):
     """
     Initialize the InceptionV3 model with the saved weights, or
@@ -158,6 +158,10 @@ def _find_pooling_constant(features, num_pooled_features):
 
     # -------------- #
     # ERROR CHECKING #
+
+    if pooling_constant < 1:
+        raise ValueError(
+            'You can\'t downsample to a number bigger than the original feature space!')
 
     # Check that the number of downsampled features is an integer divisor of the original output
     if not pooling_constant.is_integer():
@@ -257,10 +261,10 @@ def _check_downsampling_mismatch(downsample, num_pooled_features, output_layer_s
 
 @t.guard(depth_of_featurizer=t.Int(gte=1, lte=4),
          downsample=t.Bool,
-         num_pooled_features=t.Int(gte=1),
-         model_str=t.Enum(supported_model_types.keys()),
+         num_pooled_features=t.Int(gte=0),
+         model_str=t.Enum(*supported_model_types.keys()),
          loaded_model=t.Type(Model) | t.Null)
-def build_featurizer(depth_of_featurizer, downsample, num_pooled_features,
+def build_featurizer(depth_of_featurizer, downsample, num_pooled_features=0,
                      model_str='squeezenet', loaded_model=None):
     """
     Create the full featurizer.
@@ -277,6 +281,7 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features,
     num_pooled_features : int
         If we downsample, integer determining how small to downsample.
         NOTE: Must be integer divisor of original number of features
+        or 0 if we don't want to specify exact number
     model_str : str
         String deciding which model to use for the featurizer
     loaded_model : keras.model.Model, optional
