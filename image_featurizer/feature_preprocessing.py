@@ -14,12 +14,12 @@ generates a 4D tensor containing the vectorized representations of the image to 
 import imghdr
 import os
 import urllib
-import trafaret as t
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
+import trafaret as t  # noqa: E402
 from keras.applications.inception_v3 import preprocess_input  # noqa: E402
 from keras.preprocessing.image import load_img, img_to_array  # noqa: E402
 
