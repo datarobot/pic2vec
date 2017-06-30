@@ -53,11 +53,13 @@ def _find_directory_image_paths(image_directory):
 
     Parameters:
     ----------
-        image_directory: the filepath to the directory containing the images
+    image_directory: str
+        the filepath to the directory containing the images
 
     Returns:
     -------
-        valid_image_paths: the list of full paths to each valid image
+    valid_image_paths: list of str
+        Full paths to each valid image
 
     """
     image_list = os.listdir(image_directory)
@@ -162,20 +164,22 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
 
     Parameters:
     ----------
-        image_path: string containing path to the image directory,
-                              if it exists
+    image_path: str
+        Path to the image directory, if it exists
 
-        csv_path: string containing the path to the csv, if it exists
+    csv_path: str
+        Path to the csv, if it exists
 
-        image_column_header: string to find (or create) the column holding the
-                             image information
+    image_column_header: str
+        the column header holding the image information
 
-        new_csv_name: the name for the csv generated if one is not provided
+    new_csv_name: str
+        the name for the csv generated if one is not provided
 
     Returns:
     -------
-        list_of_image_paths: a sorted list of the paths to all the images being
-                             featurized
+    list_of_image_paths: list of str
+        a sorted list of the paths to all the images being featurized
 
     """
     # CASE 1: They only give an image directory with no CSV
@@ -201,7 +205,7 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
         list_of_image_paths = _find_combined_image_paths(image_path, csv_path, image_column_header)
         print('Found image paths that overlap between both the directory and the csv!')
 
-    return list_of_image_paths
+    return sorted(list_of_image_paths)
 
 
 #####################################
