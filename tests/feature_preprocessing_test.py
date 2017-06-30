@@ -47,7 +47,7 @@ def test_find_directory_image_paths():
 
     test_image_paths = _find_directory_image_paths(IMAGE_PATH)
 
-    assert test_image_paths == check_image_paths
+    assert set(test_image_paths) == set(check_image_paths)
 
 
 def test_find_csv_image_paths():
@@ -142,11 +142,10 @@ def test_image_paths_finder():
 
     # test image lists
     case1_images = ['arendt.bmp', 'borges.jpg', 'sappho.png']
-    case2_images = ['http://sisareport.com/wp-content/uploads/2016/09/%E2%96%B2-%ED'
-                    '%95%9C%EB%82%98-%EC%95%84%EB%A0%8C%ED%8A%B8Hannah-Arendt-1906-1975.bmp',
-                    'http://i2.wp.com/roadsandkingdoms.com/uploads/2013/11/Jorge_Luis_Borges.jpg',
-                    'http://queerbio.com/wiki/images/thumb/8/8d/Sappho.png/200px-Sappho.png'
-                    ]
+    case2_images = ['http://i2.wp.com/roadsandkingdoms.com/uploads/2013/11/Jorge_Luis_Borges.jpg',
+                    'http://queerbio.com/wiki/images/thumb/8/8d/Sappho.png/200px-Sappho.png',
+                    'http://sisareport.com/wp-content/uploads/2016/09/%E2%96%B2-%ED'
+                    '%95%9C%EB%82%98-%EC%95%84%EB%A0%8C%ED%8A%B8Hannah-Arendt-1906-1975.bmp']
     case3_images = ['', 'arendt.bmp', 'sappho.png']
 
     # generated image lists
