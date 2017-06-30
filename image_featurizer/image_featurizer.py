@@ -58,8 +58,9 @@ Functionality:
 import os
 
 import numpy as np
+import trafaret as t
 
-from .build_featurizer import build_featurizer
+from .build_featurizer import build_featurizer, supported_model_types
 from .data_featurizing import featurize_data, features_to_csv
 from .feature_preprocessing import preprocess_data
 
@@ -102,7 +103,10 @@ class ImageFeaturizer:
 
 
     """
-
+    @t.guard(depth=t.Int(gte=1, lte=4),
+             automatic_downsample=t.Bool,
+             downsample_size=t.Int(gte=0),
+             model=t.Enum(*supported_model_types.keys()))
     def __init__(self,
                  depth=1,
                  automatic_downsample=False,
@@ -132,31 +136,6 @@ class ImageFeaturizer:
         None. Initializes and saves the featurizer object attributes.
 
         """
-        # -------------- #
-        # ERROR CHECKING #
-        # -------------- #
-        # Acceptable depths for decapitation
-        acceptable_depths = [1, 2, 3, 4]
-
-        if not isinstance(depth, int):
-            raise TypeError('depth is not set to an integer! Please '
-                            'specify the number of layers you would like to '
-                            'remove from the top of the network for featurization.'
-                            ' Can be between 1 and 4.')
-
-        if depth not in acceptable_depths:
-            raise ValueError('Depth can be set to 1, 2, 3, or 4. Otherwise, '
-                             'leave it blank for default configuration of 1.')
-
-        if not isinstance(automatic_downsample, bool):
-            raise TypeError('automatic_downsample is not set to a boolean! If you would like to'
-                            ' downsample the featurizer automatically, please set to True. '
-                            'Otherwise, leave blank for default configuration.')
-
-        if not isinstance(downsample_size, int):
-            raise TypeError('Tried to set downsample_size to a non-integer value!'
-                            ' Please set to an integer or leave uninitialized.')
-
         # BUILDING THE MODEL #
         print("\nBuilding the featurizer!")
 
