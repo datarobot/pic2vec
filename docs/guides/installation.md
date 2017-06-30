@@ -95,9 +95,20 @@ FIXME: this actually isn't working, at least in Ubuntu16.04 this fails on depend
 Troubleshooting
 ---------------
 
-If you see error similar to `TypeError: find_packages() got an unexpected
-keyword argument 'include'` then you need to upgrade your setuptools.
+1. If you see error similar to `TypeError: find_packages() got an unexpected keyword argument 'include'` then you need to upgrade your setuptools.
 
 ```bash
 pip install -U setuptools
 ```
+
+2. If you see error similar to `No local packages or working download links
+ found for tensorflow`  then you need to upgrade your pip.
+
+ ```bash
+ pip install -U pip
+ ```
+
+ 3. If you have problems with tests or strange runtime exceptions - make sure
+ your Keras installation isn't configured for Theano use. Open `~/.keras/keras.json`
+ and check that `backend` parameter value is `tensorflow`. If it is `theano` -
+ simply remove that file. On the next execution Keras will find your tensorflow backend and create the correct configuration file.

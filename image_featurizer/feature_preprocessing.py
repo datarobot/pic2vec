@@ -34,7 +34,14 @@ def _create_csv_with_image_paths(list_of_image_paths, new_csv_name, image_column
 
     Parameters:
     ----------
-        list_of_image_paths: a sorted list containing each of the image names
+        list_of_image_paths: list of str
+            Full paths to images in a directory
+
+        new_csv_name : str
+            Path where the new csv will be saved
+
+        image_column_header : str
+            The name of the header for the column of image paths
 
     Returns:
     -------
@@ -51,13 +58,21 @@ def _find_directory_image_paths(image_directory):
     Take in a directory and parse which files in it are valid images for
     loading into the featurizer.
 
+    List ordering explanation for directory-only featurization:
+        The list will be sorted in order to create a deterministic file order for
+        the generated csv, regardless of filesystem ordering. The CSV will then be
+        used as the canonical order for all data preprocessing, featurizing, and
+        eventually writing the features back into the csv.
+
     Parameters:
     ----------
-        image_directory: the filepath to the directory containing the images
+        image_directory : str
+            The filepath to the directory containing the images
 
     Returns:
     -------
-        valid_image_paths: the list of full paths to each valid image
+        list_of_image_paths : list of str
+            A sorted list of full paths to each valid image contained in the directory
 
     """
     image_list = os.listdir(image_directory)
@@ -69,22 +84,31 @@ def _find_directory_image_paths(image_directory):
         if imghdr.what(image_directory + fichier) in valid:
             list_of_image_paths.append(fichier)
 
-    return list_of_image_paths
+    return sorted(list_of_image_paths)
 
 
 def _find_csv_image_paths(csv_path, image_column_header):
     """
     Find the image paths in a csv without an image directory.
 
+    List ordering explanation for csv-included featurization:
+        The list does not need to be sorted, as it is already in a set order in the csv.
+        The csv will be used as the canonical order for all data preprocessing,
+        featurizing, and eventually writing the features back into the csv.
+
+
     Parameters:
     ----------
-        csv_path: string of the path to the csv
+        csv_path: str
+            Full path to the csv
 
-        image_column_header: string of the column containing the image paths
+        image_column_header : str
+            Name of the column containing the image paths
 
     Returns:
     -------
-        list_of_image_paths: a list of the image paths contained in the csv
+        list_of_image_paths: list of str
+            Full paths to each valid image contained in the csv
 
     """
     # Create the dataframe from the csv
@@ -109,17 +133,24 @@ def _find_combined_image_paths(image_path, csv_path, image_column_header):
     Find the image paths of a csv combined with a directory: take only the overlap
     to avoid errors.
 
+    List ordering explanation for csv-included featurization:
+        See docstring for _find_csv_image_paths() method.
+
     Parameters:
     ----------
-        image_path: string of the path to the provided image directory
+        image_path : str
+            Full path to the provided image directory
 
-        csv_path: string of the path to the provided csv
+        csv_path : str
+            Full path to the provided csv
 
-        image_column_header: string of the column in the csv containing image paths
+        image_column_header : str
+            Name of the column in the csv containing image paths
 
     Returns:
     -------
-        list_of_image_paths: list of image paths contained in both the csv and directory
+        list_of_image_paths: list of str
+            Full paths to each valid image contained in both the csv and directory
 
     """
     # Find the list of image paths in the csv
@@ -162,20 +193,22 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
 
     Parameters:
     ----------
-        image_path: string containing path to the image directory,
-                              if it exists
+        image_path: str
+            Path to the image directory, if it exists
 
-        csv_path: string containing the path to the csv, if it exists
+        csv_path: str
+            Path to the csv, if it exists
 
-        image_column_header: string to find (or create) the column holding the
-                             image information
+        image_column_header: str
+            Name of column header holding image information
 
-        new_csv_name: the name for the csv generated if one is not provided
+        new_csv_name: str
+            Name for the csv that will be generated if one is not provided
 
     Returns:
     -------
-        list_of_image_paths: a sorted list of the paths to all the images being
-                             featurized
+        list_of_image_paths: list of str
+            a  list of the paths to all the images being featurized
 
     """
     # CASE 1: They only give an image directory with no CSV

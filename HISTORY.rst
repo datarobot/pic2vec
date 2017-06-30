@@ -71,7 +71,6 @@ History
 ------------------
 * Fixed documentation
 
-
 0.4.2 (2017-06-23)
 ------------------
 * Improved README test examples
