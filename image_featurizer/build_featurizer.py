@@ -7,20 +7,54 @@ This file deals with building the actual featurizer:
 The integrated function is the build_featurizer function, which takes the depth,
 a flag signalling downsampling, and the number of features to downsample to.
 """
-from keras.applications import InceptionV3, ResNet50, VGG16, VGG19, Xception  # noqa: E402
-from keras.engine.topology import InputLayer
-
-from keras.layers import GlobalAvgPool2D, Lambda, average  # noqa: E402
-from keras.models import Model  # noqa: E402
-
-from .squeezenet import SqueezeNet
-
 import os
 import warnings
 
+import trafaret as t
+from keras.applications import InceptionV3, ResNet50, VGG16, VGG19, Xception
+from keras.engine.topology import InputLayer
+from keras.layers import GlobalAvgPool2D, Lambda, average
+from keras.models import Model
+
+from .squeezenet import SqueezeNet
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+supported_model_types = {
+    'squeezenet': {
+        'label': 'SqueezeNet',
+        'class': SqueezeNet,
+        'kwargs': {'weights': None}
+    },
+    'inceptionv3': {
+        'label': 'InceptionV3',
+        'class': InceptionV3,
+        'kwargs': {}
+    },
+    'vgg16': {
+        'label': 'VGG16',
+        'class': VGG16,
+        'kwargs': {}
+    },
+    'vgg19': {
+        'label': 'VGG19',
+        'class': VGG19,
+        'kwargs': {}
+    },
+    'resnet50': {
+        'label': 'ResNet50',
+        'class': ResNet50,
+        'kwargs': {}
+    },
+    'xception': {
+        'label': 'Xception',
+        'class': Xception,
+        'kwargs': {}
+    }
+}
 
+
+@t.guard(model_str=t.Enum(supported_model_types.keys()))
 def _initialize_model(model_str):
     """
     Initialize the InceptionV3 model with the saved weights, or
@@ -35,66 +69,23 @@ def _initialize_model(model_str):
     -------
         model : keras.model.Model
             The initialized model loaded with pre-trained weights
-
     """
-    # -------------- #
-    # ERROR CHECKING #
-    valid_models = ['squeezenet', 'inceptionv3', 'vgg16', 'vgg19', 'resnet50', 'xception']
+    print('Check/download {model_label} model weights. This may take a minute first time.'.format(
+        model_label=supported_model_types[model_str]['label']))
 
-    if not isinstance(model_str, str):
-        raise TypeError('model_str must be a string!')
-
-    if model_str.lower() not in valid_models:
-        raise ValueError('model_str must be one of the following model names:'
-                         ' squeezenet, inceptionv3, vgg16, vgg19, resnet50, xception')
-    # ---------------------------- #
-
-    # Special case for Squeezenet, because we have the weight file in the package
-    if model_str.lower() == 'squeezenet':
-
-        # Create path to the saved model
+    model = supported_model_types[model_str]['class'](**supported_model_types[model_str]['kwargs'])
+    if model_str == 'squeezenet':
+        # Special case for squeezenet - we already have weights for it
         this_dir, this_filename = os.path.split(__file__)
         model_path = os.path.join(this_dir,
-                                  "model",
-                                  "squeezenet_weights_tf_dim_ordering_tf_kernels.h5")
-
-        # Initialize the Squeezenet model. If weights are already downloaded, pull them.
-        if os.path.isfile(model_path):
-            model = SqueezeNet(weights=None)
-            model.load_weights(model_path)
-            print("\nModel initialized and weights loaded successfully!")
-
-        # Otherwise, download them automatically
-        else:
+                                  'model',
+                                  'squeezenet_weights_tf_dim_ordering_tf_kernels.h5')
+        if not os.path.isfile(model_path):
             raise ValueError('Could not find the weights! Download another model'
                              ' or replace the SqueezeNet weights in the model folder.')
+        model.load_weights(model_path)
 
-    # Initializing all the other models automatically from Keras weights
-    elif model_str.lower() == 'vgg16':
-        print('Need to download VGG16 weights from Keras!')
-        model = VGG16()
-        print("\nModel successfully initialized.")
-
-    elif model_str.lower() == 'vgg19':
-        print('Need to download VGG19 weights from Keras!')
-        model = VGG19()
-        print("\nModel successfully initialized.")
-
-    elif model_str.lower() == 'resnet50':
-        print('Need to download ResNet50 weights from Keras!')
-        model = ResNet50()
-        print("\nModel successfully initialized.")
-
-    elif model_str.lower() == 'inceptionv3':
-        print('Need to download InceptionV3 weights from Keras!')
-        model = InceptionV3()
-        print("\nModel successfully initialized.")
-
-    elif model_str.lower() == 'xception':
-        print('Need to download Xception weights from Keras!')
-        model = Xception()
-        print("\nModel successfully initialized.")
-
+    print('Model successfully initialized.')
     return model
 
 
@@ -264,7 +255,6 @@ def _downsample_model_features(features, num_pooled_features):
 
 
 def _check_downsampling_mismatch(downsample, num_pooled_features, output_layer_size):
-
     # If num_pooled_features left uninitialized, and they want to downsample,
     # perform automatic downsampling
     if num_pooled_features == 0 and downsample:
@@ -334,9 +324,13 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features,
     inceptionv3_dict = {1: 2, 2: 19, 3: 33, 4: 50}
     xception_dict = {1: 1, 2: 8, 3: 18, 4: 28}
 
-    depth_dict = {'squeezenet': squeezenet_dict, 'vgg16': vgg16_dict, 'vgg19':
-                  vgg19_dict, 'resnet50': resnet50_dict, 'inceptionv3':
-                  inceptionv3_dict, 'xception': xception_dict}
+    depth_dict = {
+        'squeezenet': squeezenet_dict,
+        'vgg16': vgg16_dict,
+        'vgg19': vgg19_dict,
+        'resnet50': resnet50_dict,
+        'inceptionv3': inceptionv3_dict,
+        'xception': xception_dict}
 
     # Find the right depth from the dictionary and decapitate the model
     model = _decapitate_model(model, depth_dict[model_str][depth_of_featurizer])
