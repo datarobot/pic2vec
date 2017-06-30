@@ -14,6 +14,7 @@ generates a 4D tensor containing the vectorized representations of the image to 
 import imghdr
 import os
 import urllib
+import trafaret as t
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -255,7 +256,12 @@ def convert_single_image(image_source, image_path, target_size=(299, 299), grays
 ################################################
 #  FUNCTION FOR END-TO-END DATA PREPROCESSING  #
 ################################################
-
+@t.guard(image_column_header=t.String(allow_blank=False),
+         image_path=t.String(allow_blank=True),
+         csv_path=t.String(allow_blank=True),
+         new_csv_name=t.String(allow_blank=True),
+         target_size=t.Tuple(t.Int, t.Int),
+         grayscale=t.Bool)
 def preprocess_data(image_column_header,
                     image_path='',
                     csv_path='',
@@ -304,53 +310,16 @@ def preprocess_data(image_column_header,
         raise ValueError('Need to load either an image directory or a CSV with'
                          ' URLs, if no image directory included.')
 
-    # Raise an error if image_column_header is not a string
-    if not isinstance(image_column_header, str):
-        raise TypeError('image_column_header must be passed a string! This '
-                        'determines where to look for (or create) the column'
-                        ' of image paths in the csv.')
-
-    # Raise an error if image_path is not a string
-    if not isinstance(image_path, str):
-        raise TypeError('image_path must be passed a string, or left blank'
-                        '! This determines where to look for the folder of images,'
-                        ' or says if it doesn\'t exist.')
-
     # Raise an error if the image_path doesn't point to a directory
-    if image_path != '':
-        if not os.path.isdir(image_path):
-            raise TypeError('image_path must lead to a directory if '
-                            'it is initialized! It is where the images are stored.')
-
-    # Raise an error if csv_path is not a string
-    if not isinstance(csv_path, str):
-        raise TypeError('csv_path must be passed a string, or left blank!'
-                        ' This determines where to look for the csv,'
-                        ' or says if it doesn\'t exist.')
+    if image_path and not not os.path.isdir(image_path):
+        raise TypeError('image_path must lead to a directory if '
+                        'it is initialized! It is where the images are stored.')
 
     # Raise an error if the csv_path doesn't point to a file
-    if csv_path != '':
-        if not os.path.isfile(csv_path):
-            raise TypeError('csv_path must lead to a file if it is initialized!'
-                            ' This is the csv containing pointers to the images.')
+    if csv_path and not os.path.isfile(csv_path):
+        raise TypeError('csv_path must lead to a file if it is initialized!'
+                        ' This is the csv containing pointers to the images.')
 
-    # Raise an error if new_csv_name is not a string
-    if not isinstance(new_csv_name, str):
-        raise TypeError('new_csv_name must be passed a string! This '
-                        'determines where to create the new csv from images'
-                        'if it doesn\'t already exist!.')
-
-    # Raise an error if target_size is not a tuple of integers
-    if not isinstance(target_size, tuple):
-        raise TypeError('target_size is not a tuple! Please list dimensions as a tuple')
-
-    for element in target_size:
-        if not (isinstance(element, int) and not isinstance(element, bool)):
-            raise TypeError('target_size must be a tuple of integers!')
-
-    if not isinstance(grayscale, bool):
-        raise TypeError('grayscale must be a boolean! This determines if the'
-                        'images are grayscale or in color. Default is False')
     # ------------------------------------------------------ #
 
     # BUILDING IMAGE PATH LIST #
@@ -415,10 +384,10 @@ def preprocess_data(image_column_header,
 
             # Add the index to the dictionary to check in the future
 
-            # Progress report at the first image and after each 100 images
-            if (not i % 1000):
+            # Progress report at the set intervals
+            report_step = 1000
+            if not i % report_step:
                 print('Converted {} images! Only {} images left to go!'.format(i, num_images - i))
-
             i += 1
 
     return full_image_data, csv_path, list_of_image_paths
