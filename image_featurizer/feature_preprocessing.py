@@ -311,7 +311,7 @@ def preprocess_data(image_column_header,
                          ' URLs, if no image directory included.')
 
     # Raise an error if the image_path doesn't point to a directory
-    if image_path and not not os.path.isdir(image_path):
+    if image_path and not os.path.isdir(image_path):
         raise TypeError('image_path must lead to a directory if '
                         'it is initialized! It is where the images are stored.')
 
