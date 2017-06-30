@@ -19,6 +19,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
+import trafaret as t  # noqa: E402
 from keras.applications.inception_v3 import preprocess_input  # noqa: E402
 from keras.preprocessing.image import load_img, img_to_array  # noqa: E402
 
@@ -53,11 +54,13 @@ def _find_directory_image_paths(image_directory):
 
     Parameters:
     ----------
-        image_directory: the filepath to the directory containing the images
+    image_directory: str
+        the filepath to the directory containing the images
 
     Returns:
     -------
-        valid_image_paths: the list of full paths to each valid image
+    valid_image_paths: list of str
+        Full paths to each valid image
 
     """
     image_list = os.listdir(image_directory)
@@ -162,20 +165,22 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
 
     Parameters:
     ----------
-        image_path: string containing path to the image directory,
-                              if it exists
+    image_path: str
+        Path to the image directory, if it exists
 
-        csv_path: string containing the path to the csv, if it exists
+    csv_path: str
+        Path to the csv, if it exists
 
-        image_column_header: string to find (or create) the column holding the
-                             image information
+    image_column_header: str
+        the column header holding the image information
 
-        new_csv_name: the name for the csv generated if one is not provided
+    new_csv_name: str
+        the name for the csv generated if one is not provided
 
     Returns:
     -------
-        list_of_image_paths: a sorted list of the paths to all the images being
-                             featurized
+    list_of_image_paths: list of str
+        a sorted list of the paths to all the images being featurized
 
     """
     # CASE 1: They only give an image directory with no CSV
@@ -201,7 +206,7 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
         list_of_image_paths = _find_combined_image_paths(image_path, csv_path, image_column_header)
         print('Found image paths that overlap between both the directory and the csv!')
 
-    return list_of_image_paths
+    return sorted(list_of_image_paths)
 
 
 #####################################
@@ -251,7 +256,12 @@ def convert_single_image(image_source, image_path, target_size=(299, 299), grays
 ################################################
 #  FUNCTION FOR END-TO-END DATA PREPROCESSING  #
 ################################################
-
+@t.guard(image_column_header=t.String(allow_blank=False),
+         image_path=t.String(allow_blank=True),
+         csv_path=t.String(allow_blank=True),
+         new_csv_name=t.String(allow_blank=True),
+         target_size=t.Tuple(t.Int, t.Int),
+         grayscale=t.Bool)
 def preprocess_data(image_column_header,
                     image_path='',
                     csv_path='',
@@ -300,53 +310,16 @@ def preprocess_data(image_column_header,
         raise ValueError('Need to load either an image directory or a CSV with'
                          ' URLs, if no image directory included.')
 
-    # Raise an error if image_column_header is not a string
-    if not isinstance(image_column_header, str):
-        raise TypeError('image_column_header must be passed a string! This '
-                        'determines where to look for (or create) the column'
-                        ' of image paths in the csv.')
-
-    # Raise an error if image_path is not a string
-    if not isinstance(image_path, str):
-        raise TypeError('image_path must be passed a string, or left blank'
-                        '! This determines where to look for the folder of images,'
-                        ' or says if it doesn\'t exist.')
-
     # Raise an error if the image_path doesn't point to a directory
-    if image_path != '':
-        if not os.path.isdir(image_path):
-            raise TypeError('image_path must lead to a directory if '
-                            'it is initialized! It is where the images are stored.')
-
-    # Raise an error if csv_path is not a string
-    if not isinstance(csv_path, str):
-        raise TypeError('csv_path must be passed a string, or left blank!'
-                        ' This determines where to look for the csv,'
-                        ' or says if it doesn\'t exist.')
+    if image_path and not os.path.isdir(image_path):
+        raise TypeError('image_path must lead to a directory if '
+                        'it is initialized! It is where the images are stored.')
 
     # Raise an error if the csv_path doesn't point to a file
-    if csv_path != '':
-        if not os.path.isfile(csv_path):
-            raise TypeError('csv_path must lead to a file if it is initialized!'
-                            ' This is the csv containing pointers to the images.')
+    if csv_path and not os.path.isfile(csv_path):
+        raise TypeError('csv_path must lead to a file if it is initialized!'
+                        ' This is the csv containing pointers to the images.')
 
-    # Raise an error if new_csv_name is not a string
-    if not isinstance(new_csv_name, str):
-        raise TypeError('new_csv_name must be passed a string! This '
-                        'determines where to create the new csv from images'
-                        'if it doesn\'t already exist!.')
-
-    # Raise an error if target_size is not a tuple of integers
-    if not isinstance(target_size, tuple):
-        raise TypeError('target_size is not a tuple! Please list dimensions as a tuple')
-
-    for element in target_size:
-        if not (isinstance(element, int) and not isinstance(element, bool)):
-            raise TypeError('target_size must be a tuple of integers!')
-
-    if not isinstance(grayscale, bool):
-        raise TypeError('grayscale must be a boolean! This determines if the'
-                        'images are grayscale or in color. Default is False')
     # ------------------------------------------------------ #
 
     # BUILDING IMAGE PATH LIST #
@@ -411,10 +384,10 @@ def preprocess_data(image_column_header,
 
             # Add the index to the dictionary to check in the future
 
-            # Progress report at the first image and after each 100 images
-            if (not i % 1000):
+            # Progress report at the set intervals
+            report_step = 1000
+            if not i % report_step:
                 print('Converted {} images! Only {} images left to go!'.format(i, num_images - i))
-
             i += 1
 
     return full_image_data, csv_path, list_of_image_paths

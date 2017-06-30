@@ -41,25 +41,6 @@ def test_squeezenet_ImageFeaturizer():
     if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests/'):
         shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')
 
-    # Raise error if depth is not an integer
-    with pytest.raises(TypeError):
-        f = ImageFeaturizer(depth=1.)
-    # Raise error if depth not 1, 2, 3, or 4
-    with pytest.raises(ValueError):
-        f = ImageFeaturizer(depth=5)
-
-    # Raise error if downsample isn't a boolean
-    with pytest.raises(TypeError):
-        f = ImageFeaturizer(automatic_downsample='True')
-    with pytest.raises(TypeError):
-        f = ImageFeaturizer(automatic_downsample=4)
-    with pytest.raises(TypeError):
-        f = ImageFeaturizer(automatic_downsample=(True, True))
-
-    # Raise error if downsample_size isn't an integer
-    with pytest.raises(TypeError):
-        f = ImageFeaturizer(downsample_size=1.)
-
     # Check initialization
     f = ImageFeaturizer()
     compare_featurizer_class(f, 0, '', False, '', '', (0, 0), 1, np.zeros((1)))
