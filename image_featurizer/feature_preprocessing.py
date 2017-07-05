@@ -19,6 +19,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
+import trafaret as t  # noqa: E402
 from keras.applications.inception_v3 import preprocess_input  # noqa: E402
 from keras.preprocessing.image import load_img, img_to_array  # noqa: E402
 
@@ -99,7 +100,7 @@ def _find_csv_image_paths(csv_path, image_column_header):
 
     Parameters:
     ----------
-        csv_path: str
+        csv_path : str
             Full path to the csv
 
         image_column_header : str
@@ -119,7 +120,7 @@ def _find_csv_image_paths(csv_path, image_column_header):
     # Raise an error if the image column header isn't in the dataframe
     if image_column_header not in df.columns:
         raise ValueError('image_column_header error: {} does not exist as a '
-                         'column in the csv file!'.format(image_column_header))
+                         'column in the csv file.'.format(image_column_header))
     # -------------- #
 
     # Create the list of image paths from the column in the dataframe
@@ -177,7 +178,7 @@ def _find_combined_image_paths(image_path, csv_path, image_column_header):
 
     # Raise error if there are no shared images between the csv and the directory
     if all(path == '' for path in list_of_image_paths):
-        raise ValueError('Something is wrong! There are no shared images in the'
+        raise ValueError('Something is wrong. There are no shared images in the'
                          ' csv and the image directory. Check formatting or files.')
     # -------------- #
 
@@ -193,21 +194,21 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
 
     Parameters:
     ----------
-        image_path: str
+        image_path : str
             Path to the image directory, if it exists
 
-        csv_path: str
+        csv_path : str
             Path to the csv, if it exists
 
-        image_column_header: str
+        image_column_header : str
             Name of column header holding image information
 
-        new_csv_name: str
+        new_csv_name : str
             Name for the csv that will be generated if one is not provided
 
     Returns:
     -------
-        list_of_image_paths: list of str
+        list_of_image_paths : list of str
             a  list of the paths to all the images being featurized
 
     """
@@ -221,18 +222,18 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
         _create_csv_with_image_paths(list_of_image_paths, new_csv_name=new_csv_name,
                                      image_column_header=image_column_header)
 
-        print('Created csv from directory! Stored at {}'.format(new_csv_name))
+        print('Created csv from directory. Stored at {}'.format(new_csv_name))
 
     # CASE 2: They only give a CSV with no directory
     elif image_path == '':
         # Create the list_of_image_paths from the csv
         list_of_image_paths = _find_csv_image_paths(csv_path, image_column_header)
-        print('Found image paths from csv!')
+        print('Found image paths from csv.')
 
     # CASE 3: They give both a CSV and a directory
     else:
         list_of_image_paths = _find_combined_image_paths(image_path, csv_path, image_column_header)
-        print('Found image paths that overlap between both the directory and the csv!')
+        print('Found image paths that overlap between both the directory and the csv.')
 
     return list_of_image_paths
 
@@ -249,17 +250,21 @@ def convert_single_image(image_source, image_path, target_size=(299, 299), grays
 
     Parameters:
     ----------
-        image_header_type: either 'from_url' or 'from_directory', depending on
-                           where the images are stored
-        image_path: either the URL or the full path to the image
+        image_header_type : str
+            Pointer to where images are stored for featurizer. Either 'from_url' or 'from_directory'
+        image_path : str
+            Either the URL or the full path to the image
 
-        target size: the desired size of the image
+        target size : tuple of ints
+            The desired size of the image
 
-        grayscale: a boolean indicating whether the image is grayscale or not
+        grayscale : bool
+            Boolean indicating whether the image is grayscale or not
 
     Returns:
     -------
-        image_array: a numpy array that represents the loaded and preprocessed image
+        image_array : np.ndarray
+            a numpy array that represents the loaded and preprocessed image
 
     """
     # Retrieve the image, either from a given url or from a directory
@@ -284,7 +289,12 @@ def convert_single_image(image_source, image_path, target_size=(299, 299), grays
 ################################################
 #  FUNCTION FOR END-TO-END DATA PREPROCESSING  #
 ################################################
-
+@t.guard(image_column_header=t.String(allow_blank=False),
+         image_path=t.String(allow_blank=True),
+         csv_path=t.String(allow_blank=True),
+         new_csv_name=t.String(allow_blank=True),
+         target_size=t.Tuple(t.Int, t.Int),
+         grayscale=t.Bool)
 def preprocess_data(image_column_header,
                     image_path='',
                     csv_path='',
@@ -298,30 +308,37 @@ def preprocess_data(image_column_header,
 
     Parameters:
     ----------
-        image_path: the path to the image directory, if it is being passed
+        image_path : str
+            The path to the image directory, if it is being passed
 
-        csv_path: the path to the csv, if it is being passed
+        csv_path : str
+            The path to the csv, if it is being passed
 
-        image_column_header: the name of the column that contains the image paths
-                             in the csv
+        image_column_header : str
+            The name of the column that contains the image paths in the csv
 
-        new_csv_name: if just being passed an image directory, this is the path
-                      to save the generated csv
+        new_csv_name : str
+            If just passed an image directory, this is the path to save the generated csv
 
-        target_size: the size that the images will be scaled to
+        target_size : tuple of ints
+            The size that the images will be scaled to
 
-        grayscale: boolean describing if the images are grayscale or not
+        grayscale : bool
+            Boolean indicating whether the images are grayscale or not
 
     Returns:
     -------
-        full_image_data: a 4D numpy tensor containing all of the vectorized images
-                        to be pushed through the featurizer
+        full_image_data : np.ndarray
+            a 4D numpy tensor containing all of the vectorized images, ready
+            to be pushed through the featurizer
 
-        csv_path: the path to the csv that represents the image data
+        csv_path : str
+            the path to the csv that represents the image data
 
-        list_of_image_paths: the list of image paths in the same order as the batches
-                             of the numpy tensor. This will allow us to add the
-                             features to the correct row of the csv.
+        list_of_image_paths : list of str
+            the list of image paths in the same order as the batches
+            of the numpy tensor. This will allow us to add the
+            features to the correct row of the csv.
 
     """
     # -------------- #
@@ -333,53 +350,16 @@ def preprocess_data(image_column_header,
         raise ValueError('Need to load either an image directory or a CSV with'
                          ' URLs, if no image directory included.')
 
-    # Raise an error if image_column_header is not a string
-    if not isinstance(image_column_header, str):
-        raise TypeError('image_column_header must be passed a string! This '
-                        'determines where to look for (or create) the column'
-                        ' of image paths in the csv.')
-
-    # Raise an error if image_path is not a string
-    if not isinstance(image_path, str):
-        raise TypeError('image_path must be passed a string, or left blank'
-                        '! This determines where to look for the folder of images,'
-                        ' or says if it doesn\'t exist.')
-
     # Raise an error if the image_path doesn't point to a directory
-    if image_path != '':
-        if not os.path.isdir(image_path):
-            raise TypeError('image_path must lead to a directory if '
-                            'it is initialized! It is where the images are stored.')
-
-    # Raise an error if csv_path is not a string
-    if not isinstance(csv_path, str):
-        raise TypeError('csv_path must be passed a string, or left blank!'
-                        ' This determines where to look for the csv,'
-                        ' or says if it doesn\'t exist.')
+    if image_path and not os.path.isdir(image_path):
+        raise TypeError('image_path must lead to a directory if '
+                        'it is initialized. It is where the images are stored.')
 
     # Raise an error if the csv_path doesn't point to a file
-    if csv_path != '':
-        if not os.path.isfile(csv_path):
-            raise TypeError('csv_path must lead to a file if it is initialized!'
-                            ' This is the csv containing pointers to the images.')
+    if csv_path and not os.path.isfile(csv_path):
+        raise TypeError('csv_path must lead to a file if it is initialized.'
+                        ' This is the csv containing pointers to the images.')
 
-    # Raise an error if new_csv_name is not a string
-    if not isinstance(new_csv_name, str):
-        raise TypeError('new_csv_name must be passed a string! This '
-                        'determines where to create the new csv from images'
-                        'if it doesn\'t already exist!.')
-
-    # Raise an error if target_size is not a tuple of integers
-    if not isinstance(target_size, tuple):
-        raise TypeError('target_size is not a tuple! Please list dimensions as a tuple')
-
-    for element in target_size:
-        if not (isinstance(element, int) and not isinstance(element, bool)):
-            raise TypeError('target_size must be a tuple of integers!')
-
-    if not isinstance(grayscale, bool):
-        raise TypeError('grayscale must be a boolean! This determines if the'
-                        'images are grayscale or in color. Default is False')
     # ------------------------------------------------------ #
 
     # BUILDING IMAGE PATH LIST #
@@ -407,10 +387,10 @@ def preprocess_data(image_column_header,
 
     full_image_data = np.zeros((num_images, target_size[0], target_size[1], channels))
 
-    # Create the full image tensor!
+    # Create the full image tensor
     i = 0
 
-    print('Converting images!')
+    print('Converting images.')
 
     image_dict = {}
 
@@ -425,7 +405,7 @@ def preprocess_data(image_column_header,
             i += 1
             continue
 
-        # If the image has already been vectorized before, just copy that slice!
+        # If the image has already been vectorized before, just copy that slice
         if image in image_dict:
             full_image_data[i, :, :, :] = full_image_data[image_dict[image], :, :, :]
 
@@ -444,10 +424,10 @@ def preprocess_data(image_column_header,
 
             # Add the index to the dictionary to check in the future
 
-            # Progress report at the first image and after each 100 images
-            if (not i % 1000):
-                print('Converted {} images! Only {} images left to go!'.format(i, num_images - i))
-
+            # Progress report at the set intervals
+            report_step = 1000
+            if not i % report_step:
+                print('Converted {} images. Only {} images left to go.'.format(i, num_images - i))
             i += 1
 
     return full_image_data, csv_path, list_of_image_paths

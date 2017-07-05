@@ -22,7 +22,7 @@ def compare_featurizer_class(featurizer,
     """Check the necessary assertions for a featurizer image."""
     assert featurizer.downsample_size == downsample_size
     assert featurizer.image_column_header == image_column_header
-    assert featurizer.automatic_downsample == automatic_downsample
+    assert featurizer.auto_sample == automatic_downsample
     assert featurizer.csv_path == csv_path
     assert featurizer.image_list == image_list
     assert featurizer.scaled_size == scaled_size
@@ -40,25 +40,6 @@ def test_squeezenet_ImageFeaturizer():
     # Remove path to the generated csv
     if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests/'):
         shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests/')
-
-    # Raise error if depth is not an integer
-    with pytest.raises(TypeError):
-        f = ImageFeaturizer(depth=1.)
-    # Raise error if depth not 1, 2, 3, or 4
-    with pytest.raises(ValueError):
-        f = ImageFeaturizer(depth=5)
-
-    # Raise error if downsample isn't a boolean
-    with pytest.raises(TypeError):
-        f = ImageFeaturizer(automatic_downsample='True')
-    with pytest.raises(TypeError):
-        f = ImageFeaturizer(automatic_downsample=4)
-    with pytest.raises(TypeError):
-        f = ImageFeaturizer(automatic_downsample=(True, True))
-
-    # Raise error if downsample_size isn't an integer
-    with pytest.raises(TypeError):
-        f = ImageFeaturizer(downsample_size=1.)
 
     # Check initialization
     f = ImageFeaturizer()

@@ -37,7 +37,7 @@ def featurize_data(model, array):
 
     # Raise error if it is not a numpy array
     if 'numpy' not in str(type(array)):
-        raise TypeError('Must pass in a numpy array!')
+        raise TypeError('Must pass in a numpy array.')
     # Raise error if the array has the wrong shape
     if len(array.shape) != 4:
         raise ValueError('Image array must be a 4D tensor, with dimensions: '
@@ -45,11 +45,11 @@ def featurize_data(model, array):
 
     # Raise error if not passed a model
     if not isinstance(model, Model):
-        raise TypeError('model must be a keras Model!')
+        raise TypeError('model must be a keras Model.')
     # ---------------------------------- #
 
     # Perform predictions
-    print('Creating feature array!')
+    print('Creating feature array.')
     full_feature_array = model.predict(array, verbose=1)
 
     # Return features
@@ -94,7 +94,7 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
     # Raise error if the image_column_header is not in the csv
     if image_column_header not in df.columns:
         raise ValueError('Must pass the name of the column where the images are '
-                         'stored in the csv! The column passed was not in the csv.')
+                         'stored in the csv. The column passed was not in the csv.')
 
     # Raise error if the feature array has the wrong shape
     if len(full_feature_array.shape) != 2:
@@ -105,7 +105,7 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
     # Save number of features
     num_features = full_feature_array.shape[1]
 
-    print('Adding image features to csv!')
+    print('Adding image features to csv.')
 
     # Create column headers for features, and the features dataframe
     array_column_headers = ['image_feature_{}'.format(str(feature)) for feature in

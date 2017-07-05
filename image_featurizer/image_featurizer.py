@@ -13,7 +13,7 @@ Functionality:
         depth : int
             1, 2, 3, or 4, depending on how far down you want to sample the featurizer layer
 
-        automatic_downsample : bool
+        auto_sample : bool
             a boolean flag signalling automatic downsampling
 
         downsample_size : int
@@ -58,8 +58,9 @@ Functionality:
 import os
 
 import numpy as np
+import trafaret as t
 
-from .build_featurizer import build_featurizer
+from .build_featurizer import build_featurizer, supported_model_types
 from .data_featurizing import featurize_data, features_to_csv
 from .feature_preprocessing import preprocess_data
 
@@ -71,7 +72,7 @@ class ImageFeaturizer:
 
           Methods
     ------------------
-        __init__(depth, automatic_downsample,
+        __init__(depth, auto_sample,
                  downsample_size):
             --------------------------------
             Initialize the ImageFeaturizer. Build the featurizer model with the
@@ -103,9 +104,13 @@ class ImageFeaturizer:
 
     """
 
+    @t.guard(depth=t.Int(gte=1, lte=4),
+             auto_sample=t.Bool,
+             downsample_size=t.Int(gte=0),
+             model=t.Enum(*supported_model_types.keys()))
     def __init__(self,
                  depth=1,
-                 automatic_downsample=False,
+                 auto_sample=False,
                  downsample_size=0,
                  model='squeezenet'
                  ):
@@ -121,7 +126,7 @@ class ImageFeaturizer:
                 How deep to decapitate the model. Deeper means less specific but
                 also less complex
 
-            automatic_downsample : bool
+            auto_sample : bool
                 If True, feature layer is automatically downsampled to the right size.
 
             downsample_size: int
@@ -132,40 +137,15 @@ class ImageFeaturizer:
         None. Initializes and saves the featurizer object attributes.
 
         """
-        # -------------- #
-        # ERROR CHECKING #
-        # -------------- #
-        # Acceptable depths for decapitation
-        acceptable_depths = [1, 2, 3, 4]
-
-        if not isinstance(depth, int):
-            raise TypeError('depth is not set to an integer! Please '
-                            'specify the number of layers you would like to '
-                            'remove from the top of the network for featurization.'
-                            ' Can be between 1 and 4.')
-
-        if depth not in acceptable_depths:
-            raise ValueError('Depth can be set to 1, 2, 3, or 4. Otherwise, '
-                             'leave it blank for default configuration of 1.')
-
-        if not isinstance(automatic_downsample, bool):
-            raise TypeError('automatic_downsample is not set to a boolean! If you would like to'
-                            ' downsample the featurizer automatically, please set to True. '
-                            'Otherwise, leave blank for default configuration.')
-
-        if not isinstance(downsample_size, int):
-            raise TypeError('Tried to set downsample_size to a non-integer value!'
-                            ' Please set to an integer or leave uninitialized.')
-
         # BUILDING THE MODEL #
-        print("\nBuilding the featurizer!")
+        print("\nBuilding the featurizer.")
 
-        featurizer = build_featurizer(depth, automatic_downsample,
+        featurizer = build_featurizer(depth, auto_sample,
                                       downsample_size, model_str=model.lower())
 
         # Saving initializations of model
         self.depth = depth
-        self.automatic_downsample = automatic_downsample
+        self.auto_sample = auto_sample
         self.downsample_size = downsample_size
 
         # Save the model
@@ -228,7 +208,7 @@ class ImageFeaturizer:
                 Decides if image is grayscale or not. May get deprecated. Don't
                 think it works on the InceptionV3 model due to input size.
 
-            ### These features haven't been implemented yet!
+            ### These features haven't been implemented yet.
             # isotropic_scaling : bool
             #     if True, images are scaled keeping proportions and then cropped
             #
@@ -290,7 +270,7 @@ class ImageFeaturizer:
                 Decides if image is grayscale or not. May get deprecated. Don't
                 think it works on the InceptionV3 model due to input size.
 
-            ### These features haven't been implemented yet!
+            ### These features haven't been implemented yet.
             # isotropic_scaling : bool
             #     if True, images are scaled keeping proportions and then cropped
             #
@@ -307,8 +287,7 @@ class ImageFeaturizer:
 
         scaled_size = size_dict[self.model_name]
 
-        # If new csv_path is being generated, make sure
-        # the folder exists!
+        # If new csv_path is being generated, make sure the folder exists.
         if (csv_path == ''):
             path_to_new_csv = os.path.dirname(new_csv_name)
             if not os.path.isdir(path_to_new_csv) and path_to_new_csv != '':
@@ -323,7 +302,7 @@ class ImageFeaturizer:
             preprocess_data(image_column_header, image_path, csv_path,
                             new_csv_name, scaled_size, grayscale)
 
-        # Save all of the necessary data to the featurizer!
+        # Save all of the necessary data to the featurizer
         self.data = full_image_data
         self.csv_path = csv_path
         self.image_list = list_of_image_paths
@@ -350,9 +329,9 @@ class ImageFeaturizer:
         """
         print("Checking array initialized.")
         if np.array_equal(self.data, np.zeros((1))):
-            raise IOError('Must load data into the model first! Call load_data.')
+            raise IOError('Must load data into the model first. Call load_data.')
 
-        print("Trying to featurize data!")
+        print("Trying to featurize data.")
         self.featurized_data = featurize_data(self.featurizer, self.data)
         full_dataframe = features_to_csv(self.featurized_data, self.csv_path,
                                          self.image_column_header, self.image_list)

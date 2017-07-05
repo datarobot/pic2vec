@@ -74,3 +74,7 @@ History
 0.4.2 (2017-06-23)
 ------------------
 * Improved README test examples
+
+0.4.3 (2017-06-23)
+------------------
+* Second round of code review- optimized code, better type checking with trafaret

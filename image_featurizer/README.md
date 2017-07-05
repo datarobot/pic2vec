@@ -144,13 +144,13 @@ featurizer = ImageFeaturizer(depth=1, automatic_downsample = False, model='squee
 ```
 
 
-    Building the featurizer!
+    Building the featurizer.
 
-    Model initialized and weights loaded successfully!
-    Model decapitated!
-    Model downsampled!
-    Full featurizer is built!
-    No downsampling! Final layer feature space has size 512
+    Model initialized and weights loaded successfully.
+    Model decapitated.
+    Model downsampled.
+    Full featurizer is built.
+    No downsampling. Final layer feature space has size 512
 
 
 This featurizer was 'decapitated' to the first layer below the prediction layer, which will produce complex representations. Because it is so close to the final prediction layer, it will create more specialized feature representations, and therefore will be better suited for image datasets that are similar to classes within the original ImageNet dataset. Cats and dogs are present within ImageNet, so a depth of 1 should perform well.
@@ -170,33 +170,33 @@ If there are images in the directory that aren't in the CSV, or image names in t
 featurizer.load_data('images', image_path = image_path, csv_path = csv_path)
 ```
 
-    Found image paths that overlap between both the directory and the csv!
-    Converting images!
-    Converted 0 images! Only 25000 images left to go!
-    Converted 1000 images! Only 24000 images left to go!
-    Converted 2000 images! Only 23000 images left to go!
-    Converted 3000 images! Only 22000 images left to go!
-    Converted 4000 images! Only 21000 images left to go!
-    Converted 5000 images! Only 20000 images left to go!
-    Converted 6000 images! Only 19000 images left to go!
-    Converted 7000 images! Only 18000 images left to go!
-    Converted 8000 images! Only 17000 images left to go!
-    Converted 9000 images! Only 16000 images left to go!
-    Converted 10000 images! Only 15000 images left to go!
-    Converted 11000 images! Only 14000 images left to go!
-    Converted 12000 images! Only 13000 images left to go!
-    Converted 13000 images! Only 12000 images left to go!
-    Converted 14000 images! Only 11000 images left to go!
-    Converted 15000 images! Only 10000 images left to go!
-    Converted 16000 images! Only 9000 images left to go!
-    Converted 17000 images! Only 8000 images left to go!
-    Converted 18000 images! Only 7000 images left to go!
-    Converted 19000 images! Only 6000 images left to go!
-    Converted 20000 images! Only 5000 images left to go!
-    Converted 21000 images! Only 4000 images left to go!
-    Converted 22000 images! Only 3000 images left to go!
-    Converted 23000 images! Only 2000 images left to go!
-    Converted 24000 images! Only 1000 images left to go!
+    Found image paths that overlap between both the directory and the csv.
+    Converting images.
+    Converted 0 images. Only 25000 images left to go.
+    Converted 1000 images. Only 24000 images left to go.
+    Converted 2000 images. Only 23000 images left to go.
+    Converted 3000 images. Only 22000 images left to go.
+    Converted 4000 images. Only 21000 images left to go.
+    Converted 5000 images. Only 20000 images left to go.
+    Converted 6000 images. Only 19000 images left to go.
+    Converted 7000 images. Only 18000 images left to go.
+    Converted 8000 images. Only 17000 images left to go.
+    Converted 9000 images. Only 16000 images left to go.
+    Converted 10000 images. Only 15000 images left to go.
+    Converted 11000 images. Only 14000 images left to go.
+    Converted 12000 images. Only 13000 images left to go.
+    Converted 13000 images. Only 12000 images left to go.
+    Converted 14000 images. Only 11000 images left to go.
+    Converted 15000 images. Only 10000 images left to go.
+    Converted 16000 images. Only 9000 images left to go.
+    Converted 17000 images. Only 8000 images left to go.
+    Converted 18000 images. Only 7000 images left to go.
+    Converted 19000 images. Only 6000 images left to go.
+    Converted 20000 images. Only 5000 images left to go.
+    Converted 21000 images. Only 4000 images left to go.
+    Converted 22000 images. Only 3000 images left to go.
+    Converted 23000 images. Only 2000 images left to go.
+    Converted 24000 images. Only 1000 images left to go.
 
 
 The image data has now been loaded into the featurizer and vectorized, and is ready for featurization. We can check the size, format, and other stored information about the data by calling the featurizer object attributes:
@@ -258,11 +258,11 @@ featurizer.featurize()
 ```
 
     Checking array initialized.
-    Trying to featurize data!
-    Creating feature array!
+    Trying to featurize data.
+    Creating feature array.
     25000/25000 [==============================] - 964s   
     Feature array created successfully.
-    Adding image features to csv!
+    Adding image features to csv.
 
 
 
@@ -583,7 +583,7 @@ featurizer.featurize()
 
 ## Results
 
-The dataset has now been fully featurized! The features are saved under the featurized_data attribute:
+The dataset has now been fully featurized. The features are saved under the featurized_data attribute:
 
 
 ```python
@@ -963,7 +963,7 @@ clf = svm.LinearSVC()
 # Fit it on the training data
 clf.fit(train_combined, labels_train)
 
-# Check the performance of the linear classifier over the full Cats vs. Dogs dataset!
+# Check the performance of the linear classifier over the full Cats vs. Dogs dataset.
 clf.score(test_combined, labels_test)
 ```
 
