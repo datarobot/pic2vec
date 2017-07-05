@@ -10,8 +10,8 @@ The integrated function is the preprocess_data function, which takes in the inpu
 generates a 4D tensor containing the vectorized representations of the image to be featurized.
 """
 
-
 import imghdr
+import logging
 import os
 import urllib
 
@@ -222,18 +222,18 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
         _create_csv_with_image_paths(list_of_image_paths, new_csv_name=new_csv_name,
                                      image_column_header=image_column_header)
 
-        print('Created csv from directory. Stored at {}'.format(new_csv_name))
+        logging.warning('Created csv from directory. Stored at {}'.format(new_csv_name))
 
     # CASE 2: They only give a CSV with no directory
     elif image_path == '':
         # Create the list_of_image_paths from the csv
         list_of_image_paths = _find_csv_image_paths(csv_path, image_column_header)
-        print('Found image paths from csv.')
+        logging.info('Found image paths from csv.')
 
     # CASE 3: They give both a CSV and a directory
     else:
         list_of_image_paths = _find_combined_image_paths(image_path, csv_path, image_column_header)
-        print('Found image paths that overlap between both the directory and the csv.')
+        logging.info('Found image paths that overlap between both the directory and the csv.')
 
     return list_of_image_paths
 
@@ -390,7 +390,7 @@ def preprocess_data(image_column_header,
     # Create the full image tensor
     i = 0
 
-    print('Converting images.')
+    logging.info('Converting images.')
 
     image_dict = {}
 
@@ -427,7 +427,8 @@ def preprocess_data(image_column_header,
             # Progress report at the set intervals
             report_step = 1000
             if not i % report_step:
-                print('Converted {} images. Only {} images left to go.'.format(i, num_images - i))
+                logging.info('Converted {} images. Only {} images left to go.'
+                             .format(i, num_images - i))
             i += 1
 
     return full_image_data, csv_path, list_of_image_paths

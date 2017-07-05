@@ -71,8 +71,12 @@ def test_splice_layer():
     x = add(list_of_spliced_layers)
     # Create the spliced and added layers by hand
     check_layer = K.constant(9, shape=(3, 4))
-    # Check the math is right by hand
+    # Check the math
     assert np.array_equal(K.eval(check_layer), K.eval(x))
+
+    # Check error with bad split
+    with pytest.raises(ValueError):
+        _splice_layer(tensor, 5)
 
 
 def test_find_pooling_constant():
@@ -267,7 +271,7 @@ def test_build_featurizer_squeezenet():
     squeezenet = _initialize_model('squeezenet')
     # Checking Depth 1 #
     # With downsampling
-    model = build_featurizer(1, False, 128, model_str='squeezenet', loaded_model=squeezenet)
+    model = build_featurizer(1, False, 128, model_str='squeezenet')
     assert model.layers[-1].output_shape == (None, 128)
 
     model = build_featurizer(1, True, 0, model_str='squeezenet', loaded_model=squeezenet)

@@ -1,5 +1,6 @@
 """Test feature_preprocessing module"""
 import filecmp
+import logging
 import os
 import random
 
@@ -210,8 +211,8 @@ def test_preprocess_data():
     try:
         assert not os.path.isdir(error_dir)
     except AssertionError:
-        print('Whoops, that labyrinth exists. '
-              'Change to error_dir to a directory path that does not exist.')
+        logging.error('Whoops, that labyrinth exists. '
+                      'Change error_dir to a directory path that does not exist.')
     with pytest.raises(TypeError):
         preprocess_data(IMG_COL_HEAD, image_path=error_dir, new_csv_name=error_new_csv_name)
 
@@ -220,7 +221,7 @@ def test_preprocess_data():
     try:
         assert not os.path.isfile(error_file)
     except AssertionError:
-        print(
+        logging.error(
             'Whoops, that dreamer exists. change to error_file to a file path that does not exist.')
     with pytest.raises(TypeError):
         preprocess_data(IMG_COL_HEAD, csv_path=error_file, new_csv_name=error_new_csv_name)

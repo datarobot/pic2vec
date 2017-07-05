@@ -7,6 +7,8 @@ This file deals with building the actual featurizer:
 The integrated function is the build_featurizer function, which takes the depth,
 a flag signalling downsampling, and the number of features to downsample to.
 """
+
+import logging
 import os
 import warnings
 
@@ -77,8 +79,8 @@ def _initialize_model(model_str):
         model : keras.models.Model
             The initialized model loaded with pre-trained weights
     """
-    print('Check/download {model_label} model weights. This may take a minute first time.'.format(
-        model_label=supported_model_types[model_str]['label']))
+    logging.info('Check/download {model_label} model weights. This may take a minute first time.'
+                 .format(model_label=supported_model_types[model_str]['label']))
 
     model = supported_model_types[model_str]['class'](**supported_model_types[model_str]['kwargs'])
     if model_str == 'squeezenet':
@@ -92,7 +94,7 @@ def _initialize_model(model_str):
                              ' or replace the SqueezeNet weights in the model folder.')
         model.load_weights(model_path)
 
-    print('Model successfully initialized.')
+    logging.info('Model successfully initialized.')
     return model
 
 
@@ -266,16 +268,16 @@ def _check_downsampling_mismatch(downsample, num_pooled_features, output_layer_s
     if num_pooled_features == 0 and downsample:
         if output_layer_size % 2 == 0:
             num_pooled_features = output_layer_size // 2
-            print('Automatic downsampling to {}. If you would like to set custom '
-                  'downsampling, pass in an integer divisor of {} to '
-                  'num_pooled_features.'.format(num_pooled_features, output_layer_size))
+            logging.warning('Automatic downsampling to {}. If you would like to set custom '
+                            'downsampling, pass in an integer divisor of {} to '
+                            'num_pooled_features.'.format(num_pooled_features, output_layer_size))
         else:
             raise ValueError('Sorry, no automatic downsampling available for this model.')
 
     # If they have initialized num_pooled_features, but not turned on
     # downsampling, downsample to what they entered
     elif num_pooled_features != 0 and not downsample:
-        print('\n \n Downsampling to {}.'.format(num_pooled_features))
+        logging.info('\n \n Downsampling to {}.'.format(num_pooled_features))
         downsample = True
 
     return downsample, num_pooled_features
@@ -335,7 +337,7 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features=0,
 
     # Save the model output
     num_output_features = model_output.shape[-1].__int__()
-    print("Model decapitated.")
+    logging.info("Model decapitated.")
 
     # DOWNSAMPLING FEATURES #
     # Checking that the user's downsampling flag matches the initialization of the downsampling
@@ -347,14 +349,15 @@ def build_featurizer(depth_of_featurizer, downsample, num_pooled_features=0,
     # to bring it to the correct size.
     if downsample:
         model_output = _downsample_model_features(model_output, num_pooled_features)
-    print("Model downsampled.")
+    logging.info("Model downsampled.")
 
     # Finally save the model
     model = Model(inputs=model.input, outputs=model_output)
-    print("Full featurizer is built.")
+    logging.info("Full featurizer is built.")
     if downsample:
-        print("Final layer feature space downsampled to " + str(num_pooled_features))
+        logging.info("Final layer feature space downsampled to {}".format(num_pooled_features))
     else:
-        print("No downsampling. Final layer feature space has size " + str(num_output_features))
+        logging.info("No downsampling. Final layer feature space has size {}"
+                     .format(num_output_features))
 
     return model

@@ -102,6 +102,3 @@ ENV/
 
 # DS_Store Mac Nightmare
 .DS_Store
-
-# Dataset
-model/

@@ -55,6 +55,8 @@ Functionality:
         load_data function and performs the featurization automatically.
 
 """
+
+import logging
 import os
 
 import numpy as np
@@ -138,7 +140,7 @@ class ImageFeaturizer:
 
         """
         # BUILDING THE MODEL #
-        print("\nBuilding the featurizer.")
+        logging.info("\nBuilding the featurizer.")
 
         featurizer = build_featurizer(depth, auto_sample,
                                       downsample_size, model_str=model.lower())
@@ -327,11 +329,11 @@ class ImageFeaturizer:
                 to the same path as the csv containing the list of names
 
         """
-        print("Checking array initialized.")
+        logging.info("Checking array initialized.")
         if np.array_equal(self.data, np.zeros((1))):
             raise IOError('Must load data into the model first. Call load_data.')
 
-        print("Trying to featurize data.")
+        logging.info("Trying to featurize data.")
         self.featurized_data = featurize_data(self.featurizer, self.data)
         full_dataframe = features_to_csv(self.featurized_data, self.csv_path,
                                          self.image_column_header, self.image_list)

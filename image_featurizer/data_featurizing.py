@@ -7,6 +7,7 @@ featurized data to the csv containing the images, appending the features to addi
 in-line with each image row.
 """
 
+import logging
 import os
 
 import pandas as pd
@@ -49,11 +50,11 @@ def featurize_data(model, array):
     # ---------------------------------- #
 
     # Perform predictions
-    print('Creating feature array.')
+    logging.info('Creating feature array.')
     full_feature_array = model.predict(array, verbose=1)
 
     # Return features
-    print('Feature array created successfully.')
+    logging.info('Feature array created successfully.')
     return full_feature_array
 
 
@@ -105,7 +106,7 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
     # Save number of features
     num_features = full_feature_array.shape[1]
 
-    print('Adding image features to csv.')
+    logging.info('Adding image features to csv.')
 
     # Create column headers for features, and the features dataframe
     array_column_headers = ['image_feature_{}'.format(str(feature)) for feature in
