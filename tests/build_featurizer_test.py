@@ -2,6 +2,7 @@
 import os
 import random
 import warnings
+import logging
 
 import keras.backend as K
 import numpy as np
@@ -19,27 +20,33 @@ from image_featurizer.squeezenet import SqueezeNet
 
 random.seed(5102020)
 
+# Building the checking model
+input_layer = Input(shape=(100, ))
+layer = Dense(40)(input_layer)
+layer = Activation('relu')(layer)
+layer = Dense(20)(layer)
+layer = Activation('relu')(layer)
+layer = Dense(10)(layer)
+layer = Activation('relu')(layer)
+layer = Dense(5)(layer)
+output_layer = Activation('softmax')(layer)
 
-def test_decapitate_model():
-    """
-    This test creates a toy network, and checks that it calls the right errors
-    and checks that it decapitates the network correctly:
-    """
-    # Create model
+CHECK_MODEL = Model(inputs=input_layer, outputs=output_layer)
 
-    input_layer = Input(shape=(100, ))
-    layer = Dense(40)(input_layer)
-    layer = Activation('relu')(layer)
-    layer = Dense(20)(layer)
-    layer = Activation('relu')(layer)
-    layer = Dense(10)(layer)
-    layer = Activation('relu')(layer)
-    layer = Dense(5)(layer)
-    output_layer = Activation('softmax')(layer)
+# Create tensor for splicing
+SPLICING_TENSOR = K.constant(3, shape=(3, 12))
 
-    check_model = Model(inputs=input_layer, outputs=output_layer)
-    test_model = _decapitate_model(check_model, 5)
+# Create featurization for finding the pooling constant
+POOLING_FEATURES = K.constant(2, shape=(3, 60))
 
+# Path to checking prediction arrays for each model in _initialize_model
+INITIALIZE_ARRAY = 'tests/build_featurizer_testing/{}_test_prediction.npy'
+
+MODELS = ['squeezenet', 'vgg16', 'vgg19', 'resnet50', 'inceptionv3', 'xception']
+
+
+def test_decapitate_model_lazy_input():
+    """Test an error is raised when the model has a lazy input layer initialization"""
     # Raise warning when model has lazy input layer initialization
     error_model = Sequential([
         Dense(40, input_shape=(100,)),
@@ -50,9 +57,21 @@ def test_decapitate_model():
         _decapitate_model(error_model, 1)
         assert len(warning_check) == 1
         assert "depth issues" in str(warning_check[-1].message)
+
+
+def test_decapitate_model_too_deep():
+    """Test error raised when model is decapitated too deep"""
     # Check for Value Error when passed a depth >= (# of layers in network) - 1
     with pytest.raises(ValueError):
-        _decapitate_model(check_model, 8)
+        _decapitate_model(CHECK_MODEL, 8)
+
+def test_decapitate_model():
+    """
+    This test creates a toy network, and checks that it calls the right errors
+    and checks that it decapitates the network correctly:
+    """
+    # Create test model
+    test_model = _decapitate_model(CHECK_MODEL, 5)
 
     # Make checks for all of the necessary features: the model outputs, the
     # last layer, the last layer's connections, and the last layer's shape
@@ -62,11 +81,15 @@ def test_decapitate_model():
     assert test_model.layers[-1].output_shape == (None, 20)
 
 
+def test_splice_layer_bad_split():
+    """Check error with bad split on the tensor"""
+    with pytest.raises(ValueError):
+        _splice_layer(SPLICING_TENSOR, 5)
+
 def test_splice_layer():
     """Test method splices tensors correctly"""
     # Create spliced and added layers via splicing function
-    tensor = K.constant(3, shape=(3, 12))
-    list_of_spliced_layers = _splice_layer(tensor, 3)
+    list_of_spliced_layers = _splice_layer(SPLICING_TENSOR, 3)
     # Add each of the layers together
     x = add(list_of_spliced_layers)
     # Create the spliced and added layers by hand
@@ -74,28 +97,25 @@ def test_splice_layer():
     # Check the math
     assert np.array_equal(K.eval(check_layer), K.eval(x))
 
-    # Check error with bad split
+
+def test_find_pooling_constant_upsample():
+    """Test error when trying to upsample"""
     with pytest.raises(ValueError):
-        _splice_layer(tensor, 5)
+        _find_pooling_constant(POOLING_FEATURES, 120)
+
+
+def test_find_pooling_constant_bad_divisor():
+    """Test error when trying to downsample to a non-divisor of the features"""
+    with pytest.raises(ValueError):
+        _find_pooling_constant(POOLING_FEATURES, 40)
+
+    with pytest.raises(ValueError):
+        _find_pooling_constant(POOLING_FEATURES, 0)
 
 
 def test_find_pooling_constant():
-    """
-    Test method returns correct pooling constant, and raises errors with
-    badly formatted or incorrectly sized inputs
-    """
-    features = K.constant(2, shape=(3, 60))
-    # Check for Value Error when user tries to upsample
-    with pytest.raises(ValueError):
-        _find_pooling_constant(features, 120)
-    # Check for Value Error when pool is not a divisor of the number of features
-    with pytest.raises(ValueError):
-        _find_pooling_constant(features, 40)
-    # Check for Value Error when pool is not a divisor of the number of features
-    with pytest.raises(ValueError):
-        _find_pooling_constant(features, 0)
-    # Check that it gives the right answer when formatted correctly
-    assert _find_pooling_constant(features, 6) == 10
+    """Test that pooling constant given correct answer with good inputs"""
+    assert _find_pooling_constant(POOLING_FEATURES, 6) == 10
 
 
 def test_downsample_model_features():
@@ -122,15 +142,27 @@ def test_downsample_model_features():
     assert np.array_equal(K.eval(check_tensor), K.eval(x))
 
 
-def test_check_downsampling_mismatch():
-    """Test method correctly returns from mismatched downsample flags and inputs"""
-    # Raises error with autodownsampling an odd number of features
+def test_check_downsampling_mismatch_bad_num_features():
+    """Raises error with autodownsampling an odd number of features"""
     with pytest.raises(ValueError):
         _check_downsampling_mismatch(True, 0, 2049)
 
-    # Testing automatic downsampling at each depth
+
+def test_check_downsampling_mismatch_autosample():
+    """Test method correctly autosamples"""
+    # Testing automatic downsampling
     assert _check_downsampling_mismatch(True, 0, 2048) == (True, 1024)
+
+
+def test_check_downsampling_mismatch_no_sample():
+    """Test method correctly returns with no sampling"""
+    # Testing no downsampling
     assert _check_downsampling_mismatch(False, 0, 2048) == (False, 0)
+
+
+def test_check_downsampling_mismatch_manual_sample():
+    """Test method correctly returns with manual sampling"""
+    # Testing manual downsampling
     assert _check_downsampling_mismatch(False, 512, 2048) == (True, 512)
 
 
@@ -145,454 +177,137 @@ def check_model_equal(model1, model2):
                                   model2.layers[layer].get_weights()[array])
 
 
-def test_initialize_model_squeezenet():
-    """Test the initialization of the loaded SqueezeNet model"""
-    weight_path = 'image_featurizer/model/squeezenet_weights_tf_dim_ordering_tf_kernels.h5'
-    changed_weights_test = 'image_featurizer/model/changed_weight_name'
-    if os.path.isfile(weight_path):
-        os.rename(weight_path, changed_weights_test)
-        try:
-            with pytest.raises(ValueError):
-                _initialize_model('squeezenet')
-        finally:
-            os.rename(changed_weights_test, weight_path)
+def test_initialize_model_weights_not_found():
+    """Test error raised when the model can't find weights to load"""
+    error_weight = 'htraenoytinutroppodnocesaevahtondideduti\losfosraeyderdnuhenootdenmednocsecar'
+    try:
+        assert not os.path.isfile(error_weight)
+    except AssertionError:
+        logging.error('Whoops, that mirage exists. '
+                      'Change error_weight to a file path that does not exist.')
 
-    # Initialize the model
-    model = _initialize_model('squeezenet')
+    with pytest.raises(IOError):
+        _initialize_model('squeezenet', error_weight)
+
+
+def test_initialize_model_bad_weights():
+    """
+    Test error raised when the model finds the weights file,
+    but it's not the right format
+    """
+    bad_weights_file = open('bad_weights_test', 'w')
+    bad_weights_file.write('this should fail')
+    bad_weights_file.close()
+    error_weight = 'bad_weights_test'
 
     try:
-        model_downloaded_weights = SqueezeNet()
+        with pytest.raises(IOError):
+            _initialize_model('squeezenet', error_weight)
+    finally:
+        os.remove(error_weight)
 
-    except:
-        raise AssertionError('Problem loading squeezenet weights.')
 
-    check_model_equal(model, model_downloaded_weights)
+def test_initialize_model_wrong_weights():
+    """Test error raised when weights exist but don't match model"""
+    squeeze_weight_path = 'image_featurizer/model/squeezenet_weights_tf_dim_ordering_tf_kernels.h5'
+    assert os.path.isfile(squeeze_weight_path)
+
+    with pytest.raises(ValueError):
+        _initialize_model('vgg16', squeeze_weight_path)
+
+
+INITIALIZE_MODEL_CASES = [
+                          ('squeezenet', 67, (1, 227, 227, 3)),
+                          ('vgg16', 23, (1, 224, 224, 3)),
+                          ('vgg19', 26, (1, 224, 224, 3)),
+                          ('resnet50', 177, (1, 224, 224, 3)),
+                          ('inceptionv3', 313, (1, 299, 299, 3)),
+                          ('xception', 134, (1, 299, 299, 3)),
+                         ]
+@pytest.mark.parametrize('model_str, expected_layers, test_size',
+                         INITIALIZE_MODEL_CASES, ids=MODELS)
+def test_initialize_model(model_str, expected_layers, test_size):
+    """Test the initializations of each model"""
+    model = _initialize_model(model_str)
+
+    if model_str == 'squeezenet':
+        try:
+            model_downloaded_weights = SqueezeNet()
+        except:
+            raise AssertionError('Problem loading SqueezeNet weights.')
+        check_model_equal(model, model_downloaded_weights)
+
+    assert len(model.layers) == expected_layers
 
     # Create the test array to be predicted on
-    test_array = np.zeros((1, 227, 227, 3))
+    test_array = np.zeros(test_size)
 
-    # I created this prediction earlier with the full model
-    check_prediction = np.load(
-        'tests/build_featurizer_testing/squeezenet_test_prediction.npy')
-    # Check that it predicts correctly to see if weights were correctly loaded
+    # Pre-checked prediction
+    check_prediction = np.load(INITIALIZE_ARRAY.format(model_str))
+
+    # Check that each model predicts correctly to see if weights were correctly loaded
     assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
 
 
-def test_initialize_model_inceptionv3():
-    """Test the initialization of the InceptionV3 model"""
-    # Initialize the model
-    model = _initialize_model('inceptionv3')
-
-    assert len(model.layers) == 313
-
-    # Create the test array to be predicted on
-    test_array = np.zeros((1, 299, 299, 3))
-
-    # I created this prediction earlier with the full model
-    check_prediction = np.load(
-        'tests/build_featurizer_testing/inception_test_prediction.npy')
-    # Check that it predicts correctly to see if weights were correctly loaded
-    assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
-
-
-def test_initialize_model_vgg16():
-    """Test the initialization of the VGG16 model"""
-    # Initialize the model
-    model = _initialize_model('vgg16')
-
-    assert len(model.layers) == 23
-
-    # Create the test array to be predicted on
-    test_array = np.zeros((1, 224, 224, 3))
-
-    # I created this prediction earlier with the full model
-    check_prediction = np.load(
-        'tests/build_featurizer_testing/vgg16_test_prediction.npy')
-    # Check that it predicts correctly to see if weights were correctly loaded
-    assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
-
-
-def test_initialize_model_vgg19():
-    """Test the initialization of the VGG19 model"""
-    # Initialize the model
-    model = _initialize_model('vgg19')
-
-    assert len(model.layers) == 26
-
-    # Create the test array to be predicted on
-    test_array = np.zeros((1, 224, 224, 3))
-
-    # I created this prediction earlier with the full model
-    check_prediction = np.load(
-        'tests/build_featurizer_testing/vgg19_test_prediction.npy')
-    # Check that it predicts correctly to see if weights were correctly loaded
-    assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
-
-
-def test_initialize_model_resnet50():
-    """Test the initialization of the ResNet50 model"""
-    # Initialize the model
-    model = _initialize_model('resnet50')
-
-    assert len(model.layers) == 177
-
-    # Create the test array to be predicted on
-    test_array = np.zeros((1, 224, 224, 3))
-
-    # I created this prediction earlier with the full model
-    check_prediction = np.load(
-        'tests/build_featurizer_testing/resnet50_test_prediction.npy')
-    # Check that it predicts correctly to see if weights were correctly loaded
-    assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
-
-
-def test_initialize_model_xception():
-    """Test the initialization of the Xception model"""
-    # Initialize the model
-    model = _initialize_model('xception')
-
-    assert len(model.layers) == 134
-
-    # Create the test array to be predicted on
-    test_array = np.zeros((1, 299, 299, 3))
-
-    # I created this prediction earlier with the full model
-    check_prediction = np.load(
-        'tests/build_featurizer_testing/xception_test_prediction.npy')
-    # Check that it predicts correctly to see if weights were correctly loaded
-    assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
-
-
-def test_build_featurizer_squeezenet():
-    """
-    This integration test builds the full featurizer, and checks that it
-    correctly builds the squeezenet model with multiple options
-    """
-    squeezenet = _initialize_model('squeezenet')
-    # Checking Depth 1 #
-    # With downsampling
-    model = build_featurizer(1, False, 128, model_str='squeezenet')
-    assert model.layers[-1].output_shape == (None, 128)
-
-    model = build_featurizer(1, True, 0, model_str='squeezenet', loaded_model=squeezenet)
-    assert model.layers[-1].output_shape == (None, 256)
-
-    # Without downsampling
-    model = build_featurizer(1, False, 0, model_str='squeezenet', loaded_model=squeezenet)
-    assert model.layers[-1].output_shape == (None, 512)
-    # Checking Depth 2 #
-    # With downsampling
-    model = build_featurizer(2, False, 128, model_str='squeezenet', loaded_model=squeezenet)
-    assert model.layers[-1].output_shape == (None, 128)
-
-    model = build_featurizer(2, True, 0, model_str='squeezenet', loaded_model=squeezenet)
-    assert model.layers[-1].output_shape == (None, 256)
-
-    # Without downsampling
-    model = build_featurizer(2, False, 0, model_str='squeezenet', loaded_model=squeezenet)
-    assert model.layers[-1].output_shape == (None, 512)
-    # Checking Depth 3 #
-    # With downsampling
-    model = build_featurizer(3, False, 96, model_str='squeezenet', loaded_model=squeezenet)
-    assert model.layers[-1].output_shape == (None, 96)
-
-    model = build_featurizer(3, True, 0, model_str='squeezenet', loaded_model=squeezenet)
-    assert model.layers[-1].output_shape == (None, 192)
-
-    # Without downsampling
-    model = build_featurizer(3, False, 0, model_str='squeezenet', loaded_model=squeezenet)
-    assert model.layers[-1].output_shape == (None, 384)
-
-    # Checking Depth 4 #
-    # With downsampling
-    model = build_featurizer(4, False, 96, model_str='squeezenet', loaded_model=squeezenet)
-    assert model.layers[-1].output_shape == (None, 96)
-
-    model = build_featurizer(4, True, 0, model_str='squeezenet', loaded_model=squeezenet)
-    assert model.layers[-1].output_shape == (None, 192)
-
-    # Without downsampling
-    model = build_featurizer(4, False, 0, model_str='squeezenet', loaded_model=squeezenet)
-    assert model.layers[-1].output_shape == (None, 384)
-
-
-def test_build_featurizer_vgg16():
-    """
-    This integration test builds the full featurizer, and checks that it
-    correctly builds the VGG16 model with multiple options
-    """
-    vgg16 = _initialize_model('vgg16')
-
-    # Checking Depth 1 #
-    # With downsampling
-    model = build_featurizer(1, False, 1024, model_str='vgg16', loaded_model=vgg16)
-    assert model.layers[-1].output_shape == (None, 1024)
-
-    model = build_featurizer(1, True, 0, model_str='vgg16', loaded_model=vgg16)
-    assert model.layers[-1].output_shape == (None, 2048)
-
-    # Without downsampling
-    model = build_featurizer(1, False, 0, model_str='vgg16', loaded_model=vgg16)
-    assert model.layers[-1].output_shape == (None, 4096)
-
-    # Checking Depth 2 #
-    # With downsampling
-    model = build_featurizer(2, False, 1024, model_str='vgg16', loaded_model=vgg16)
-    assert model.layers[-1].output_shape == (None, 1024)
-
-    model = build_featurizer(2, True, 0, model_str='vgg16', loaded_model=vgg16)
-    assert model.layers[-1].output_shape == (None, 2048)
-
-    # Without downsampling
-    model = build_featurizer(2, False, 0, model_str='vgg16', loaded_model=vgg16)
-    assert model.layers[-1].output_shape == (None, 4096)
-
-    # Checking Depth 3 #
-    # With downsampling
-    model = build_featurizer(3, False, 128, model_str='vgg16', loaded_model=vgg16)
-    assert model.layers[-1].output_shape == (None, 128)
-
-    model = build_featurizer(3, True, 0, model_str='vgg16', loaded_model=vgg16)
-    assert model.layers[-1].output_shape == (None, 256)
-
-    # Without downsampling
-    model = build_featurizer(3, False, 0, model_str='vgg16', loaded_model=vgg16)
-    assert model.layers[-1].output_shape == (None, 512)
-
-    # Checking Depth 4 #
-    # With downsampling
-    model = build_featurizer(4, False, 128, model_str='vgg16', loaded_model=vgg16)
-    assert model.layers[-1].output_shape == (None, 128)
-
-    model = build_featurizer(4, True, 0, model_str='vgg16', loaded_model=vgg16)
-    assert model.layers[-1].output_shape == (None, 256)
-
-    # Without downsampling
-    model = build_featurizer(4, False, 0, model_str='vgg16', loaded_model=vgg16)
-    assert model.layers[-1].output_shape == (None, 512)
-
-
-def test_build_featurizer_vgg19():
-    """
-    This integration test builds the full featurizer, and checks that it
-    correctly builds the VGG19 model with multiple options
-    """
-    vgg19 = _initialize_model('vgg19')
-
-    # Checking Depth 1 #
-    # With downsampling
-    model = build_featurizer(1, False, 1024, model_str='vgg19', loaded_model=vgg19)
-    assert model.layers[-1].output_shape == (None, 1024)
-
-    model = build_featurizer(1, True, 0, model_str='vgg19', loaded_model=vgg19)
-    assert model.layers[-1].output_shape == (None, 2048)
-
-    # Without downsampling
-    model = build_featurizer(1, False, 0, model_str='vgg19', loaded_model=vgg19)
-    assert model.layers[-1].output_shape == (None, 4096)
-
-    # Checking Depth 2 #
-    # With downsampling
-    model = build_featurizer(2, False, 1024, model_str='vgg19', loaded_model=vgg19)
-    assert model.layers[-1].output_shape == (None, 1024)
-
-    model = build_featurizer(2, True, 0, model_str='vgg19', loaded_model=vgg19)
-    assert model.layers[-1].output_shape == (None, 2048)
-
-    # Without downsampling
-    model = build_featurizer(2, False, 0, model_str='vgg19', loaded_model=vgg19)
-    assert model.layers[-1].output_shape == (None, 4096)
-
-    # Checking Depth 3 #
-    # With downsampling
-    model = build_featurizer(3, False, 128, model_str='vgg19', loaded_model=vgg19)
-    assert model.layers[-1].output_shape == (None, 128)
-
-    model = build_featurizer(3, True, 0, model_str='vgg19', loaded_model=vgg19)
-    assert model.layers[-1].output_shape == (None, 256)
-
-    # Without downsampling
-    model = build_featurizer(3, False, 0, model_str='vgg19', loaded_model=vgg19)
-    assert model.layers[-1].output_shape == (None, 512)
-
-    # Checking Depth 4 #
-    # With downsampling
-    model = build_featurizer(4, False, 128, model_str='vgg19', loaded_model=vgg19)
-    assert model.layers[-1].output_shape == (None, 128)
-
-    model = build_featurizer(4, True, 0, model_str='vgg19', loaded_model=vgg19)
-    assert model.layers[-1].output_shape == (None, 256)
-
-    # Without downsampling
-    model = build_featurizer(4, False, 0, model_str='vgg19', loaded_model=vgg19)
-    assert model.layers[-1].output_shape == (None, 512)
-
-
-def test_build_featurizer_resnet50():
-    """
-    This integration test builds the full featurizer, and checks that it
-    correctly builds the model with multiple options
-    """
-    resnet50 = _initialize_model('resnet50')
-    # Checking Depth 1 #
-    # With downsampling
-    model = build_featurizer(1, False, 512, model_str='resnet50', loaded_model=resnet50)
-    assert model.layers[-1].output_shape == (None, 512)
-
-    model = build_featurizer(1, True, 0, model_str='resnet50', loaded_model=resnet50)
-    assert model.layers[-1].output_shape == (None, 1024)
-
-    # Without downsampling
-    model = build_featurizer(1, False, 0, model_str='resnet50', loaded_model=resnet50)
-    assert model.layers[-1].output_shape == (None, 2048)
-
-    # Checking Depth 2 #
-    # With downsampling
-    model = build_featurizer(2, False, 512, model_str='resnet50', loaded_model=resnet50)
-    assert model.layers[-1].output_shape == (None, 512)
-
-    model = build_featurizer(2, True, 0, model_str='resnet50', loaded_model=resnet50)
-    assert model.layers[-1].output_shape == (None, 1024)
-
-    # Without downsampling
-    model = build_featurizer(2, False, 0, model_str='resnet50', loaded_model=resnet50)
-    assert model.layers[-1].output_shape == (None, 2048)
-
-    # Checking Depth 3 #
-    # With downsampling
-    model = build_featurizer(3, False, 512, model_str='resnet50', loaded_model=resnet50)
-    assert model.layers[-1].output_shape == (None, 512)
-
-    model = build_featurizer(3, True, 0, model_str='resnet50', loaded_model=resnet50)
-    assert model.layers[-1].output_shape == (None, 1024)
-
-    # Without downsampling
-    model = build_featurizer(3, False, 0, model_str='resnet50', loaded_model=resnet50)
-    assert model.layers[-1].output_shape == (None, 2048)
-
-    # Checking Depth 4 #
-    # With downsampling
-    model = build_featurizer(4, False, 512, model_str='resnet50', loaded_model=resnet50)
-    assert model.layers[-1].output_shape == (None, 512)
-
-    model = build_featurizer(4, True, 0, model_str='resnet50', loaded_model=resnet50)
-    assert model.layers[-1].output_shape == (None, 1024)
-
-    # Without downsampling
-    model = build_featurizer(4, False, 0, model_str='resnet50', loaded_model=resnet50)
-    assert model.layers[-1].output_shape == (None, 2048)
-
-
-def test_build_featurizer_inceptionv3():
-    """
-    This integration test builds the full featurizer, and checks that it
-    correctly builds the model with multiple options
-    """
-    def check_featurizer(model, output_shape):
-        assert model.layers[-1].output_shape == output_shape
-
-    inceptionv3 = _initialize_model('inceptionv3')
-    # Checking Depth 1 #
-    # With downsampling
-    model = build_featurizer(1, False, 512, model_str='inceptionv3', loaded_model=inceptionv3)
-    assert model.layers[-1].output_shape == (None, 512)
-
-    model = build_featurizer(1, True, 0, model_str='inceptionv3', loaded_model=inceptionv3)
-    assert model.layers[-1].output_shape == (None, 1024)
-
-    # Without downsampling
-    model = build_featurizer(1, False, 0, model_str='inceptionv3', loaded_model=inceptionv3)
-    assert model.layers[-1].output_shape == (None, 2048)
-
-    # Checking Depth 2 #
-    # With downsampling
-    model = build_featurizer(2, False, 512, model_str='inceptionv3', loaded_model=inceptionv3)
-    assert model.layers[-1].output_shape == (None, 512)
-
-    model = build_featurizer(2, True, 0, model_str='inceptionv3', loaded_model=inceptionv3)
-    assert model.layers[-1].output_shape == (None, 1024)
-
-    # Without downsampling
-    model = build_featurizer(2, False, 0, model_str='inceptionv3', loaded_model=inceptionv3)
-    assert model.layers[-1].output_shape == (None, 2048)
-
-    # Checking Depth 3 #
-    # With downsampling
-    model = build_featurizer(3, False, 512, model_str='inceptionv3', loaded_model=inceptionv3)
-    assert model.layers[-1].output_shape == (None, 512)
-
-    model = build_featurizer(3, True, 0, model_str='inceptionv3', loaded_model=inceptionv3)
-    assert model.layers[-1].output_shape == (None, 1024)
-
-    # Without downsampling
-    model = build_featurizer(3, False, 0, model_str='inceptionv3', loaded_model=inceptionv3)
-    assert model.layers[-1].output_shape == (None, 2048)
-
-    # Checking Depth 4 #
-    # With downsampling
-    model = build_featurizer(4, False, 320, model_str='inceptionv3', loaded_model=inceptionv3)
-    assert model.layers[-1].output_shape == (None, 320)
-
-    model = build_featurizer(4, True, 0, model_str='inceptionv3', loaded_model=inceptionv3)
-    assert model.layers[-1].output_shape == (None, 640)
-
-    # Without downsampling
-    model = build_featurizer(4, False, 0, model_str='inceptionv3', loaded_model=inceptionv3)
-    assert model.layers[-1].output_shape == (None, 1280)
-
-
-def test_build_featurizer_xception():
-    """
-    This integration test builds the full featurizer, and checks that it
-    correctly builds the model with multiple options
-    """
-    xception = _initialize_model('xception')
-    # Checking Depth 1 #
-    # With downsampling
-    model = build_featurizer(1, False, 512, model_str='xception', loaded_model=xception)
-    assert model.layers[-1].output_shape == (None, 512)
-
-    model = build_featurizer(1, True, 0, model_str='xception', loaded_model=xception)
-    assert model.layers[-1].output_shape == (None, 1024)
-
-    # Without downsampling
-    model = build_featurizer(1, False, 0, model_str='xception', loaded_model=xception)
-    assert model.layers[-1].output_shape == (None, 2048)
-
-    # Checking Depth 2 #
-    # With downsampling
-    model = build_featurizer(2, False, 256, model_str='xception', loaded_model=xception)
-    assert model.layers[-1].output_shape == (None, 256)
-
-    model = build_featurizer(2, True, 0, model_str='xception', loaded_model=xception)
-    assert model.layers[-1].output_shape == (None, 512)
-
-    # Without downsampling
-    model = build_featurizer(2, False, 0, model_str='xception', loaded_model=xception)
-    assert model.layers[-1].output_shape == (None, 1024)
-
-    # Checking Depth 3 #
-    # With downsampling
-    model = build_featurizer(3, False, 182, model_str='xception', loaded_model=xception)
-    assert model.layers[-1].output_shape == (None, 182)
-
-    model = build_featurizer(3, True, 0, model_str='xception', loaded_model=xception)
-    assert model.layers[-1].output_shape == (None, 364)
-
-    # Without downsampling
-    model = build_featurizer(3, False, 0, model_str='xception', loaded_model=xception)
-    assert model.layers[-1].output_shape == (None, 728)
-    # Checking Depth 4 #
-    # With downsampling
-    model = build_featurizer(4, False, 182, model_str='xception', loaded_model=xception)
-    assert model.layers[-1].output_shape == (None, 182)
-
-    model = build_featurizer(4, True, 0, model_str='xception', loaded_model=xception)
-    assert model.layers[-1].output_shape == (None, 364)
-
-    # Without downsampling
-    model = build_featurizer(4, False, 0, model_str='xception', loaded_model=xception)
-    assert model.layers[-1].output_shape == (None, 728)
+FEATURIZER_MODEL_DICT = dict.fromkeys(MODELS)
+FEAT_CASES = [  # squeezenet
+              (1, False, 128, 128, 'squeezenet'), (1, False, 0, 512, 'squeezenet'),
+              (1, True, 0, 256, 'squeezenet'), (2, True, 0, 256, 'squeezenet'),
+              (2, False, 128, 128, 'squeezenet'), (2, False, 0, 512, 'squeezenet'),
+              (3, False, 96, 96, 'squeezenet'), (3, False, 0, 384, 'squeezenet'),
+              (3, True, 0, 192, 'squeezenet'), (4, True, 0, 192, 'squeezenet'),
+              (4, False, 96, 96, 'squeezenet'), (4, False, 0, 384, 'squeezenet'),
+
+              # vgg16
+              (1, False, 1024, 1024, 'vgg16'), (1, False, 0, 4096, 'vgg16'),
+              (1, True, 0, 2048, 'vgg16'), (2, True, 0, 2048, 'vgg16'),
+              (2, False, 1024, 1024, 'vgg16'), (2, False, 0, 4096, 'vgg16'),
+              (3, False, 128, 128, 'vgg16'), (3, False, 0, 512, 'vgg16'),
+              (3, True, 0, 256, 'vgg16'), (4, True, 0, 256, 'vgg16'),
+              (4, False, 128, 128, 'vgg16'), (4, False, 0, 512, 'vgg16'),
+
+              # vgg19
+              (1, False, 1024, 1024, 'vgg19'), (1, False, 0, 4096, 'vgg19'),
+              (1, True, 0, 2048, 'vgg19'), (2, True, 0, 2048, 'vgg19'),
+              (2, False, 1024, 1024, 'vgg19'), (2, False, 0, 4096, 'vgg19'),
+              (3, False, 128, 128, 'vgg19'), (3, False, 0, 512, 'vgg19'),
+              (3, True, 0, 256, 'vgg19'), (4, True, 0, 256, 'vgg19'),
+              (4, False, 128, 128, 'vgg19'), (4, False, 0, 512, 'vgg19'),
+
+              # resnet50
+              (1, False, 512, 512, 'resnet50'), (1, False, 0, 2048, 'resnet50'),
+              (1, True, 0, 1024, 'resnet50'), (2, True, 0, 1024, 'resnet50'),
+              (2, False, 512, 512, 'resnet50'), (2, False, 0, 2048, 'resnet50'),
+              (3, False, 512, 512, 'resnet50'), (3, False, 0, 2048, 'resnet50'),
+              (3, True, 0, 1024, 'resnet50'), (4, True, 0, 1024, 'resnet50'),
+              (4, False, 512, 512, 'resnet50'), (4, False, 0, 2048, 'resnet50'),
+
+              # inceptionv3
+              (1, False, 512, 512, 'inceptionv3'), (1, False, 0, 2048, 'inceptionv3'),
+              (1, True, 0, 1024, 'inceptionv3'), (2, True, 0, 1024, 'inceptionv3'),
+              (2, False, 512, 512, 'inceptionv3'), (2, False, 0, 2048, 'inceptionv3'),
+              (3, False, 512, 512, 'inceptionv3'), (3, False, 0, 2048, 'inceptionv3'),
+              (3, True, 0, 1024, 'inceptionv3'), (4, True, 0, 640, 'inceptionv3'),
+              (4, False, 320, 320, 'inceptionv3'), (4, False, 0, 1280, 'inceptionv3'),
+
+              # xception
+              (1, False, 512, 512, 'xception'), (1, False, 0, 2048, 'xception'),
+              (1, True, 0, 1024, 'xception'), (2, True, 0, 512, 'xception'),
+              (2, False, 256, 256, 'xception'), (2, False, 0, 1024, 'xception'),
+              (3, False, 182, 182, 'xception'), (3, False, 0, 728, 'xception'),
+              (3, True, 0, 364, 'xception'), (4, True, 0, 364, 'xception'),
+              (4, False, 182, 182, 'xception'), (4, False, 0, 728, 'xception')
+             ]
+@pytest.mark.parametrize('depth, autosample, sample_size, expected_size, model_str', FEAT_CASES)
+def test_build_featurizer(depth, autosample, sample_size, expected_size, model_str):
+    """Test all of the model iterations"""
+    if FEATURIZER_MODEL_DICT[model_str] is None:
+        FEATURIZER_MODEL_DICT[model_str] = _initialize_model(model_str)
+
+    new_model = FEATURIZER_MODEL_DICT[model_str]
+    model = build_featurizer(depth, autosample, sample_size,
+                             model_str=model_str, loaded_model=new_model)
+    assert model.layers[-1].output_shape == (None, expected_size)
 
 
 if __name__ == '__main__':
@@ -600,17 +315,5 @@ if __name__ == '__main__':
     test_splice_layer()
     test_find_pooling_constant()
     test_downsample_model_features()
-
-    test_initialize_model_squeezenet
-    test_initialize_model_vgg16
-    test_initialize_model_vgg19
-    test_initialize_model_resnet50
-    test_initialize_model_inceptionv3
-    test_initialize_model_xception
-
-    test_build_featurizer_squeezenet()
-    test_build_featurizer_vgg16()
-    test_build_featurizer_vgg19()
-    test_build_featurizer_resnet50()
-    test_build_featurizer_inceptionv3()
-    test_build_featurizer_xception()
+    test_initialize_model()
+    test_build_featurizer()

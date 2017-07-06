@@ -10,10 +10,13 @@ in-line with each image row.
 import logging
 import os
 
+import trafaret as t
+import numpy as np
 import pandas as pd
+
 from keras.models import Model
 
-
+@t.guard(model=t.Type(Model), array=t.Type(np.ndarray))
 def featurize_data(model, array):
     """
     Given a model and an array, perform error checking and return the prediction
@@ -33,21 +36,10 @@ def featurize_data(model, array):
             A numpy array containing the featurized images
 
     """
-    # -------------- #
-    # ERROR CHECKING #
-
-    # Raise error if it is not a numpy array
-    if 'numpy' not in str(type(array)):
-        raise TypeError('Must pass in a numpy array.')
     # Raise error if the array has the wrong shape
     if len(array.shape) != 4:
         raise ValueError('Image array must be a 4D tensor, with dimensions: '
                          '[batch, height, width, channel]')
-
-    # Raise error if not passed a model
-    if not isinstance(model, Model):
-        raise TypeError('model must be a keras Model.')
-    # ---------------------------------- #
 
     # Perform predictions
     logging.info('Creating feature array.')

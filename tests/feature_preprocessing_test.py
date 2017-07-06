@@ -17,15 +17,18 @@ from image_featurizer.feature_preprocessing import (_create_csv_with_image_paths
 # Initialize seed to cut out any randomness (such as in image interpolation, etc)
 random.seed(5102020)
 
-# Initializing shared paths
+# Shared paths
 IMAGE_PATH = 'tests/feature_preprocessing_testing/test_images/'
 CSV_PATH = 'tests/feature_preprocessing_testing/csv_testing/'
 IMAGE_ARRAY_PATH = 'tests/feature_preprocessing_testing/test_image_arrays/'
+URL_PATH = '{}url_test'.format(CSV_PATH)
 TEST_ARRAY = 'tests/feature_preprocessing_testing/test_preprocessing_arrays/{}.npy'
 
+# Column headers
 IMG_COL_HEAD = 'images'
 NEW_IMG_COL_HEAD = 'new_images'
 
+# Image lists for directory and url
 IMAGE_LIST = ['arendt.bmp', 'borges.jpg', 'sappho.png']
 URL_LIST = ['http://i2.wp.com/roadsandkingdoms.com/uploads/2013/11/Jorge_Luis_Borges.jpg',
             'http://sisareport.com/wp-content/uploads/2016/09/%E2%96%B2-%ED'
@@ -33,16 +36,28 @@ URL_LIST = ['http://i2.wp.com/roadsandkingdoms.com/uploads/2013/11/Jorge_Luis_Bo
             'http://queerbio.com/wiki/images/thumb/8/8d/Sappho.png/200px-Sappho.png'
             ]
 
-URL_PATH = '{}url_test'.format(CSV_PATH)
-CASE_IMAGES = ['arendt', 'borges', 'sappho']
-CASE_IMAGES_GRAYSCALE = ['arendt', 'sappho', 'arendt']
-
+# Preprocessing paths
 DIRECTORY_CSV_PATH_PREPROCESS = '{}directory_preprocess_system_test'.format(CSV_PATH)
 ERROR_NEW_CSV_NAME_PREPROCESS = '{}generated_error_preprocess_system_test'.format(CSV_PATH)
 NEW_CSV_NAME_PREPROCESS = '{}generated_preprocess_system_test'.format(CSV_PATH)
 COMBINED_LIST_PREPROCESS = ['', 'arendt.bmp', 'sappho.png', 'arendt.bmp']
 
+# Loading image arrays
+arendt_array = np.load(TEST_ARRAY.format('arendt'))
+borges_array = np.load(TEST_ARRAY.format('borges'))
+sappho_array = np.load(TEST_ARRAY.format('sappho'))
+arendt_grayscale_array = np.load(TEST_ARRAY.format('arendt_grayscale'))
+sappho_grayscale_array = np.load(TEST_ARRAY.format('sappho_grayscale'))
 
+# Test arrays for build_featurizer
+DIRECTORY_ARRAYS = [arendt_array, borges_array, sappho_array]
+CSV_ARRAYS = [borges_array, arendt_array, sappho_array]
+COMBINED_ARRAYS = [np.zeros((borges_array.shape)), arendt_array, sappho_array, arendt_array]
+GRAYSCALE_ARRAYS = [np.zeros((arendt_grayscale_array.shape)), arendt_grayscale_array,
+                    sappho_grayscale_array, arendt_grayscale_array]
+
+
+# ---- TESTING ---- #
 def test_create_csv_with_image_paths():
     """Test method creates csv correctly from list of images"""
     new_csv_path = 'tests/feature_preprocessing_testing/csv_testing/generated_create_csv_test'
@@ -87,34 +102,33 @@ def test_find_combined_image_paths():
     invalid_csv_image_path = 'heidegger.png'
     invalid_directory_image_path = 'borges.jpg'
 
-    test_image_path = _find_combined_image_paths(IMAGE_PATH,
-                                                 '{}directory_combined_image_path_test'.format(
-                                                     CSV_PATH), IMG_COL_HEAD)
+    test_path = _find_combined_image_paths(IMAGE_PATH,
+                                           '{}directory_combined_image_path_test'
+                                           .format(CSV_PATH), IMG_COL_HEAD)
 
     with pytest.raises(ValueError):
         _find_combined_image_paths(IMAGE_PATH,
                                    '{}error_directory_combined_test'.format(CSV_PATH),
                                    IMG_COL_HEAD)
 
-    assert invalid_csv_image_path not in test_image_path
-    assert invalid_directory_image_path not in test_image_path
+    assert invalid_csv_image_path not in test_path
+    assert invalid_directory_image_path not in test_path
 
-    assert check_image_paths == test_image_path
-
-
-CASES = [
-         ('url', URL_LIST[0]),
-         ('directory', '{}borges.jpg'.format(IMAGE_PATH))
-        ]
+    assert check_image_paths == test_path
 
 
+CONVERT_IMAGE_CASES = [
+                       ('url', URL_LIST[0]),
+                       ('directory', '{}borges.jpg'.format(IMAGE_PATH))
+                      ]
 @pytest.mark.parametrize('grayscale', [None, True], ids=['RGB', 'grayscale'])
 @pytest.mark.parametrize('size', [(299, 299), (299, 467)], ids=['scaled', 'isotropic'])
-@pytest.mark.parametrize('image_source,image_path', CASES, ids=['url', 'directory'])
+@pytest.mark.parametrize('image_source,image_path', CONVERT_IMAGE_CASES, ids=['url', 'directory'])
 def test_convert_single_image(image_source, image_path, size, grayscale):
     """Test converting images from url and directory with options for size and grayscale"""
     iso = ''
     gscale = ''
+
     if size != (299, 299):
         iso = '_isotropic'
     if grayscale is not None:
@@ -130,7 +144,7 @@ def test_convert_single_image(image_source, image_path, size, grayscale):
     assert np.array_equal(check_array, converted_image)
 
 
-paths_finder_cases = [
+PATHS_FINDER_CASES = [
                       (IMAGE_PATH, '', NEW_IMG_COL_HEAD,
                        '{}paths_finder_integration_test'.format(CSV_PATH), IMAGE_LIST),
 
@@ -139,10 +153,8 @@ paths_finder_cases = [
                       (IMAGE_PATH, '{}directory_combined_image_path_test'.format(CSV_PATH),
                        IMG_COL_HEAD, '', ['', 'arendt.bmp', 'sappho.png'])
                      ]
-
-
 @pytest.mark.parametrize('image_path, csv_path, image_column_header, new_csv, check_images',
-                         paths_finder_cases, ids=['directory_only', 'csv_only', 'combined'])
+                         PATHS_FINDER_CASES, ids=['directory_only', 'csv_only', 'combined'])
 def test_image_paths_finder(image_path, csv_path, image_column_header, new_csv, check_images):
     """
     Test the correct image paths returns for all three cases: directory only,
@@ -218,38 +230,23 @@ def compare_preprocessing(case, csv_name, check_arrays, image_list):
     assert case[2] == image_list
 
 
-arendt_array = np.load(TEST_ARRAY.format('arendt'))
-borges_array = np.load(TEST_ARRAY.format('borges'))
-sappho_array = np.load(TEST_ARRAY.format('sappho'))
-arendt_grayscale_array = np.load(TEST_ARRAY.format('arendt_grayscale'))
-sappho_grayscale_array = np.load(TEST_ARRAY.format('sappho_grayscale'))
+PREPROCESS_DATA_CASES = [
+                         (False, IMAGE_PATH, '', NEW_CSV_NAME_PREPROCESS,
+                          DIRECTORY_ARRAYS, IMAGE_LIST),
 
-directory_arrays = [arendt_array, borges_array, sappho_array]
-csv_arrays = [borges_array, arendt_array, sappho_array]
-combined_arrays = [np.zeros((borges_array.shape)), arendt_array, sappho_array, arendt_array]
-grayscale_arrays = [np.zeros((arendt_grayscale_array.shape)), arendt_grayscale_array,
-                    sappho_grayscale_array, arendt_grayscale_array]
+                         (False, '', URL_PATH, ERROR_NEW_CSV_NAME_PREPROCESS,
+                          CSV_ARRAYS, URL_LIST),
 
+                         (False, IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
+                          ERROR_NEW_CSV_NAME_PREPROCESS, COMBINED_ARRAYS,
+                          COMBINED_LIST_PREPROCESS),
 
-test_preprocess_data_cases = [
-                              (False, IMAGE_PATH, '', NEW_CSV_NAME_PREPROCESS,
-                               directory_arrays, IMAGE_LIST),
-
-                              (False, '', URL_PATH, ERROR_NEW_CSV_NAME_PREPROCESS,
-                               csv_arrays, URL_LIST),
-
-                              (False, IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
-                               ERROR_NEW_CSV_NAME_PREPROCESS, combined_arrays,
-                               COMBINED_LIST_PREPROCESS),
-
-                              (True, IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
-                               ERROR_NEW_CSV_NAME_PREPROCESS, grayscale_arrays,
-                               COMBINED_LIST_PREPROCESS)
-                             ]
-
-
+                         (True, IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
+                          ERROR_NEW_CSV_NAME_PREPROCESS, GRAYSCALE_ARRAYS,
+                          COMBINED_LIST_PREPROCESS)
+                        ]
 @pytest.mark.parametrize('grayscale, image_path, csv_path, new_csv_name, check_arrays, image_list',
-                         test_preprocess_data_cases, ids=['dir_only', 'csv_only', 'comb', 'gray'])
+                         PREPROCESS_DATA_CASES, ids=['dir_only', 'csv_only', 'combined', 'gray'])
 def test_preprocess_data(grayscale, image_path, csv_path, new_csv_name, check_arrays, image_list):
     """
     Full integration test: check for Type and Value errors for badly passed variables,

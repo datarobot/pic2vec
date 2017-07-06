@@ -63,8 +63,9 @@ supported_model_types = {
 }
 
 
-@t.guard(model_str=t.Enum(*supported_model_types.keys()))
-def _initialize_model(model_str):
+@t.guard(model_str=t.Enum(*supported_model_types.keys()),
+         loaded_weights=t.String(allow_blank=True))
+def _initialize_model(model_str, loaded_weights=''):
     """
     Initialize the InceptionV3 model with the saved weights, or
     if the weight file can't be found, load them automatically through Keras.
@@ -82,17 +83,28 @@ def _initialize_model(model_str):
     logging.info('Check/download {model_label} model weights. This may take a minute first time.'
                  .format(model_label=supported_model_types[model_str]['label']))
 
-    model = supported_model_types[model_str]['class'](**supported_model_types[model_str]['kwargs'])
-    if model_str == 'squeezenet':
-        # Special case for squeezenet - we already have weights for it
-        this_dir, this_filename = os.path.split(__file__)
-        model_path = os.path.join(this_dir,
-                                  'model',
-                                  'squeezenet_weights_tf_dim_ordering_tf_kernels.h5')
-        if not os.path.isfile(model_path):
-            raise ValueError('Could not find the weights. Download another model'
-                             ' or replace the SqueezeNet weights in the model folder.')
-        model.load_weights(model_path)
+    if loaded_weights != '':
+        model = supported_model_types[model_str]['class'](weights=None)
+        try:
+            model.load_weights(loaded_weights)
+        except IOError as err:
+            logging.error('Problem loading the custom weights. If not an advanced user, please '
+                          'leave loaded_weights unconfigured.')
+            raise err
+    else:
+        model = supported_model_types[model_str]['class'](**supported_model_types
+                                                          [model_str]['kwargs'])
+
+        if model_str == 'squeezenet':
+            # Special case for squeezenet - we already have weights for it
+            this_dir, this_filename = os.path.split(__file__)
+            model_path = os.path.join(this_dir,
+                                      'model',
+                                      'squeezenet_weights_tf_dim_ordering_tf_kernels.h5')
+            if not os.path.isfile(model_path):
+                raise ValueError('Could not find the weights. Download another model'
+                                 ' or replace the SqueezeNet weights in the model folder.')
+            model.load_weights(model_path)
 
     logging.info('Model successfully initialized.')
     return model
