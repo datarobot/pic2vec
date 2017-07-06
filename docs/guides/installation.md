@@ -1,8 +1,11 @@
-Installation
+Installation:
 ============
 
-Installing In Virtualenv
+
+1: Setting Up The Virtual Environment
 ---------------------------------
+
+### VirtualEnv
 To install virtualenv, follow this guide: [virtualenv installation guide](http://sourabhbajaj.com/mac-setup/Python/virtualenv.html)
 
 Once virtualenv is installed, create a new environment to run the featurizer:
@@ -16,12 +19,7 @@ Then activate the environment:
     $ source featurizer/bin/activate
 ```
 
-Once in the virtual environment, there are several ways to install the
-image_featurizer package.
-
-
-Installing In Conda
--------------------
+### Conda
 To install Anaconda, follow this guide: [Anaconda installation guide](https://docs.continuum.io/anaconda/install)
 
 Once Anaconda is installed,. create a new environment to run the featurizer:
@@ -43,15 +41,17 @@ To activate the environment on Windows:
     $ activate featurizer
 ```
 
+
 Once in a virtual environment, there are several ways to install the
 image_featurizer package.
 
 
 
-Install Through Pip
+2: Installing The Image_Featurizer Package
 -------------------
 
-To install Image Featurizer through pip on OS X or Linux, run this command in your terminal:
+### Pip Installation
+To install image_featurizer through pip on OS X or Linux, run this command in your terminal:
 
 ```bash
     $ pip install image_featurizer
@@ -62,16 +62,13 @@ To install through pip on Windows, run this command in terminal:
     $ python -m pip install image_featurizer
 ```
 
-This is the preferred method to install Image Featurizer, as it will always install the most recent stable release.
+This is the preferred method to install image_featurizer, as it will always install the most recent stable release.
 
 If you don't have [pip](https://pip.pypa.io) installed, this [Python installation guide](http://docs.python-guide.org/en/latest/starting/installation/) can guide you through the process.
 
 
-
-From sources
-------------
-
-The sources for Image Featurizer can be downloaded from the [Github repo](https://github.com/datarobot/imagefeaturizer).
+### Installing From setup.py
+The sources for image_featurizer can be downloaded from the [Github repo](https://github.com/datarobot/imagefeaturizer).
 
 You can either clone the public repository:
 
@@ -92,7 +89,7 @@ FIXME: this actually isn't working, at least in Ubuntu16.04 this fails on depend
 ```
 
 
-Troubleshooting
+3: Troubleshooting
 ---------------
 
 1. If you see error similar to `TypeError: find_packages() got an unexpected
