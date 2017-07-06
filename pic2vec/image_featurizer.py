@@ -140,7 +140,7 @@ class ImageFeaturizer:
 
         """
         # BUILDING THE MODEL #
-        logging.info("\nBuilding the featurizer.")
+        logging.info("Building the featurizer.")
 
         featurizer = build_featurizer(depth, auto_sample,
                                       downsample_size, model_str=model.lower())

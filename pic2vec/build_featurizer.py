@@ -80,7 +80,8 @@ def _initialize_model(model_str, loaded_weights=''):
         model : keras.models.Model
             The initialized model loaded with pre-trained weights
     """
-    logging.info('Check/download {model_label} model weights. This may take a minute first time.'
+    logging.info('Loading/downloading {model_label} model weights. '
+                 'This may take a minute first time.'
                  .format(model_label=supported_model_types[model_str]['label']))
 
     if loaded_weights != '':
@@ -289,7 +290,7 @@ def _check_downsampling_mismatch(downsample, num_pooled_features, output_layer_s
     # If they have initialized num_pooled_features, but not turned on
     # downsampling, downsample to what they entered
     elif num_pooled_features != 0 and not downsample:
-        logging.info('\n \n Downsampling to {}.'.format(num_pooled_features))
+        logging.info('Downsampling to {}.'.format(num_pooled_features))
         downsample = True
 
     return downsample, num_pooled_features
