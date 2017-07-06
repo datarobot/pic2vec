@@ -20,23 +20,42 @@ random.seed(5102020)
 # Initializing shared paths
 IMAGE_PATH = 'tests/feature_preprocessing_testing/test_images/'
 CSV_PATH = 'tests/feature_preprocessing_testing/csv_testing/'
+IMAGE_ARRAY_PATH = 'tests/feature_preprocessing_testing/test_image_arrays/'
+TEST_ARRAY = 'tests/feature_preprocessing_testing/test_preprocessing_arrays/{}.npy'
+
 IMG_COL_HEAD = 'images'
 NEW_IMG_COL_HEAD = 'new_images'
-IMAGE_ARRAY_PATH = 'tests/feature_preprocessing_testing/test_image_arrays/'
+
+IMAGE_LIST = ['arendt.bmp', 'borges.jpg', 'sappho.png']
+URL_LIST = ['http://i2.wp.com/roadsandkingdoms.com/uploads/2013/11/Jorge_Luis_Borges.jpg',
+            'http://sisareport.com/wp-content/uploads/2016/09/%E2%96%B2-%ED'
+            '%95%9C%EB%82%98-%EC%95%84%EB%A0%8C%ED%8A%B8Hannah-Arendt-1906-1975.bmp',
+            'http://queerbio.com/wiki/images/thumb/8/8d/Sappho.png/200px-Sappho.png'
+            ]
+
+URL_PATH = '{}url_test'.format(CSV_PATH)
+CASE_IMAGES = ['arendt', 'borges', 'sappho']
+CASE_IMAGES_GRAYSCALE = ['arendt', 'sappho', 'arendt']
+
+DIRECTORY_CSV_PATH_PREPROCESS = '{}directory_preprocess_system_test'.format(CSV_PATH)
+ERROR_NEW_CSV_NAME_PREPROCESS = '{}generated_error_preprocess_system_test'.format(CSV_PATH)
+NEW_CSV_NAME_PREPROCESS = '{}generated_preprocess_system_test'.format(CSV_PATH)
+COMBINED_LIST_PREPROCESS = ['', 'arendt.bmp', 'sappho.png', 'arendt.bmp']
 
 
 def test_create_csv_with_image_paths():
     """Test method creates csv correctly from list of images"""
-    list_of_images = ['arendt.bmp', 'borges.jpg', 'sappho.png']
     new_csv_path = 'tests/feature_preprocessing_testing/csv_testing/generated_create_csv_test'
 
-    assert not os.path.isfile(new_csv_path)
+    if os.path.isfile(new_csv_path):
+        os.remove(new_csv_path)
 
-    _create_csv_with_image_paths(list_of_images, new_csv_path, IMG_COL_HEAD)
+    _create_csv_with_image_paths(IMAGE_LIST, new_csv_path, IMG_COL_HEAD)
 
     assert filecmp.cmp(new_csv_path, '{}create_csv_check'.format(CSV_PATH))
 
-    os.remove(new_csv_path)
+    if os.path.isfile(new_csv_path):
+        os.remove(new_csv_path)
 
 
 def test_find_directory_image_paths():
@@ -44,11 +63,9 @@ def test_find_directory_image_paths():
     Test method returns a sorted list of valid image files
     to be fed into the featurizer from a directory.
     """
-    check_image_paths = ['arendt.bmp', 'borges.jpg', 'sappho.png']
-
     test_image_paths = _find_directory_image_paths(IMAGE_PATH)
 
-    assert test_image_paths == check_image_paths
+    assert test_image_paths == IMAGE_LIST
 
 
 def test_find_csv_image_paths():
@@ -85,128 +102,76 @@ def test_find_combined_image_paths():
     assert check_image_paths == test_image_path
 
 
-def test_convert_single_image():
-    """
-    Test that the convert_single_image method correctly loads images from
-    url or from a local file, and generates the correct numpy arrays to be
-    processed by the featurizer.
-    """
-    image = '{}borges.jpg'.format(IMAGE_PATH)
-    image_url = 'http://i2.wp.com/roadsandkingdoms.com/uploads/2013/11/Jorge_Luis_Borges.jpg'
-    # Loading the hand-saved image tests
-    test_image_1 = np.load('{}image_test_default.npy'.format(IMAGE_ARRAY_PATH))
-    test_image_2 = np.load('{}image_test_isotropic.npy'.format(IMAGE_ARRAY_PATH))
-    test_image_3 = np.load('{}image_test_grayscale.npy'.format(IMAGE_ARRAY_PATH))
-    test_image_4 = np.load('{}image_test_isotropic_grayscale.npy'.format(IMAGE_ARRAY_PATH))
-
-    # Converting the image from URL
-    converted_image_url_basic = convert_single_image('url', image_url)
-    converted_image_url_isotropic = convert_single_image('url', image_url, target_size=(299, 467))
-    converted_image_url_grayscale = convert_single_image('url', image_url, grayscale=True)
-    converted_image_url_isotropic_grayscale = convert_single_image('url', image_url,
-                                                                   target_size=(299, 467),
-                                                                   grayscale=True)
-
-    # Checking that it produces the same array
-    assert np.array_equal(test_image_1, converted_image_url_basic)
-    assert np.array_equal(test_image_2, converted_image_url_isotropic)
-    assert np.array_equal(test_image_3, converted_image_url_grayscale)
-    assert np.array_equal(test_image_4, converted_image_url_isotropic_grayscale)
-
-    # Creating the images from locally saved file
-    converted_image_directory_basic = convert_single_image('directory', image)
-    converted_image_directory_isotropic = convert_single_image('directory', image,
-                                                               target_size=(299, 467))
-    converted_image_directory_grayscale = convert_single_image('directory', image, grayscale=True)
-    converted_image_directory_isotropic_grayscale = convert_single_image('directory', image,
-                                                                         target_size=(299, 467),
-                                                                         grayscale=True)
-
-    # Checking that it produces the same array
-    assert np.array_equal(test_image_1, converted_image_directory_basic)
-    assert np.array_equal(test_image_2, converted_image_directory_isotropic)
-    assert np.array_equal(test_image_3, converted_image_directory_grayscale)
-    assert np.array_equal(test_image_4, converted_image_directory_isotropic_grayscale)
+CASES = [
+         ('url', URL_LIST[0]),
+         ('directory', '{}borges.jpg'.format(IMAGE_PATH))
+        ]
 
 
-def test_image_paths_finder():
+@pytest.mark.parametrize('grayscale', [None, True], ids=['RGB', 'grayscale'])
+@pytest.mark.parametrize('size', [(299, 299), (299, 467)], ids=['scaled', 'isotropic'])
+@pytest.mark.parametrize('image_source,image_path', CASES, ids=['url', 'directory'])
+def test_convert_single_image(image_source, image_path, size, grayscale):
+    """Test converting images from url and directory with options for size and grayscale"""
+    iso = ''
+    gscale = ''
+    if size != (299, 299):
+        iso = '_isotropic'
+    if grayscale is not None:
+        gscale = '_grayscale'
+
+    check_array = np.load('{path}image_test{isotropic}{grayscale}.npy'
+                          .format(path=IMAGE_ARRAY_PATH,
+                                  isotropic=iso,
+                                  grayscale=gscale))
+
+    converted_image = convert_single_image(image_source, image_path, size, grayscale)
+
+    assert np.array_equal(check_array, converted_image)
+
+
+paths_finder_cases = [
+                      (IMAGE_PATH, '', NEW_IMG_COL_HEAD,
+                       '{}paths_finder_integration_test'.format(CSV_PATH), IMAGE_LIST),
+
+                      ('', URL_PATH, IMG_COL_HEAD, '', URL_LIST),
+
+                      (IMAGE_PATH, '{}directory_combined_image_path_test'.format(CSV_PATH),
+                       IMG_COL_HEAD, '', ['', 'arendt.bmp', 'sappho.png'])
+                     ]
+
+
+@pytest.mark.parametrize('image_path, csv_path, image_column_header, new_csv, check_images',
+                         paths_finder_cases, ids=['directory_only', 'csv_only', 'combined'])
+def test_image_paths_finder(image_path, csv_path, image_column_header, new_csv, check_images):
     """
     Test the correct image paths returns for all three cases: directory only,
     csv only, and combined csv + directory
     """
-    url_csv_path = '{}url_combined_image_path_test'.format(CSV_PATH)
-    directory_csv_path = '{}directory_combined_image_path_test'.format(CSV_PATH)
-    new_csv_name = '{}paths_finder_integration_test'.format(CSV_PATH)
-
     # check the new csv doesn't already exist
-    assert not os.path.isfile(new_csv_name)
-
-    # test image lists
-    case1_images = ['arendt.bmp', 'borges.jpg', 'sappho.png']
-    case2_images = ['http://sisareport.com/wp-content/uploads/2016/09/%E2%96%B2-%ED'
-                    '%95%9C%EB%82%98-%EC%95%84%EB%A0%8C%ED%8A%B8Hannah-Arendt-1906-1975.bmp',
-                    'http://i2.wp.com/roadsandkingdoms.com/uploads/2013/11/Jorge_Luis_Borges.jpg',
-                    'http://queerbio.com/wiki/images/thumb/8/8d/Sappho.png/200px-Sappho.png'
-                    ]
-    case3_images = ['', 'arendt.bmp', 'sappho.png']
+    if os.path.isfile(new_csv) and new_csv != '':
+        os.remove(new_csv)
 
     # generated image lists
-    case1 = _image_paths_finder(IMAGE_PATH, '', NEW_IMG_COL_HEAD, new_csv_name)
+    case = _image_paths_finder(image_path, csv_path, image_column_header, new_csv)
 
-    assert os.path.isfile(new_csv_name)
-    # remove the generated csv
-    os.remove(new_csv_name)
+    if new_csv != '':
+        assert os.path.isfile(new_csv)
+        # remove the generated csv
+        os.remove(new_csv)
 
-    case2 = _image_paths_finder('', url_csv_path, IMG_COL_HEAD, '')
-    case3 = _image_paths_finder(IMAGE_PATH, directory_csv_path, IMG_COL_HEAD, '')
-
-    # check the image lists match
-    assert case1 == case1_images
-    assert case2 == case2_images
-    assert case3 == case3_images
+    # Check the image lists match
+    assert case == check_images
 
 
-def test_preprocess_data():
-    """
-    Full integration test: check for Type and Value errors for badly passed variables,
-    and make sure that the network preprocesses data correctly for all three cases.
-    """
-    # Saving paths
-    new_csv_name = '{}generated_preprocess_system_test'.format(CSV_PATH)
-    url_csv_path = '{}url_preprocess_system_test'.format(CSV_PATH)
-    directory_csv_path = '{}directory_preprocess_system_test'.format(CSV_PATH)
-    error_new_csv_name = '{}generated_error_preprocess_system_test'.format(CSV_PATH)
-
-    # saving image lists
-    url_list = ['http://i2.wp.com/roadsandkingdoms.com/uploads/2013/11/Jorge_Luis_Borges.jpg',
-                'http://sisareport.com/wp-content/uploads/2016/09/%E2%96%B2-%ED%95%9C%'
-                'EB%82%98-%EC%95%84%EB%A0%8C%ED%8A%B8Hannah-Arendt-1906-1975.bmp',
-                'http://queerbio.com/wiki/images/thumb/8/8d/Sappho.png/200px-Sappho.png'
-                ]
-    directory_list = ['arendt.bmp', 'borges.jpg', 'sappho.png']
-    combined_list = ['', 'arendt.bmp', 'sappho.png', 'arendt.bmp']
-
-    # Loading the pre-tested arrays
-    arendt_test_array = np.load(
-        'tests/feature_preprocessing_testing/test_preprocessing_arrays/arendt.npy')
-    borges_test_array = np.load(
-        'tests/feature_preprocessing_testing/test_preprocessing_arrays/borges.npy')
-    sappho_test_array = np.load(
-        'tests/feature_preprocessing_testing/test_preprocessing_arrays/sappho.npy')
-    arendt_grayscale_test_array = np.load(
-        'tests/feature_preprocessing_testing/test_preprocessing_arrays/arendt_grayscale.npy')
-    sappho_grayscale_test_array = np.load(
-        'tests/feature_preprocessing_testing/test_preprocessing_arrays/sappho_grayscale.npy')
-
-    # -------------- #
-    # ERROR CHECKING #
-    # -------------- #
-
-    # Raise error if no csv or directory is passed
+def test_preprocess_data_no_input():
+    """Raise error if no csv or directory is passed"""
     with pytest.raises(ValueError):
         preprocess_data(IMG_COL_HEAD)
 
-    # Raise an error if the image_path doesn't point to a real directory
+
+def test_preprocess_data_fake_dir():
+    """Raise an error if the image_path doesn't point to a real directory"""
     error_dir = 'egaugnalymgnidnatsrednufoerusuoyera/emdaerohwuoy/'
     try:
         assert not os.path.isdir(error_dir)
@@ -214,9 +179,14 @@ def test_preprocess_data():
         logging.error('Whoops, that labyrinth exists. '
                       'Change error_dir to a directory path that does not exist.')
     with pytest.raises(TypeError):
-        preprocess_data(IMG_COL_HEAD, image_path=error_dir, new_csv_name=error_new_csv_name)
+        preprocess_data(IMG_COL_HEAD, image_path=error_dir,
+                        new_csv_name=ERROR_NEW_CSV_NAME_PREPROCESS)
 
-    # Raise an error if the csv_path doesn't point to a file
+    assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
+
+
+def test_preprocess_data_fake_csv():
+    """Raise an error if the csv_path doesn't point to a file"""
     error_file = 'rehtonaybtmaerdecnaraeppaeremasawootehtahtdootsrednueh'
     try:
         assert not os.path.isfile(error_file)
@@ -224,87 +194,87 @@ def test_preprocess_data():
         logging.error(
             'Whoops, that dreamer exists. change to error_file to a file path that does not exist.')
     with pytest.raises(TypeError):
-        preprocess_data(IMG_COL_HEAD, csv_path=error_file, new_csv_name=error_new_csv_name)
+        preprocess_data(IMG_COL_HEAD, csv_path=error_file,
+                        new_csv_name=ERROR_NEW_CSV_NAME_PREPROCESS)
 
-    # Ensure the new csv doesn't already exist, and an error csv wasn't created
+    assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
+
+
+def compare_preprocessing(case, csv_name, check_arrays, image_list):
+    """Compare a case from a full preprocessing step with the expected values of that case"""
+    # Check correct number of images vectorized
+    if image_list != COMBINED_LIST_PREPROCESS:
+        assert len(case[0]) == 3
+    else:
+        assert len(case[0]) == 4
+
+    # Check all data vectors correctly generated
+    assert np.array_equal(case[0][0], check_arrays[0])
+    assert np.array_equal(case[0][1], check_arrays[1])
+    assert np.array_equal(case[0][2], check_arrays[2])
+
+    # csv path correctly returned as non-existent, and correct image list returned
+    assert case[1] == csv_name
+    assert case[2] == image_list
+
+
+arendt_array = np.load(TEST_ARRAY.format('arendt'))
+borges_array = np.load(TEST_ARRAY.format('borges'))
+sappho_array = np.load(TEST_ARRAY.format('sappho'))
+arendt_grayscale_array = np.load(TEST_ARRAY.format('arendt_grayscale'))
+sappho_grayscale_array = np.load(TEST_ARRAY.format('sappho_grayscale'))
+
+directory_arrays = [arendt_array, borges_array, sappho_array]
+csv_arrays = [borges_array, arendt_array, sappho_array]
+combined_arrays = [np.zeros((borges_array.shape)), arendt_array, sappho_array, arendt_array]
+grayscale_arrays = [np.zeros((arendt_grayscale_array.shape)), arendt_grayscale_array,
+                    sappho_grayscale_array, arendt_grayscale_array]
+
+
+test_preprocess_data_cases = [
+                              (False, IMAGE_PATH, '', NEW_CSV_NAME_PREPROCESS,
+                               directory_arrays, IMAGE_LIST),
+
+                              (False, '', URL_PATH, ERROR_NEW_CSV_NAME_PREPROCESS,
+                               csv_arrays, URL_LIST),
+
+                              (False, IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
+                               ERROR_NEW_CSV_NAME_PREPROCESS, combined_arrays,
+                               COMBINED_LIST_PREPROCESS),
+
+                              (True, IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
+                               ERROR_NEW_CSV_NAME_PREPROCESS, grayscale_arrays,
+                               COMBINED_LIST_PREPROCESS)
+                             ]
+
+
+@pytest.mark.parametrize('grayscale, image_path, csv_path, new_csv_name, check_arrays, image_list',
+                         test_preprocess_data_cases, ids=['dir_only', 'csv_only', 'comb', 'gray'])
+def test_preprocess_data(grayscale, image_path, csv_path, new_csv_name, check_arrays, image_list):
+    """
+    Full integration test: check for Type and Value errors for badly passed variables,
+    and make sure that the network preprocesses data correctly for all three cases.
+    """
+    # Ensure the new csv doesn't already exist
     if os.path.isfile(new_csv_name):
         os.remove(new_csv_name)
-    assert not os.path.isfile(error_new_csv_name)
 
     # Create the full (data, csv_path, image_list) for each of the three cases
-    full_preprocessed_case_1 = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH,
-                                               new_csv_name=new_csv_name)
-    full_preprocessed_case_2 = preprocess_data(IMG_COL_HEAD, csv_path=url_csv_path,
-                                               new_csv_name='{}breaking_test'.format(CSV_PATH))
-    full_preprocessed_case_3 = preprocess_data(IMG_COL_HEAD, image_path=IMAGE_PATH,
-                                               csv_path=directory_csv_path,
-                                               new_csv_name='{}breaking_test'.format(CSV_PATH))
-
-    grayscale_test = preprocess_data(IMG_COL_HEAD, grayscale=True, image_path=IMAGE_PATH,
-                                     csv_path=directory_csv_path,
-                                     new_csv_name='{}breaking_test'.format(CSV_PATH))
+    preprocessed_case = preprocess_data(IMG_COL_HEAD, grayscale=grayscale, image_path=image_path,
+                                        csv_path=csv_path, new_csv_name=new_csv_name)
 
     # Ensure a new csv wasn't created when they weren't needed, and that a new csv
     # WAS created when it was needed. Then, remove the new csv.
-    assert not os.path.isfile('breaking_test')
-    assert os.path.isfile(new_csv_name)
-    os.remove(new_csv_name)
+    assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
 
-    # CHECK ALL THE CORRECT OUTPUTS FOR CASE 1:
-    # Correct number of images vectorized
-    assert len(full_preprocessed_case_1[0]) == 3
+    if new_csv_name == NEW_CSV_NAME_PREPROCESS:
+        csv_path = new_csv_name
 
-    # All data vectors correctly generated
-    assert np.array_equal(full_preprocessed_case_1[0][0], arendt_test_array)
-    assert np.array_equal(full_preprocessed_case_1[0][1], borges_test_array)
-    assert np.array_equal(full_preprocessed_case_1[0][2], sappho_test_array)
+    compare_preprocessing(preprocessed_case, csv_path, check_arrays, image_list)
 
-    # csv path correctly returned as non-existent, and correct image list returned
-    assert full_preprocessed_case_1[1] == new_csv_name
-    assert full_preprocessed_case_1[2] == directory_list
-
-    # CHECK ALL THE CORRECT OUTPUTS FOR CASE 2:
-    # Correct number of images vectorized
-    assert len(full_preprocessed_case_2[0]) == 3
-
-    # All data vectors correctly generated
-    assert np.array_equal(full_preprocessed_case_2[0][1], arendt_test_array)
-    assert np.array_equal(full_preprocessed_case_2[0][0], borges_test_array)
-    assert np.array_equal(full_preprocessed_case_2[0][2], sappho_test_array)
-
-    # csv path and image list correctly returned
-    assert full_preprocessed_case_2[1] == url_csv_path
-    assert full_preprocessed_case_2[2] == url_list
-
-    # CHECK ALL THE CORRECT OUTPUTS FOR CASE 3:
-    # Correct number of images vectorized
-    assert len(full_preprocessed_case_3[0]) == 4
-    assert full_preprocessed_case_3[2] == combined_list
-
-    # All data vectors correctly generated
-    assert np.array_equal(full_preprocessed_case_3[0][0],
-                          np.zeros(full_preprocessed_case_3[0][0].shape))
-    assert np.array_equal(full_preprocessed_case_3[0][1], arendt_test_array)
-    assert np.array_equal(full_preprocessed_case_3[0][2], sappho_test_array)
-    assert np.array_equal(full_preprocessed_case_3[0][3], arendt_test_array)
-
-    # csv path and image list correctly returned
-    assert full_preprocessed_case_3[1] == directory_csv_path
-    assert full_preprocessed_case_3[2] == combined_list
-
-    # CHECK ALL THE CORRECT OUTPUTS FOR GRAYSCALE TEST:
-    # Correct number of images vectorized
-    assert len(grayscale_test[0]) == 4
-
-    # All data vectors correctly generated
-    assert np.array_equal(grayscale_test[0][0], np.zeros(grayscale_test[0][0].shape))
-    assert np.array_equal(grayscale_test[0][1], arendt_grayscale_test_array)
-    assert np.array_equal(grayscale_test[0][2], sappho_grayscale_test_array)
-    assert np.array_equal(grayscale_test[0][3], arendt_grayscale_test_array)
-
-    # csv path and image list correctly returned
-    assert grayscale_test[1] == directory_csv_path
-    assert grayscale_test[2] == combined_list
+    if new_csv_name == NEW_CSV_NAME_PREPROCESS:
+        assert os.path.isfile(new_csv_name)
+        os.remove(new_csv_name)
 
 
 if __name__ == "__main__":
