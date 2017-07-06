@@ -79,8 +79,6 @@ See the [Installation Guide](docs/guides/installation.md) for details.
 If you run into trouble installing Keras or Tensorflow as a dependency, read the [Keras installation guide](https://keras.io/#installation) and  [Tensorflow installation guide](https://www.tensorflow.org/install/) for details about installing Keras/Tensorflow on your machine.
 
 
-
-
 ## Using Featurizer Output With DataRobot
 ``image_featurizer`` generates a CSV that is ready to be dropped directly into the DataRobot application, if the data has been labelled with a variable that can be considered a target in the CSV. The image features are each treated like regular columns containing data.
 
