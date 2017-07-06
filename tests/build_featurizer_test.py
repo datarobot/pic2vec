@@ -11,12 +11,12 @@ from keras.layers import Dense, Activation, Input
 from keras.layers.merge import add
 from keras.models import Sequential, Model
 
-from image_featurizer.build_featurizer import (_decapitate_model, _find_pooling_constant,
-                                               _splice_layer, _downsample_model_features,
-                                               _initialize_model, _check_downsampling_mismatch,
-                                               build_featurizer)
+from pic2vec.build_featurizer import (_decapitate_model, _find_pooling_constant,
+                                      _splice_layer, _downsample_model_features,
+                                      _initialize_model, _check_downsampling_mismatch,
+                                      build_featurizer)
 
-from image_featurizer.squeezenet import SqueezeNet
+from pic2vec.squeezenet import SqueezeNet
 
 random.seed(5102020)
 
@@ -209,7 +209,7 @@ def test_initialize_model_bad_weights():
 
 def test_initialize_model_wrong_weights():
     """Test error raised when weights exist but don't match model"""
-    squeeze_weight_path = 'image_featurizer/model/squeezenet_weights_tf_dim_ordering_tf_kernels.h5'
+    squeeze_weight_path = 'pic2vec/saved_models/squeezenet_weights_tf_dim_ordering_tf_kernels.h5'
     assert os.path.isfile(squeeze_weight_path)
 
     with pytest.raises(ValueError):

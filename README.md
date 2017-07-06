@@ -1,4 +1,4 @@
-Image Featurizer
+Pic2Vec
 ================
 
 Featurize images using a small, contained pre-trained deep learning network
@@ -13,7 +13,7 @@ Features
 This is the prototype for image features engineering.  Currently, only
 Python 2.7 is supported.
 
-``image_featurizer`` is a python package that performs automated feature extraction
+``pic2vec`` is a python package that performs automated feature extraction
 for image data. It supports training models via the
 DataRobot modeling API, as well as feature engineering on new image data.
 
@@ -21,7 +21,7 @@ DataRobot modeling API, as well as feature engineering on new image data.
 
 ### Data Format
 
-``image_featurizer`` works on image data represented as either:
+``pic2vec`` works on image data represented as either:
 1. A directory of image files.
 2. As URL pointers contained in a CSV.
 3. Or as a directory of images with a CSV containing pointers to the image files.
@@ -43,11 +43,11 @@ The featurizer can only process .png, .jpeg, or .bmp image files. Any other imag
 
 ## Quick Start
 
-The following Python code shows a typical usage of `image_featurizer`:
+The following Python code shows a typical usage of `pic2vec`:
 
 ```python
 import pandas as pd
-from image_featurizer.image_featurizer import ImageFeaturizer
+from pic2vec import ImageFeaturizer
 
 image_column_name = 'images'
 my_csv = 'path/to/data.csv'
@@ -80,7 +80,7 @@ If you run into trouble installing Keras or Tensorflow as a dependency, read the
 
 
 ## Using Featurizer Output With DataRobot
-``image_featurizer`` generates a CSV that is ready to be dropped directly into the DataRobot application, if the data has been labelled with a variable that can be considered a target in the CSV. The image features are each treated like regular columns containing data.
+``pic2vec`` generates a CSV that is ready to be dropped directly into the DataRobot application, if the data has been labelled with a variable that can be considered a target in the CSV. The image features are each treated like regular columns containing data.
 
 
 ### Running tests

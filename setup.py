@@ -32,27 +32,22 @@ test_requirements = [
 ]
 
 setup(
-    name='image_featurizer',
+    name='pic2vec',
     version='0.4.3',
     description='Featurize images using a decapitated, pre-trained deep learning network',
     long_description=readme + '\n\n' + history,
     author='Jett Oristaglio',
     author_email='jettori88@gmail.com',
-    url='https://github.com/datarobot/imagefeaturizer',
-    packages=find_packages(include=['image_featurizer']),
-    entry_points={
-        'console_scripts': [
-            'image_featurizer=image_featurizer.cli:main'
-        ]
-    },
+    url='https://github.com/datarobot/pic2vec',
+    packages=find_packages(include=['pic2vec']),
     include_package_data=True,
     package_data={
-                  'image_featurizer': ['model/squeezenet_weights_tf_dim_ordering_tf_kernels.h5']
+                  'pic2vec': ['saved_models/squeezenet_weights_tf_dim_ordering_tf_kernels.h5']
                  },
     install_requires=requirements,
     license='BSD license',
     zip_safe=False,
-    keywords=['image_featurizer', 'featurize'],
+    keywords=['image_featurizer', 'featurize', 'pic2vec'],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

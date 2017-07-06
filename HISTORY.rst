@@ -78,3 +78,8 @@ History
 0.4.3 (2017-06-23)
 ------------------
 * Second round of code review- optimized code, better type checking with trafaret
+
+0.5.0 (2017-07-6)
+------------------
+* Renamed to pic2vec
+* Tests parametrized

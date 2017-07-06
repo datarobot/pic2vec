@@ -8,24 +8,24 @@ Installation:
 ### VirtualEnv
 To install virtualenv, follow this guide: [virtualenv installation guide](http://sourabhbajaj.com/mac-setup/Python/virtualenv.html)
 
-Once virtualenv is installed, create a new environment to run the featurizer:
+Once virtualenv is installed, create a new environment to run pic2vec:
 
 ```bash
-    $ virtualenv featurizer
+    $ virtualenv pic2vec
 ```
 Then activate the environment:
 
 ```bash
-    $ source featurizer/bin/activate
+    $ source pic2vec/bin/activate
 ```
 
 ### Conda
 To install Anaconda, follow this guide: [Anaconda installation guide](https://docs.continuum.io/anaconda/install)
 
-Once Anaconda is installed,. create a new environment to run the featurizer:
+Once Anaconda is installed, create a new environment to run pic2vec:
 
 ```bash
-    $ conda create --name featurizer
+    $ conda create --name pic2vec
 ```
 
 When Conda asks for confirmation, type 'y' for 'yes'.
@@ -33,52 +33,52 @@ When Conda asks for confirmation, type 'y' for 'yes'.
 To activate the environment on OS X or Linux:
 
 ```bash
-    $ source activate featurizer
+    $ source activate pic2vec
 ```
 
 To activate the environment on Windows:
 ```bash
-    $ activate featurizer
+    $ activate pic2vec
 ```
 
 
 Once in a virtual environment, there are several ways to install the
-image_featurizer package.
+pic2vec package.
 
 
 
-2: Installing The Image_Featurizer Package
+2: Installing The Pic2Vec Package
 -------------------
 
 ### Pip Installation
-To install image_featurizer through pip on OS X or Linux, run this command in your terminal:
+To install pic2vec through pip on OS X or Linux, run this command in your terminal:
 
 ```bash
-    $ pip install image_featurizer
+    $ pip install pic2vec
 ```
 To install through pip on Windows, run this command in terminal:
 
 ```bash
-    $ python -m pip install image_featurizer
+    $ python -m pip install pic2vec
 ```
 
-This is the preferred method to install image_featurizer, as it will always install the most recent stable release.
+This is the preferred method to install pic2vec, as it will always install the most recent stable release.
 
 If you don't have [pip](https://pip.pypa.io) installed, this [Python installation guide](http://docs.python-guide.org/en/latest/starting/installation/) can guide you through the process.
 
 
 ### Installing From setup.py
-The sources for image_featurizer can be downloaded from the [Github repo](https://github.com/datarobot/imagefeaturizer).
+The sources for pic2vec can be downloaded from the [Github repo](https://github.com/datarobot/pic2vec).
 
 You can either clone the public repository:
 
 ```bash
-    $ git clone git@github.com:datarobot/imagefeaturizer.git
+    $ git clone git@github.com:datarobot/pic2vec.git
 ```
-Or download the [tarball](https://github.com/datarobot/imagefeaturizer/tarball/master):
+Or download the [tarball](https://github.com/datarobot/pic2vec/tarball/master):
 
 ```bash
-    $ curl  -OL https://github.com/datarobot/imagefeaturizer/tarball/master
+    $ curl  -OL https://github.com/datarobot/pic2vec/tarball/master
 ```
 
 Once you have a copy of the source, you can install it from inside the directory with:

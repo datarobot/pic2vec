@@ -5,7 +5,7 @@ import shutil
 import numpy as np
 import pytest
 
-from image_featurizer.image_featurizer import ImageFeaturizer
+from pic2vec import ImageFeaturizer
 
 # Constant paths
 TEST_CSV_NAME = 'tests/ImageFeaturizer_testing/csv_tests/generated_images_csv_test'

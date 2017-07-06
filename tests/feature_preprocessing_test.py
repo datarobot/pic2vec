@@ -7,12 +7,12 @@ import random
 import numpy as np
 import pytest
 
-from image_featurizer.feature_preprocessing import (_create_csv_with_image_paths,
-                                                    _find_directory_image_paths,
-                                                    _find_csv_image_paths,
-                                                    _find_combined_image_paths,
-                                                    _image_paths_finder, convert_single_image,
-                                                    preprocess_data)
+from pic2vec.feature_preprocessing import (_create_csv_with_image_paths,
+                                           _find_directory_image_paths,
+                                           _find_csv_image_paths,
+                                           _find_combined_image_paths,
+                                           _image_paths_finder, convert_single_image,
+                                           preprocess_data)
 
 # Initialize seed to cut out any randomness (such as in image interpolation, etc)
 random.seed(5102020)

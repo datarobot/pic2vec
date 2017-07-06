@@ -8,7 +8,7 @@ import pytest
 from keras.layers import Conv2D, Dense, Flatten
 from keras.models import Sequential
 
-from image_featurizer.data_featurizing import featurize_data, features_to_csv
+from pic2vec.data_featurizing import featurize_data, features_to_csv
 
 np.random.seed(5102020)
 
