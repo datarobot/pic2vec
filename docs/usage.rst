@@ -2,6 +2,6 @@
 Usage
 =====
 
-To use Image Featurizer in a project::
+To use pic2vec in a project::
 
-    import image_featurizer
+    import pic2vec
