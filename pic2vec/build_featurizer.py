@@ -80,7 +80,8 @@ def _initialize_model(model_str, loaded_weights=''):
         model : keras.models.Model
             The initialized model loaded with pre-trained weights
     """
-    logging.info('Check/download {model_label} model weights. This may take a minute first time.'
+    logging.info('Loading/downloading {model_label} model weights. '
+                 'This may take a minute first time.'
                  .format(model_label=supported_model_types[model_str]['label']))
 
     if loaded_weights != '':
