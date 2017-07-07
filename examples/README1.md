@@ -1,37 +1,19 @@
 
-# Example: Cats vs. Dogs With SqueezeNet
+# Example: Cats vs. Dogs
 
 This notebook demonstrates the usage of ``image_featurizer`` using the Kaggle Cats vs. Dogs dataset.
 
-We will look at the usage of the ``ImageFeaturizer()`` class, which provides a convenient pipeline to quickly tackle image problems with DataRobot's platform. 
+We will look at the usage of the ``ImageFeaturizer()`` class, which provides a convenient pipeline to quickly tackle image problems with DataRobot's platform.
 
 It allows users to load image data into the featurizer, and then featurizes the images into a maximum of 2048 features. It appends these features to the CSV as extra columns in line with the image rows. If no CSV was passed in with an image directory, the featurizer generates a new CSV automatically and performs the same function.
 
 
 
 ```python
-# Setting up stdout logging for the example case
-import logging
-import sys
-
-root = logging.getLogger()
-root.setLevel(logging.DEBUG)
-
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-root.addHandler(ch)
-```
-
-
-```python
-# Importing the dependencies for this example
 import pandas as pd
 import numpy as np
 from sklearn import svm
-from pic2vec import ImageFeaturizer
-
+from image_featurizer.image_featurizer import ImageFeaturizer
 ```
 
     Using TensorFlow backend.
@@ -41,8 +23,8 @@ from pic2vec import ImageFeaturizer
 
 'ImageFeaturizer' accepts as input either:
 1. An image directory
-2. A CSV with URL pointers to image downloads, or 
-3. A combined image directory + CSV with pointers to the included images. 
+2. A CSV with URL pointers to image downloads, or
+3. A combined image directory + CSV with pointers to the included images.
 
 For this example, we will load in the Kaggle Cats vs. Dogs dataset of 25,000 images, along with a CSV that includes each images class label.
 
@@ -148,73 +130,73 @@ The image directory contains 12,500 images of cats and 12,500 images of dogs. Th
 
 ## Initializing the Featurizer
 
-We will now initialize the ImageFeaturizer( ) class with a few parameters that define the model. If in doubt, we can always call the featurizer with no parameters, and it will initialize itself to a cookie-cutter build. Here, we will call the parameters explicitly to demonstrate functionality. However, these are generally the default weights, so for this build we could just call ```featurizer = ImageFeaturizer()```.
+We will now initialize the ImageFeaturizer( ) class with a few parameters that define the model. If in doubt, we can always call the featurizer with no parameters, and it will initialize itself to a cookie-cutter build. Here, we will call the parameters explicitly to demonstrate functionality. In general, however, the model defaults to a depth of 1 and automatic downsampling, so no parameters are necessary for this build.
 
-Because we have not specified a model, the featurizer will default to the built-in SqueezeNet model, with loaded weights prepackaged. If you initialize another model, pic2vec will automatically download the model weights through the Keras backend.
+Because we have not downloaded the pre-trained weights, the featurizer will automatically download the weights through the Keras backend.
 
-The depth indicates how far down we should cut the model to draw abstract features– the further down we cut, the less complex the representations will be, but they may also be less specialized to the specific classes in the ImageNet dataset that the model was trained on– and so they may perform better on data that is further from the classes within the dataset.
+The depth indicates how far down we should cut the model to draw abstract features– the further down we cut, the less complex the representations will be, but they may also be less specialized to the specific classes in the ImageNet dataset that the model was trained on.
 
-Automatic downsampling means that this model will downsample the final layer from 512 features to 256 features, which is a more compact representation. With large datasets and bigger models (such as InceptionV3, more features may run into memory problems or difficulty optimizing, so it may be worth downsampling to a smaller featurspace.
+Automatic downsampling means that this model will downsample the final layer from 2048 features to 1024 features, which is a more compact representation. With large datasets, more features may run into memory problems or difficulty optimizing, so it may be worth downsampling to a smaller featurspace.
 
 
 ```python
-featurizer = ImageFeaturizer(depth=1, auto_sample = False, model='squeezenet')
+featurizer = ImageFeaturizer(depth=1, automatic_downsample = False, model='squeezenet')
 ```
 
-    INFO - 
-    Building the featurizer.
-    INFO - Check/download SqueezeNet model weights. This may take a minute first time.
-    INFO - Model successfully initialized.
-    INFO - Model decapitated.
-    INFO - Model downsampled.
-    INFO - Full featurizer is built.
-    INFO - No downsampling. Final layer feature space has size 512
+
+    Building the featurizer!
+
+    Model initialized and weights loaded successfully!
+    Model decapitated!
+    Model downsampled!
+    Full featurizer is built!
+    No downsampling! Final layer feature space has size 512
 
 
-This featurizer was 'decapitated' to the first layer below the prediction layer, which will produce complex representations. Because it is so close to the final prediction layer, it will create more specialized feature representations, and therefore will be better suited for image datasets that are similar to classes within the original ImageNet dataset. Cats and dogs are present within ImageNet, so a depth of 1 should perform well. 
+This featurizer was 'decapitated' to the first layer below the prediction layer, which will produce complex representations. Because it is so close to the final prediction layer, it will create more specialized feature representations, and therefore will be better suited for image datasets that are similar to classes within the original ImageNet dataset. Cats and dogs are present within ImageNet, so a depth of 1 should perform well.
 
 ## Loading the Data
 
-Now that the featurizer is built, we can load our data into the network. This will parse through the images in the order given by the csv, rescale them to a target size depending on the network– SqueezeNet is (227, 227)– and build a 4D tensor containing the vectorized representations of the images. This tensor will later be fed into the network in order to be featurized.
+Now that the featurizer is built, we can load our data into the network. This will parse through the images in the order given by the csv, rescale them to a target size with a default of (299, 299), and build a 4D tensor containing the vectorized representations of the images. This tensor will later be fed into the network in order to be featurized.
 
-The tensor will have the dimensions: [number of images, height, width, color channels]. In this case, the image tensor will have size [25000, 227, 227, 3].
+The tensor will have the dimensions: [number of images, height, width, color channels]. In this case, the image tensor will have size [25000, 299, 299, 3].
 
-We have to pass in the name of the column in the CSV that contains pointers to the images, as well as the path to the image directory and the path to the CSV itself, which are both saved from earlier. 
+We have to pass in the name of the column in the CSV that contains pointers to the images, as well as the path to the image directory and the path to the CSV itself, which are both saved from earlier.
 
-If there are images in the directory that aren't in the CSV, or image names in the CSV that aren't in the directory, or even files that aren't valid image files in the directory, don't fear– the featurizer will only try to vectorize valid images that are present in both the CSV and the directory. Any images present in the CSV but not the directory will be given zero vectors, and the order of the CSV is considered the canonical order for the images.
+If there are images in the directory that aren't in the CSV, or image names in the CSV that aren't in the directory, or even files that aren't valid image files in the directory, don't fear– the featurizer will only try to vectorize valid images that are in both the CSV and the directory. Any images present in the CSV but not the directory will be given zero vectors, and the order of the CSV is considered the canonical order for the images.
 
 
 ```python
 featurizer.load_data('images', image_path = image_path, csv_path = csv_path)
 ```
 
-    INFO - Found image paths that overlap between both the directory and the csv.
-    INFO - Converting images.
-    INFO - Converted 0 images. Only 25000 images left to go.
-    INFO - Converted 1000 images. Only 24000 images left to go.
-    INFO - Converted 2000 images. Only 23000 images left to go.
-    INFO - Converted 3000 images. Only 22000 images left to go.
-    INFO - Converted 4000 images. Only 21000 images left to go.
-    INFO - Converted 5000 images. Only 20000 images left to go.
-    INFO - Converted 6000 images. Only 19000 images left to go.
-    INFO - Converted 7000 images. Only 18000 images left to go.
-    INFO - Converted 8000 images. Only 17000 images left to go.
-    INFO - Converted 9000 images. Only 16000 images left to go.
-    INFO - Converted 10000 images. Only 15000 images left to go.
-    INFO - Converted 11000 images. Only 14000 images left to go.
-    INFO - Converted 12000 images. Only 13000 images left to go.
-    INFO - Converted 13000 images. Only 12000 images left to go.
-    INFO - Converted 14000 images. Only 11000 images left to go.
-    INFO - Converted 15000 images. Only 10000 images left to go.
-    INFO - Converted 16000 images. Only 9000 images left to go.
-    INFO - Converted 17000 images. Only 8000 images left to go.
-    INFO - Converted 18000 images. Only 7000 images left to go.
-    INFO - Converted 19000 images. Only 6000 images left to go.
-    INFO - Converted 20000 images. Only 5000 images left to go.
-    INFO - Converted 21000 images. Only 4000 images left to go.
-    INFO - Converted 22000 images. Only 3000 images left to go.
-    INFO - Converted 23000 images. Only 2000 images left to go.
-    INFO - Converted 24000 images. Only 1000 images left to go.
+    Found image paths that overlap between both the directory and the csv!
+    Converting images!
+    Converted 0 images! Only 25000 images left to go!
+    Converted 1000 images! Only 24000 images left to go!
+    Converted 2000 images! Only 23000 images left to go!
+    Converted 3000 images! Only 22000 images left to go!
+    Converted 4000 images! Only 21000 images left to go!
+    Converted 5000 images! Only 20000 images left to go!
+    Converted 6000 images! Only 19000 images left to go!
+    Converted 7000 images! Only 18000 images left to go!
+    Converted 8000 images! Only 17000 images left to go!
+    Converted 9000 images! Only 16000 images left to go!
+    Converted 10000 images! Only 15000 images left to go!
+    Converted 11000 images! Only 14000 images left to go!
+    Converted 12000 images! Only 13000 images left to go!
+    Converted 13000 images! Only 12000 images left to go!
+    Converted 14000 images! Only 11000 images left to go!
+    Converted 15000 images! Only 10000 images left to go!
+    Converted 16000 images! Only 9000 images left to go!
+    Converted 17000 images! Only 8000 images left to go!
+    Converted 18000 images! Only 7000 images left to go!
+    Converted 19000 images! Only 6000 images left to go!
+    Converted 20000 images! Only 5000 images left to go!
+    Converted 21000 images! Only 4000 images left to go!
+    Converted 22000 images! Only 3000 images left to go!
+    Converted 23000 images! Only 2000 images left to go!
+    Converted 24000 images! Only 1000 images left to go!
 
 
 The image data has now been loaded into the featurizer and vectorized, and is ready for featurization. We can check the size, format, and other stored information about the data by calling the featurizer object attributes:
@@ -245,20 +227,20 @@ featurizer.__dict__.keys()
 
     ['downsample_size',
      'visualize',
-     'auto_sample',
+     'image_path',
      'image_column_header',
-     'isotropic_scaling',
      'csv_path',
      'number_crops',
      'image_list',
      'featurizer',
      'scaled_size',
      'depth',
+     'automatic_downsample',
      'featurized_data',
-     'crop_size',
+     'isotropic_scaling',
      'data',
      'model_name',
-     'image_path']
+     'crop_size']
 
 
 
@@ -268,19 +250,19 @@ Now that the data is loaded, we're ready to featurize the data. This will push t
 
 It will then create and save a new CSV by appending these features to the end of the given CSV in line with each image's row. The features themselves will also be saved in a separate CSV file without the image names or other data. Both generated CSVs will be saved to the same path as the original CSV, with the features-only CSV appending '_features_only' and the combined CSV appending '_full' to the end of their respective filenames.
 
-The featurize( ) method requires no parameters, as it uses the data we just loaded into the network. This requires pushing images through the deep network, and so if you choose to use a slower, more powerful model like InceptionV3, relatively large datasets will require a GPU to perform in a reasonable amount of time. Using a mid-range GPU, it can take about 30 minutes to process the full 25,000 photos in the Dogs vs. Cats through InceptionV3. On the other hand, if you would like a fast model, lightweight model without top-of-the-line accuracy, SqueezeNet works well enough and can perform inference on CPUs quickly.
+The featurize( ) method requires no parameters, as it uses the data we just loaded into the network. This requires pushing images through the deep InceptionV3 network, and so relatively large datasets will require a GPU to perform in a reasonable amount of time. Using a mid-range GPU, it can take about 30 minutes to process the full 25,000 photos in the Dogs vs. Cats.
 
 
 ```python
 featurizer.featurize()
 ```
 
-    INFO - Checking array initialized.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    25000/25000 [==============================] - 130s   
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
+    Checking array initialized.
+    Trying to featurize data!
+    Creating feature array!
+    25000/25000 [==============================] - 964s   
+    Feature array created successfully.
+    Adding image features to csv!
 
 
 
@@ -617,7 +599,7 @@ featurizer.featurized_data
               1.12284146e-01,   7.60741457e-02,   6.26272500e-01],
            [  0.00000000e+00,   0.00000000e+00,   2.14172155e-03, ...,
               3.57541353e-01,   2.25618958e-01,   3.13666701e-01],
-           ..., 
+           ...,
            [  0.00000000e+00,   0.00000000e+00,   0.00000000e+00, ...,
               5.05957752e-03,   6.11788966e-03,   6.23513699e-01],
            [  0.00000000e+00,   4.45538573e-02,   0.00000000e+00, ...,
@@ -950,7 +932,7 @@ pd.read_csv('cat_vs_dog_classes_full.csv')
 
 
 
-But, for the purposes of this demo, we can simply test the performance of a linear classifier over the featurized data. First, we'll build the training and test sets. 
+But, for the purposes of this demo, we can simply test the performance of a linear classifier over the featurized data. First, we'll build the training and test sets.
 
 
 ```python
@@ -988,11 +970,11 @@ clf.score(test_combined, labels_test)
 
 
 
-    0.94320000000000004
+    0.94120000000000004
 
 
 
-After running the Cats vs. Dogs dataset through the lightest-weight pic2vec model, we find that a simple linear classifier trained over the featurized data achieves over 94% accuracy on distinguishing dogs vs. cats out of the box.
+After featurizing the Cats vs. Dogs dataset, we find that a simple linear classifier trained over a SqueezeNet featurization achieves about 94% accuracy on distinguishing dogs vs. cats out of the box.
 
 ## Summary
 
@@ -1009,6 +991,6 @@ Unless you would like to examine the loaded data before featurizing it, steps 3 
 
 ## Next Steps
 
-We have not covered using only a CSV with URL pointers, or a more complex dataset. That will be the subject of another Notebook. 
+We have not covered using only a CSV with URL pointers, or a more complex dataset. That will be the subject of another Notebook.
 
 To have more control over the options in the featurizer, or to understand its internal functioning more fully, check out the full package documentation.
