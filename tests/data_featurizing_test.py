@@ -92,14 +92,16 @@ def test_features_to_csv():
     full_test_dataframe = features_to_csv(CHECK_ARRAY, CHECK_CSV_IMAGES_PATH,
                                           'images', CHECK_IMAGE_LIST)
 
-    # Assert that the dataframe returned is correct, and the csv was generated correclty
-    assert np.array_equal(full_test_dataframe, pd.read_csv(CHECK_CSV_FULL_PATH))
-    assert filecmp.cmp('{}_features_only'.format(CHECK_CSV_IMAGES_PATH),
-                       CHECK_CSV_FEATURES_ONLY_PATH)
-    assert filecmp.cmp('{}_full'.format(CHECK_CSV_IMAGES_PATH), CHECK_CSV_FULL_PATH)
+    # Assert that the dataframe returned is correct, and the csv was generated correctly
+    try:
+        assert np.array_equal(full_test_dataframe, pd.read_csv(CHECK_CSV_FULL_PATH))
+        assert filecmp.cmp('{}_features_only'.format(CHECK_CSV_IMAGES_PATH),
+                           CHECK_CSV_FEATURES_ONLY_PATH)
+        assert filecmp.cmp('{}_full'.format(CHECK_CSV_IMAGES_PATH), CHECK_CSV_FULL_PATH)
 
     # Remove the generated files
-    if os.path.isfile('{}_full'.format(CHECK_CSV_IMAGES_PATH)):
-        os.remove('{}_full'.format(CHECK_CSV_IMAGES_PATH))
-    if os.path.isfile('{}_features_only'.format(CHECK_CSV_IMAGES_PATH)):
-        os.remove('{}_features_only'.format(CHECK_CSV_IMAGES_PATH))
+    finally:
+        if os.path.isfile('{}_full'.format(CHECK_CSV_IMAGES_PATH)):
+            os.remove('{}_full'.format(CHECK_CSV_IMAGES_PATH))
+        if os.path.isfile('{}_features_only'.format(CHECK_CSV_IMAGES_PATH)):
+            os.remove('{}_features_only'.format(CHECK_CSV_IMAGES_PATH))

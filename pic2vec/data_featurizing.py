@@ -50,7 +50,8 @@ def featurize_data(model, array):
     return full_feature_array
 
 
-def features_to_csv(full_feature_array, csv_path, image_column_header, image_list):
+def features_to_csv(full_feature_array, csv_path, image_column_header, image_list,
+                    continued_column=False):
     """
     Write the feature array to a new csv, and append the features to the appropriate
     rows of the given csv.
@@ -101,7 +102,7 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
     logging.info('Adding image features to csv.')
 
     # Create column headers for features, and the features dataframe
-    array_column_headers = ['image_feature_{}'.format(str(feature)) for feature in
+    array_column_headers = ['{}_feature_{}'.format(image_column_header, feature) for feature in
                             xrange(num_features)]
     df_features = pd.DataFrame(data=full_feature_array, columns=array_column_headers)
 
@@ -110,13 +111,23 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
 
     # Save the name and extension separately, for robust naming
     csv_name, ext = os.path.splitext(csv_path)
+    if not continued_column:
+        # Save the features dataframe to a csv without index or headers, for easy modeling
+        df_features.to_csv('{}_features_only{}'.format(csv_name, ext), index=False, header=False)
 
-    # Save the features dataframe to a csv without index or headers, for easy modeling
-    df_features.to_csv('{}_features_only{}'.format(csv_name, ext), index=False, header=False)
+        # Save the combined csv+features to a csv with no index, but with column headers
+        # for DR platform
+        df_full.to_csv('{}_full{}'.format(csv_name, ext), index=False)
+    else:
+        csv_name, ext = os.path.splitext(csv_path)
+        csv_name_orig, ext = csv_name.split('_full')
+        features_name = '{}_features_only{}'.format(csv_name_orig, ext)
 
-    # Save the combined csv+features to a csv with no index, but with column headers
-    # for DR platform
-    df_full.to_csv('{}_full{}'.format(csv_name, ext), index=False)
+        df_features = pd.concat([pd.read_csv(features_name), df_features])
+        df_features.to_csv('{}_features_only{}'.format(csv_name_orig, ext),
+                           index=False, header=False)
+
+        df_full.to_csv(csv_path, index=False)
 
     # Return the full combined dataframe
     return df_full

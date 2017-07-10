@@ -21,7 +21,7 @@ Functionality:
             integer divisor of the number of features in the layer.
 
     2. Load the data. The self.load_data() function takes as input:
-            image_column_header : str
+            image_column_headers : str
                 the name of the column holding the image data, if a csv exists,
                 or what the name of the column will be, if generating the csv
                 from a directory
@@ -82,7 +82,7 @@ class ImageFeaturizer:
 
 
 
-        load_and_featurize_data(image_column_header, image_path,
+        load_and_featurize_data(image_column_headers, image_path,
                                 csv_path, new_csv_name, scaled_size, grayscale):
             --------------------------------
             Loads image directory and/or csv into the model, and
@@ -90,7 +90,7 @@ class ImageFeaturizer:
 
 
 
-        load_data(image_column_header, image_path, csv_path,
+        load_data(image_column_headers, image_path, csv_path,
                   new_csv_name, scaled_size, grayscale):
             --------------------------------
             Loads image directory and/or csv into the model, and vectorize the
@@ -149,7 +149,7 @@ class ImageFeaturizer:
         self.depth = depth
         self.auto_sample = auto_sample
         self.downsample_size = downsample_size
-
+        self.num_features = featurizer.layers[-1].output_shape[-1]
         # Save the model
         self.model_name = model.lower()
         self.featurizer = featurizer
@@ -160,7 +160,7 @@ class ImageFeaturizer:
         self.featurized_data = np.zeros((1))
         self.csv_path = ''
         self.image_list = ''
-        self.image_column_header = ''
+        self.image_column_headers = ''
         self.image_path = ''
 
         # Image scaling and cropping
@@ -170,7 +170,7 @@ class ImageFeaturizer:
         self.isotropic_scaling = False
 
     def load_and_featurize_data(self,
-                                image_column_header,
+                                image_column_headers,
                                 image_path='',
                                 csv_path='',
                                 new_csv_name='featurizer_csv/generated_images_csv',
@@ -187,7 +187,7 @@ class ImageFeaturizer:
 
         Parameters:
         ----------
-            image_column_header : str
+            image_column_headers : str
                 the name of the column holding the image data, if a csv exists,
                 or what the name of the column will be, if generating the csv
                 from a directory
@@ -229,11 +229,11 @@ class ImageFeaturizer:
                 to the same path as the csv containing the list of names
 
         """
-        self.load_data(image_column_header, image_path, csv_path, new_csv_name, grayscale)
+        self.load_data(image_column_headers, image_path, csv_path, new_csv_name, grayscale)
         return self.featurize()
 
     def load_data(self,
-                  image_column_header,
+                  image_column_headers,
                   image_path='',
                   csv_path='',
                   new_csv_name='featurizer_csv/generated_images_csv',
@@ -249,7 +249,7 @@ class ImageFeaturizer:
 
         Parameters:
         ----------
-            image_column_header : str
+            image_column_headers : str
                 the name of the column holding the image data, if a csv exists,
                 or what the name of the column will be, if generating the csv
                 from a directory
@@ -289,8 +289,19 @@ class ImageFeaturizer:
 
         scaled_size = size_dict[self.model_name]
 
+        # Convert column header to list if it's passed a single string
+        if isinstance(image_column_headers, str):
+            image_column_headers = [image_column_headers]
+
         # If new csv_path is being generated, make sure the folder exists.
         if (csv_path == ''):
+            # Raise error if multiple image columns are passed in without a csv
+            if len(image_column_headers) > 1:
+                raise ValueError('If building the csv from a directory, featurizer can only '
+                                 'create a single image column. If two image columns are needed, '
+                                 'please create a csv to pass in.')
+
+            # Create the filepath to the new csv
             path_to_new_csv = os.path.dirname(new_csv_name)
             if not os.path.isdir(path_to_new_csv) and path_to_new_csv != '':
                 os.makedirs(os.path.dirname(new_csv_name))
@@ -300,15 +311,26 @@ class ImageFeaturizer:
             image_path = '{}/'.format(image_path)
 
         # Save the full image tensor, the path to the csv, and the list of image paths
-        (full_image_data, csv_path, list_of_image_paths) = \
-            preprocess_data(image_column_header, image_path, csv_path,
+        (image_data, csv_path, list_of_image_paths) = \
+            preprocess_data(image_column_headers[0], image_path, csv_path,
                             new_csv_name, scaled_size, grayscale)
+        full_image_list = [list_of_image_paths]
+        full_image_data = np.expand_dims(image_data, axis=0)
+
+        if len(image_column_headers) > 1:
+            for column in image_column_headers[1:]:
+                (image_data, csv_path, list_of_image_paths) = \
+                    preprocess_data(column, image_path, csv_path,
+                                    new_csv_name, scaled_size, grayscale)
+                full_image_data = np.concatenate((full_image_data,
+                                                  np.expand_dims(image_data, axis=0)))
+                full_image_list.append(list_of_image_paths)
 
         # Save all of the necessary data to the featurizer
         self.data = full_image_data
         self.csv_path = csv_path
-        self.image_list = list_of_image_paths
-        self.image_column_header = image_column_header
+        self.image_list = full_image_list
+        self.image_column_headers = image_column_headers
         self.scaled_size = scaled_size
         self.image_path = image_path
 
@@ -329,12 +351,30 @@ class ImageFeaturizer:
                 to the same path as the csv containing the list of names
 
         """
-        logging.info("Checking array initialized.")
+
+        # Check data has been loaded, and that the data was vectorized correctly
         if np.array_equal(self.data, np.zeros((1))):
             raise IOError('Must load data into the model first. Call load_data.')
+        assert len(self.image_column_headers) == self.data.shape[0]
 
         logging.info("Trying to featurize data.")
-        self.featurized_data = featurize_data(self.featurizer, self.data)
-        full_dataframe = features_to_csv(self.featurized_data, self.csv_path,
-                                         self.image_column_header, self.image_list)
+
+        self.featurized_data = np.zeros((self.data.shape[1],
+                                         self.num_features * len(self.image_column_headers)))
+        for column in range(self.data.shape[0]):
+            if column == 0:
+                csv_path = self.csv_path
+            else:
+                # Save the name and extension separately, for robust naming
+                csv_name, ext = os.path.splitext(self.csv_path)
+                csv_path = '{}_full{}'.format(csv_name, ext)
+
+            self.featurized_data[:,
+                                 self.num_features * column:self.num_features * column +
+                                 self.num_features] \
+                = partial_features = featurize_data(self.featurizer, self.data[column])
+
+            full_dataframe = features_to_csv(partial_features, csv_path,
+                                             self.image_column_headers[column], self.image_list,
+                                             continued_column=column)
         return full_dataframe
