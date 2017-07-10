@@ -155,6 +155,12 @@ def test_load_and_featurize_data_multiple_columns(model, size, array_path):
     if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
         shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
 
+    if os.path.isfile('{}_full'.format(CSV_NAME_MULT)):
+        os.remove('{}_full'.format(CSV_NAME_MULT))
+        pass
+    if os.path.isfile('{}_features_only'.format(CSV_NAME_MULT)):
+        os.remove('{}_features_only'.format(CSV_NAME_MULT))
+
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS, ids=MODELS)
 def test_load_and_featurize_single_column(model, size, array_path):
     """Test that all of the featurizations and attributes for each model are correct"""

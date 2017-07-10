@@ -50,7 +50,7 @@ def featurize_data(model, array):
     return full_feature_array
 
 
-def features_to_csv(full_feature_array, csv_path, image_column_header, image_list,
+def features_to_csv(data_array, full_feature_array, csv_path, image_column_header, image_list,
                     continued_column=False):
     """
     Write the feature array to a new csv, and append the features to the appropriate
@@ -90,6 +90,11 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
         raise ValueError('Must pass the name of the column where the images are '
                          'stored in the csv. The column passed was not in the csv.')
 
+    # Raise error if the data array has the wrong shape
+    if len(data_array.shape) != 4:
+        raise ValueError('Data array must be 4D array, with shape: [batch, height, width, channel].'
+                         ' Gave feature array of shape: {}'.format(data_array.shape))
+
     # Raise error if the feature array has the wrong shape
     if len(full_feature_array.shape) != 2:
         raise ValueError('Feature array must be 2D array, with shape: [batch, num_features]. '
@@ -100,14 +105,19 @@ def features_to_csv(full_feature_array, csv_path, image_column_header, image_lis
     num_features = full_feature_array.shape[1]
 
     logging.info('Adding image features to csv.')
-
+    zeros_index = (data_array == np.zeros((data_array.shape[1],
+                                           data_array.shape[2],
+                                           data_array.shape[3])))[:, 0, 0, 0]
+    print zeros_index
     # Create column headers for features, and the features dataframe
     array_column_headers = ['{}_feature_{}'.format(image_column_header, feature) for feature in
                             xrange(num_features)]
     df_features = pd.DataFrame(data=full_feature_array, columns=array_column_headers)
 
+    missing_column_header = ['{}_missing'.format(image_column_header)]
+    df_missing = pd.DataFrame(data=zeros_index, columns=missing_column_header)
     # Create the full combined csv+features dataframe
-    df_full = pd.concat([df, df_features], axis=1)
+    df_full = pd.concat([df, df_missing, df_features], axis=1)
 
     # Save the name and extension separately, for robust naming
     csv_name, ext = os.path.splitext(csv_path)

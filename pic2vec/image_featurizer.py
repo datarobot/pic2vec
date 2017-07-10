@@ -351,7 +351,6 @@ class ImageFeaturizer:
                 to the same path as the csv containing the list of names
 
         """
-
         # Check data has been loaded, and that the data was vectorized correctly
         if np.array_equal(self.data, np.zeros((1))):
             raise IOError('Must load data into the model first. Call load_data.')
@@ -374,7 +373,7 @@ class ImageFeaturizer:
                                  self.num_features] \
                 = partial_features = featurize_data(self.featurizer, self.data[column])
 
-            full_dataframe = features_to_csv(partial_features, csv_path,
+            full_dataframe = features_to_csv(self.data[column], partial_features, csv_path,
                                              self.image_column_headers[column], self.image_list,
                                              continued_column=column)
         return full_dataframe
