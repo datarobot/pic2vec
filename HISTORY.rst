@@ -44,42 +44,47 @@ History
 * Added features-only csv test, and got rid of the column headers in the file
 * Added Documentation to data featurization modeules
 
-0.2.7(2017-06-23)
+0.2.7(2017-06-25)
 ------------------
 * Changed image_directory_path to the more manageable image_path
 * Made testing module and preprocessing module slightly more robust.
 
 
-0.2.8(2017-06-23)
+0.2.8(2017-06-25)
 ------------------
 * Fixed variable name bugs
 
 
-0.2.9(2017-06-23)
+0.2.9(2017-06-25)
 ------------------
 * Fixed import problem that prevented generated csvs from saving
 
-0.3.0 (2017-06-23)
+0.3.0 (2017-06-26)
 ------------------
 * Created installation instructions and readme files, ready for prototype distribution
 
-0.4.0 (2017-06-23)
+0.4.0 (2017-06-29)
 ------------------
 * Added ability to call multiple models, and packaged in SqueezeNet with weights.
 
-0.4.1 (2017-06-23)
+0.4.1 (2017-06-30)
 ------------------
 * Fixed documentation
 
-0.4.2 (2017-06-23)
+0.4.2 (2017-06-30)
 ------------------
 * Improved README test examples
 
-0.4.3 (2017-06-23)
+0.4.3 (2017-07-03)
 ------------------
 * Second round of code review- optimized code, better type checking with trafaret
 
-0.5.0 (2017-07-6)
+0.5.0 (2017-07-06)
 ------------------
 * Renamed to pic2vec
 * Tests parametrized
+
+0.6.0 (2017-07-11)
+------------------
+* Added multi-column support
+* Added missing image column to csv
