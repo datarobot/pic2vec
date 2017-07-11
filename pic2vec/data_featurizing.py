@@ -4,7 +4,8 @@ loaded and vectorized.
 
 It allows users to featurize the data with model.predict. It also lets the featurizer write the
 featurized data to the csv containing the images, appending the features to additional columns
-in-line with each image row.
+in-line with each image row. Also adds "image_missing" columns automatically for each image_column
+which contains binary values of whether the image in that row is missing.
 """
 
 import logging

@@ -49,6 +49,8 @@ Functionality:
 
     3. Featurize the data. The self.featurize() function takes no input, and featurizes
        the loaded data, writing the new csvs to the same path as the loaded csv
+       Also adds a binary "image_missing" column automatically, for any images that are missing
+       from the image list.
 
     3a. Users can also load and featurize the data in one pass, with the
         self.load_and_featurize_data function, which takes the same input as the
