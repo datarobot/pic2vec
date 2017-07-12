@@ -13,15 +13,12 @@ import os
 import warnings
 
 import trafaret as t
-import tensorflow as tf
 from keras.applications import InceptionV3, ResNet50, VGG16, VGG19, Xception
 from keras.engine.topology import InputLayer
 from keras.layers import GlobalAvgPool2D, Lambda, average
 from keras.models import Model
 
 from .squeezenet import SqueezeNet
-
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 supported_model_types = {
     'squeezenet': {
@@ -148,7 +145,7 @@ def _decapitate_model(model, depth):
     return new_model
 
 
-@t.guard(features=t.Type(tf.Tensor) | t.Type(tf.Variable), num_pooled_features=t.Int(gte=1))
+@t.guard(features=t.Any(), num_pooled_features=t.Int(gte=1))
 def _find_pooling_constant(features, num_pooled_features):
     """
     Given a tensor and an integer divisor for the desired downsampled features,
@@ -156,7 +153,7 @@ def _find_pooling_constant(features, num_pooled_features):
 
     Parameters:
     ----------
-    features : tf.Tensor
+    features : Tensor
         the layer output being downsampled
     num_pooled_features : int
         the desired number of features to downsample to
@@ -192,7 +189,7 @@ def _find_pooling_constant(features, num_pooled_features):
     return int(pooling_constant)
 
 
-@t.guard(tensor=t.Type(tf.Tensor) | t.Type(tf.Variable), number_splices=t.Int(gte=1))
+@t.guard(tensor=t.Any(), number_splices=t.Int(gte=1))
 def _splice_layer(tensor, number_splices):
     """
     Splice a layer into a number of even slices through skipping. This downsamples the layer,
@@ -200,7 +197,7 @@ def _splice_layer(tensor, number_splices):
 
     Parameters:
     ----------
-    layer: tf.Tensor
+    layer: Tensor
         the layer output being spliced
     number_splices: int
         the number of new layers the original layer is being spliced into.
@@ -208,7 +205,7 @@ def _splice_layer(tensor, number_splices):
 
     Returns:
     -------
-    list_of_spliced_layers : list of tf.Tensor
+    list_of_spliced_layers : list of Tensor
         a list of the spliced tensor sections of the original layer, with neighboring nodes
         occupying the same indices across splices
     """
@@ -229,21 +226,21 @@ def _splice_layer(tensor, number_splices):
             xrange(number_splices)]
 
 
-@t.guard(features=t.Type(tf.Tensor) | t.Type(tf.Variable), num_pooled_features=t.Int(gte=1))
+@t.guard(features=t.Any(), num_pooled_features=t.Int(gte=1))
 def _downsample_model_features(features, num_pooled_features):
     """
     Take in a layer of a model, and downsample the layer to a specified size.
 
     Parameters:
     ----------
-    features : tf.Tensor
+    features : Tensor
         the final layer output being downsampled
     num_pooled_features : int
         the desired number of features to downsample to
 
     Returns:
     -------
-    downsampled_features : tf.Tensor
+    downsampled_features : Tensor
         a tensor containing the downsampled features with size = (?, num_pooled_features)
     """
     # Find the pooling constant needed
