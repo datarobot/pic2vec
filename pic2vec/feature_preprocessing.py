@@ -14,6 +14,7 @@ import imghdr
 import logging
 import os
 import urllib
+import re
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -54,6 +55,11 @@ def _create_csv_with_image_paths(list_of_image_paths, new_csv_name, image_column
     df.to_csv(new_csv_name, index=False)
 
 
+def natural_key(string_):
+    """See http://www.codinghorror.com/blog/archives/001018.html"""
+    return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)]
+
+
 def _find_directory_image_paths(image_directory):
     """
     Take in a directory and parse which files in it are valid images for
@@ -85,7 +91,7 @@ def _find_directory_image_paths(image_directory):
         if imghdr.what(image_directory + fichier) in valid:
             list_of_image_paths.append(fichier)
 
-    return sorted(list_of_image_paths)
+    return sorted(list_of_image_paths, key=natural_key)
 
 
 def _find_csv_image_paths(csv_path, image_column_header):

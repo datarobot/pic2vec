@@ -12,7 +12,8 @@ from pic2vec.feature_preprocessing import (_create_csv_with_image_paths,
                                            _find_csv_image_paths,
                                            _find_combined_image_paths,
                                            _image_paths_finder, convert_single_image,
-                                           preprocess_data)
+                                           preprocess_data,
+                                           natural_key)
 
 # Initialize seed to cut out any randomness (such as in image interpolation, etc)
 random.seed(5102020)
@@ -71,6 +72,13 @@ def test_create_csv_with_image_paths():
 
     if os.path.isfile(new_csv_path):
         os.remove(new_csv_path)
+
+
+def test_natural_sort():
+    """Test the natural sort function"""
+    unsorted_alphanumeric = ['1.jpg', '10.jpg', '2.jpg', '15.jpg', '20.jpg', '5.jpg']
+    natural_sort = ['1.jpg', '2.jpg', '5.jpg', '10.jpg', '15.jpg', '20.jpg']
+    assert natural_sort == sorted(unsorted_alphanumeric, key=natural_key)
 
 
 def test_find_directory_image_paths():

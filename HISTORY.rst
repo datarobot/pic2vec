@@ -88,3 +88,7 @@ History
 ------------------
 * Added multi-column support
 * Added missing image column to csv
+
+0.6.1 (2017-07-12)
+------------------
+* Directory-only now natural sorted.
