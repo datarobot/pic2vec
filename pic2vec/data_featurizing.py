@@ -109,7 +109,7 @@ def features_to_csv(data_array, full_feature_array, csv_path, image_column_heade
     zeros_index = (data_array == np.zeros((data_array.shape[1],
                                            data_array.shape[2],
                                            data_array.shape[3])))[:, 0, 0, 0]
-    print zeros_index
+    print(zeros_index)
     # Create column headers for features, and the features dataframe
     array_column_headers = ['{}_feature_{}'.format(image_column_header, feature) for feature in
                             xrange(num_features)]
