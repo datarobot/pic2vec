@@ -17,8 +17,14 @@ from keras.applications import InceptionV3, ResNet50, VGG16, VGG19, Xception
 from keras.engine.topology import InputLayer
 from keras.layers import GlobalAvgPool2D, Lambda, average
 from keras.models import Model
+import keras.backend as K
 
 from .squeezenet import SqueezeNet
+
+if K.backend() != 'tensorflow':
+    logging.warn('Without a tensorflow backend, SqueezeNet and Xception will not be '
+                 ' available. Please initialize ImageFeaturizer with either vgg16, vgg19, '
+                 'resnet50, or inceptionv3.')
 
 supported_model_types = {
     'squeezenet': {

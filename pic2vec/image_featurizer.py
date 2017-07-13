@@ -65,8 +65,8 @@ import numpy as np
 import trafaret as t
 
 from .build_featurizer import build_featurizer, supported_model_types
-from .data_featurizing import featurize_data, features_to_csv
 from .feature_preprocessing import preprocess_data
+from .data_featurizing import featurize_data, features_to_csv
 
 
 class ImageFeaturizer:
