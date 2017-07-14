@@ -10,7 +10,7 @@ The integrated function is the preprocess_data function, which takes in the inpu
 generates a 4D tensor containing the vectorized representations of the image to be featurized.
 """
 
-import imghdr
+from PIL import Image
 import logging
 import os
 import urllib
@@ -84,12 +84,16 @@ def _find_directory_image_paths(image_directory):
     """
     image_list = os.listdir(image_directory)
 
-    valid = ['jpeg', 'bmp', 'png']
+    valid = ['JPEG', 'BMP', 'PNG']
     list_of_image_paths = []
 
     for fichier in image_list:
-        if imghdr.what(image_directory + fichier) in valid:
-            list_of_image_paths.append(fichier)
+        try:
+            if Image.open(image_directory + fichier).format in valid:
+                list_of_image_paths.append(fichier)
+                Image.close()
+        except:
+            pass
 
     return sorted(list_of_image_paths, key=natural_key)
 

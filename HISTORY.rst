@@ -92,3 +92,8 @@ History
 0.6.1 (2017-07-12)
 ------------------
 * Directory-only now natural sorted.
+
+
+0.6.2 (2017-07-14)
+------------------
+* Fixed image format recognition.
