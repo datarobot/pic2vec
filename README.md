@@ -67,7 +67,7 @@ To get started, see the following example:
 1. [Cats vs. Dogs](examples/Cats_v_Dogs_Test_Example.ipynb): Dataset from combined directory + CSV
 
 Examples coming soon:
-1. [Hotdogs](examples/hotdogs): Dataset from unsupervised directory only, with PCA visualization
+1. [Facebook Like Prediction](examples/Facebook_Like_Predictor.ipynb): Dataset from unsupervised directory only, with PCA visualization
 1. [URLs](examples/): Dataset from CSV with URLs and no image directory
 
 
