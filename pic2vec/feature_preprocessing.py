@@ -435,7 +435,12 @@ def preprocess_data(image_column_header,
             # Add the index to the dictionary to check in the future
 
             # Progress report at the set intervals
-            report_step = 1000
+            if len(list_of_image_paths) < 1000:
+                report_step = 100
+            elif len(list_of_image_paths) < 5000:
+                report_step = 500
+            else:
+                report_step = 1000
             if not i % report_step:
                 logging.info('Converted {} images. Only {} images left to go.'
                              .format(i, num_images - i))

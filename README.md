@@ -64,7 +64,7 @@ my_featurizer.featurize()
 
 To get started, see the following example:
 
-1. [Cats vs. Dogs](examples/cats_v_dogs.ipynb): Dataset from combined directory + CSV
+1. [Cats vs. Dogs](examples/Cats v. Dogs Test Example.ipynb): Dataset from combined directory + CSV
 
 Examples coming soon:
 1. [Hotdogs](examples/hotdogs): Dataset from unsupervised directory only, with PCA visualization
