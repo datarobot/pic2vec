@@ -81,13 +81,14 @@ Or download the [tarball](https://github.com/datarobot/pic2vec/tarball/master):
     $ curl  -OL https://github.com/datarobot/pic2vec/tarball/master
 ```
 
-Once you have a copy of the source, you can install it from inside the directory with:
-FIXME: this actually isn't working, at least in Ubuntu16.04 this fails on dependencies installation.
+Once you have a copy of the source, you can build a binary distribution and install it from inside the directory with:
 
 ```bash
-    $ python setup.py install
+    $ python setup.py bdist_wheel
+    $ cd dist/
+    $ pip install pic2vec-{VERSION}-py2.py3-none-any.whl
 ```
-
+Check the dist folder to see what you need to fill in for the {VERSION} section.
 
 3: Troubleshooting
 ---------------
