@@ -229,7 +229,7 @@ def _splice_layer(tensor, number_splices):
     # of splices. This allows for merge operations over neighbor features
 
     return [Lambda(lambda features: features[:, i::number_splices])(tensor) for i in
-            xrange(number_splices)]
+            range(number_splices)]
 
 
 @t.guard(features=t.Any(), num_pooled_features=t.Int(gte=1))
