@@ -247,6 +247,7 @@ def test_initialize_model(model_str, expected_layers, test_size):
 
     # Check that each model predicts correctly to see if weights were correctly loaded
     assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
+    del model
 
 
 FEATURIZER_MODEL_DICT = dict.fromkeys(MODELS)
