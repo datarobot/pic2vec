@@ -13,7 +13,10 @@ generates a 4D tensor containing the vectorized representations of the image to 
 from PIL import Image
 import logging
 import os
-import urllib
+try:
+    from urllib import urlretrieve
+except ImportError:
+    from urllib.request import urlretrieve
 import re
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -279,7 +282,7 @@ def convert_single_image(image_source, image_path, target_size=(299, 299), grays
     """
     # Retrieve the image, either from a given url or from a directory
     if image_source == 'url':
-        image_file = urllib.urlretrieve(image_path)[0]
+        image_file = urlretrieve(image_path)[0]
     elif image_source == 'directory':
         image_file = image_path
 
