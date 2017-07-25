@@ -112,7 +112,7 @@ def features_to_csv(data_array, full_feature_array, csv_path, image_column_heade
     print(zeros_index)
     # Create column headers for features, and the features dataframe
     array_column_headers = ['{}_feature_{}'.format(image_column_header, feature) for feature in
-                            xrange(num_features)]
+                            range(num_features)]
     df_features = pd.DataFrame(data=full_feature_array, columns=array_column_headers)
 
     missing_column_header = ['{}_missing'.format(image_column_header)]

@@ -1,16 +1,19 @@
 language: python
 python:
   - "2.7"
+  - "3.4"
   - "3.5"
   - "3.6"
 # command to install dependencies
 install:
   - pip install -r requirements.txt
-  - pip install coveralls
-  - pip install pytest-xdist
+  - pip install coveralls pytest-xdist pytest-cov
+# Turn off email notifications
+notifications:
+  email: false
 # command to run tests
 script:
-  coverage run --source=pic2vec pytest --boxed -vvvvs
+  py.test --cov-report= --cov=pic2vec --boxed tests/ -vvvvs
 # Coveralls
 after_success:
   coveralls

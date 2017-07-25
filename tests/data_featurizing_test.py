@@ -58,7 +58,7 @@ def test_featurize_data():
     # Create the checked array
     init_array = np.ones((5, 5, 5, 3))
 
-    for i in xrange(5):
+    for i in range(5):
         init_array[i] = init_array[i] * i
 
     # Check the prediction vs. the saved array
