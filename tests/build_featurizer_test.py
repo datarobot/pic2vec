@@ -308,6 +308,8 @@ def test_build_featurizer(depth, autosample, sample_size, expected_size, model_s
     model = build_featurizer(depth, autosample, sample_size,
                              model_str=model_str, loaded_model=new_model)
     assert model.layers[-1].output_shape == (None, expected_size)
+    new_model = None
+    model = None
 
 
 if __name__ == '__main__':
