@@ -304,12 +304,10 @@ def test_build_featurizer(depth, autosample, sample_size, expected_size, model_s
     if FEATURIZER_MODEL_DICT[model_str] is None:
         FEATURIZER_MODEL_DICT[model_str] = _initialize_model(model_str)
 
-    new_model = FEATURIZER_MODEL_DICT[model_str]
     model = build_featurizer(depth, autosample, sample_size,
-                             model_str=model_str, loaded_model=new_model)
+                             model_str=model_str, loaded_model=FEATURIZER_MODEL_DICT[model_str])
     assert model.layers[-1].output_shape == (None, expected_size)
     del model
-    del new_model
 
 
 if __name__ == '__main__':
