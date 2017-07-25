@@ -93,7 +93,12 @@ History
 ------------------
 * Directory-only now natural sorted.
 
-
 0.6.2 (2017-07-14)
 ------------------
 * Fixed image format recognition.
+
+0.6.3 (2017-07-25)
+------------------
+* Added Travis and Coveralls for testing and coverage automation
+* Repo went public
+* Python 3.x compatibility

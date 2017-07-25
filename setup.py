@@ -33,7 +33,7 @@ test_requirements = [
 
 setup(
     name='pic2vec',
-    version='0.6.2',
+    version='0.6.3',
     description='Featurize images using a decapitated, pre-trained deep learning network',
     long_description=readme + '\n\n' + history,
     author='Jett Oristaglio',
@@ -49,11 +49,14 @@ setup(
     zip_safe=False,
     keywords=['image_featurizer', 'featurize', 'pic2vec'],
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
     test_suite='tests',
     tests_require=test_requirements,
