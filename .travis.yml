@@ -4,6 +4,13 @@ python:
   - "3.5"
   - "3.6"
 # command to install dependencies
-install: "pip install -r requirements.txt"
+install:
+  - pip install -r requirements.txt
+  - pip install coveralls
+  - pip install pytest-xdist
 # command to run tests
-script: pytest --boxed -vvvvs
+script:
+  coverage run --source=pic2vec pytest --boxed -vvvvs
+# Coveralls
+after_success:
+  coveralls

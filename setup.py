@@ -17,8 +17,7 @@ requirements = [
     'keras>=2.0.5,<3',
     'pandas>=0.20.2,<1',
     'Pillow>=4.1.1,<5',
-    'trafaret>=0.10.2,<1',
-    'pytest-xdist>=1.18.1,<2'
+    'trafaret>=0.10.2,<1'
 ]
 
 setup_requirements = [
