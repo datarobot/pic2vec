@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/datarobot/pic2vec.svg?branch=master)](https://travis-ci.org/datarobot/pic2vec) [![Coverage Status](https://coveralls.io/repos/github/datarobot/pic2vec/badge.svg?branch=master)](https://coveralls.io/github/datarobot/pic2vec?branch=master)
+
 Pic2Vec
 ================
 
