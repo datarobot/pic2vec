@@ -24,13 +24,43 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 import trafaret as t  # noqa: E402
-from keras.applications.inception_v3 import preprocess_input  # noqa: E402
+import keras.applications as ka  # noqa: E402
 from keras.preprocessing.image import load_img, img_to_array  # noqa: E402
 
 
 ##############################################
 # FUNCTIONS FOR BUILDING LIST OF IMAGE PATHS #
 ##############################################
+
+# Dictionary for preprocessing algorithms
+# Unnecessary 'size' entry, but leaving in case of future use...
+preprocessing_dict = {
+    'squeezenet': {
+        'preprocess': ka.imagenet_utils.preprocess_input,
+        'size': (227, 227)
+    },
+    'vgg16': {
+        'preprocess': ka.vgg16.preprocess_input,
+        'size': (224, 224)
+    },
+    'vgg19': {
+        'preprocess': ka.vgg19.preprocess_input,
+        'size': (224, 224)
+    },
+    'resnet50': {
+        'preprocess': ka.resnet50.preprocess_input,
+        'size': (224, 224)
+    },
+    'inceptionv3': {
+        'preprocess': ka.inception_v3.preprocess_input,
+        'size': (299, 299)
+    },
+
+    'xception': {
+        'preprocess': ka.xception.preprocess_input,
+        'size': (299, 299)
+    },
+}
 
 def _create_csv_with_image_paths(list_of_image_paths, new_csv_name, image_column_header):
     """
@@ -255,7 +285,8 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
 # FUNCTION FOR IMAGE VECTORIZATION #
 ####################################
 
-def convert_single_image(image_source, image_path, target_size=(299, 299), grayscale=False):
+def convert_single_image(image_source, model_str, image_path, target_size=(299, 299),
+                         grayscale=False):
     """
     Take in a path to an image (either by URL or in a native directory)
     and convert the image to a preprocessed 4D numpy array, ready to be plugged
@@ -281,11 +312,16 @@ def convert_single_image(image_source, image_path, target_size=(299, 299), grays
 
     """
     # Retrieve the image, either from a given url or from a directory
-    if image_source == 'url':
-        image_file = urlretrieve(image_path)[0]
-    elif image_source == 'directory':
-        image_file = image_path
-
+    try:
+        if image_source == 'url':
+            image_file = urlretrieve(image_path)[0]
+        elif image_source == 'directory':
+            image_file = image_path
+    # If the image can't be retrieved, return a zeros vector of the appropriate size
+    except (IOError, ValueError):
+        # The channel dimension for a missing image is 3 if not grayscale, or 1 if grayscale
+        im_size = target_size + (3 - 2 * grayscale,)
+        return np.zeros(im_size)
     # Load the image, and convert it to a numpy array with the target size
     image = load_img(image_file, target_size=target_size, grayscale=grayscale)
     image_array = img_to_array(image)
@@ -293,7 +329,7 @@ def convert_single_image(image_source, image_path, target_size=(299, 299), grays
     # Expand the dimension for keras preprocessing, and preprocess the data
     # according to the InceptionV3 training that they performed.
     image_array = np.expand_dims(image_array, axis=0)
-    image_array = preprocess_input(image_array)
+    image_array = preprocessing_dict[model_str]['preprocess'](image_array)
 
     # Return the image array
     return image_array
@@ -303,12 +339,14 @@ def convert_single_image(image_source, image_path, target_size=(299, 299), grays
 #  FUNCTION FOR END-TO-END DATA PREPROCESSING  #
 ################################################
 @t.guard(image_column_header=t.String(allow_blank=False),
+         model_str=t.String(allow_blank=False),
          image_path=t.String(allow_blank=True),
          csv_path=t.String(allow_blank=True),
          new_csv_name=t.String(allow_blank=True),
          target_size=t.Tuple(t.Int, t.Int),
          grayscale=t.Bool)
 def preprocess_data(image_column_header,
+                    model_str,
                     image_path='',
                     csv_path='',
                     new_csv_name='featurizer_csv/generated_images_csv',
@@ -373,6 +411,8 @@ def preprocess_data(image_column_header,
         raise TypeError('csv_path must lead to a file if it is initialized.'
                         ' This is the csv containing pointers to the images.')
 
+    if model_str not in preprocessing_dict.keys():
+        raise ValueError('model_str must be one the following: {}'.format(preprocessing_dict.keys))
     # ------------------------------------------------------ #
 
     # BUILDING IMAGE PATH LIST #
@@ -431,7 +471,7 @@ def preprocess_data(image_column_header,
                 image = '{}{}'.format(image_path, image)
 
             # Place the vectorized image into the image data
-            full_image_data[i, :, :, :] = convert_single_image(image_source, image,
+            full_image_data[i, :, :, :] = convert_single_image(image_source, model_str, image,
                                                                target_size=target_size,
                                                                grayscale=grayscale)
 

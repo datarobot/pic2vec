@@ -42,6 +42,7 @@ DIRECTORY_CSV_PATH_PREPROCESS = '{}directory_preprocess_system_test'.format(CSV_
 ERROR_NEW_CSV_NAME_PREPROCESS = '{}generated_error_preprocess_system_test'.format(CSV_PATH)
 NEW_CSV_NAME_PREPROCESS = '{}generated_preprocess_system_test'.format(CSV_PATH)
 COMBINED_LIST_PREPROCESS = ['', 'arendt.bmp', 'sappho.png', 'arendt.bmp']
+ERROR_ROW_CSV = '{}error_row'.format(CSV_PATH)
 
 # Loading image arrays
 arendt_array = np.load(TEST_ARRAY.format('arendt'))
@@ -147,7 +148,7 @@ def test_convert_single_image(image_source, image_path, size, grayscale):
                                   isotropic=iso,
                                   grayscale=gscale))
 
-    converted_image = convert_single_image(image_source, image_path, size, grayscale)
+    converted_image = convert_single_image(image_source, 'xception', image_path, size, grayscale)
 
     assert np.array_equal(check_array, converted_image)
 
@@ -187,7 +188,7 @@ def test_image_paths_finder(image_path, csv_path, image_column_header, new_csv, 
 def test_preprocess_data_no_input():
     """Raise error if no csv or directory is passed"""
     with pytest.raises(ValueError):
-        preprocess_data(IMG_COL_HEAD)
+        preprocess_data(IMG_COL_HEAD, 'xception')
 
 
 def test_preprocess_data_fake_dir():
@@ -199,7 +200,7 @@ def test_preprocess_data_fake_dir():
         logging.error('Whoops, that labyrinth exists. '
                       'Change error_dir to a directory path that does not exist.')
     with pytest.raises(TypeError):
-        preprocess_data(IMG_COL_HEAD, image_path=error_dir,
+        preprocess_data(IMG_COL_HEAD, 'xception', image_path=error_dir,
                         new_csv_name=ERROR_NEW_CSV_NAME_PREPROCESS)
 
     assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
@@ -214,10 +215,21 @@ def test_preprocess_data_fake_csv():
         logging.error(
             'Whoops, that dreamer exists. change to error_file to a file path that does not exist.')
     with pytest.raises(TypeError):
-        preprocess_data(IMG_COL_HEAD, csv_path=error_file,
+        preprocess_data(IMG_COL_HEAD, 'xception', csv_path=error_file,
                         new_csv_name=ERROR_NEW_CSV_NAME_PREPROCESS)
 
     assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
+
+def test_preprocess_data_invalid_url_or_dir():
+    """Raise an error if the image in the column is an invalid path"""
+    preprocess_data(IMG_COL_HEAD, 'xception', csv_path=ERROR_ROW_CSV)
+
+
+def test_preprocess_data_invalid_model_str():
+    """Raise an error if the model_str is not a valid model"""
+    with pytest.raises(ValueError):
+        preprocess_data(IMG_COL_HEAD, 'derp', csv_path=DIRECTORY_CSV_PATH_PREPROCESS,
+                        new_csv_name=ERROR_NEW_CSV_NAME_PREPROCESS)
 
 
 def compare_preprocessing(case, csv_name, check_arrays, image_list):
@@ -265,8 +277,9 @@ def test_preprocess_data(grayscale, image_path, csv_path, new_csv_name, check_ar
         os.remove(new_csv_name)
 
     # Create the full (data, csv_path, image_list) for each of the three cases
-    preprocessed_case = preprocess_data(IMG_COL_HEAD, grayscale=grayscale, image_path=image_path,
-                                        csv_path=csv_path, new_csv_name=new_csv_name)
+    preprocessed_case = preprocess_data(IMG_COL_HEAD, 'xception', grayscale=grayscale,
+                                        image_path=image_path, csv_path=csv_path,
+                                        new_csv_name=new_csv_name)
 
     # Ensure a new csv wasn't created when they weren't needed, and that a new csv
     # WAS created when it was needed. Then, remove the new csv.
