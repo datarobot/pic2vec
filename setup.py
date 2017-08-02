@@ -33,7 +33,7 @@ test_requirements = [
 
 setup(
     name='pic2vec',
-    version='0.6.3',
+    version='0.7.0',
     description='Featurize images using a decapitated, pre-trained deep learning network',
     long_description=readme + '\n\n' + history,
     author='Jett Oristaglio',
