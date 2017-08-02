@@ -103,8 +103,11 @@ History
 * Repo went public
 * Python 3.x compatibility
 
-
 0.7.0 (2017-08-02)
 ------------------
 * Fixed bug with CSV badly formed URLs
 * Fixed mistake with InceptionV3 preprocessing happening for every model
+
+0.7.1 (2017-08-02)
+------------------
+* Fixed PIL truncated image bug

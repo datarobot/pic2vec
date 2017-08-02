@@ -10,7 +10,7 @@ The integrated function is the preprocess_data function, which takes in the inpu
 generates a 4D tensor containing the vectorized representations of the image to be featurized.
 """
 
-from PIL import Image
+from PIL import Image, ImageFile
 import logging
 import os
 try:
@@ -20,6 +20,8 @@ except ImportError:
 import re
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+Image.DEBUG = 0
 
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
