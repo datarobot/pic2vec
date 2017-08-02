@@ -149,17 +149,20 @@ def test_load_and_featurize_data_multiple_columns(model, size, array_path):
     f = ImageFeaturizer(model=model, auto_sample=True)
     f.load_and_featurize_data(**LOAD_DATA_ARGS_MULT)
     check_array = np.load(array_path)
-    compare_featurizer_class(f, size, check_array, **COMPARE_ARGS_MULT)
 
-    # Remove path to the generated csv at the end of the test
-    if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
-        shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
+    try:
+        compare_featurizer_class(f, size, check_array, **COMPARE_ARGS_MULT)
 
-    if os.path.isfile('{}_full'.format(CSV_NAME_MULT)):
-        os.remove('{}_full'.format(CSV_NAME_MULT))
-        pass
-    if os.path.isfile('{}_features_only'.format(CSV_NAME_MULT)):
-        os.remove('{}_features_only'.format(CSV_NAME_MULT))
+    finally:
+        # Remove path to the generated csv at the end of the test
+        if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
+            shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
+
+        if os.path.isfile('{}_full'.format(CSV_NAME_MULT)):
+            os.remove('{}_full'.format(CSV_NAME_MULT))
+            pass
+        if os.path.isfile('{}_features_only'.format(CSV_NAME_MULT)):
+            os.remove('{}_features_only'.format(CSV_NAME_MULT))
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS, ids=MODELS)
 def test_load_and_featurize_single_column(model, size, array_path):
@@ -167,8 +170,10 @@ def test_load_and_featurize_single_column(model, size, array_path):
     f = ImageFeaturizer(model=model)
     f.load_and_featurize_data(**LOAD_DATA_ARGS)
     check_array = np.load(array_path)
-    compare_featurizer_class(f, size, check_array, **COMPARE_ARGS)
 
-    # Remove path to the generated csv at the end of the test
-    if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
-        shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
+    try:
+        compare_featurizer_class(f, size, check_array, **COMPARE_ARGS)
+    finally:
+        # Remove path to the generated csv at the end of the test
+        if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
+            shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')

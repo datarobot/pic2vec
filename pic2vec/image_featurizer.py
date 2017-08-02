@@ -314,7 +314,7 @@ class ImageFeaturizer:
 
         # Save the full image tensor, the path to the csv, and the list of image paths
         (image_data, csv_path, list_of_image_paths) = \
-            preprocess_data(image_column_headers[0], image_path, csv_path,
+            preprocess_data(image_column_headers[0], self.model_name, image_path, csv_path,
                             new_csv_name, scaled_size, grayscale)
         full_image_list = [list_of_image_paths]
         full_image_data = np.expand_dims(image_data, axis=0)
@@ -322,7 +322,7 @@ class ImageFeaturizer:
         if len(image_column_headers) > 1:
             for column in image_column_headers[1:]:
                 (image_data, csv_path, list_of_image_paths) = \
-                    preprocess_data(column, image_path, csv_path,
+                    preprocess_data(column, self.model_name, image_path, csv_path,
                                     new_csv_name, scaled_size, grayscale)
                 full_image_data = np.concatenate((full_image_data,
                                                   np.expand_dims(image_data, axis=0)))
