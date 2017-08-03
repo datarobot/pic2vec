@@ -52,7 +52,7 @@ def featurize_data(model, array):
 
 
 def features_to_csv(data_array, full_feature_array, csv_path, image_column_header, image_list,
-                    continued_column=False):
+                    continued_column=False, save_features=False):
     """
     Write the feature array to a new csv, and append the features to the appropriate
     rows of the given csv.
@@ -109,7 +109,7 @@ def features_to_csv(data_array, full_feature_array, csv_path, image_column_heade
     zeros_index = (data_array == np.zeros((data_array.shape[1],
                                            data_array.shape[2],
                                            data_array.shape[3])))[:, 0, 0, 0]
-    print(zeros_index)
+
     # Create column headers for features, and the features dataframe
     array_column_headers = ['{}_feature_{}'.format(image_column_header, feature) for feature in
                             range(num_features)]
@@ -122,21 +122,24 @@ def features_to_csv(data_array, full_feature_array, csv_path, image_column_heade
 
     # Save the name and extension separately, for robust naming
     csv_name, ext = os.path.splitext(csv_path)
+
     if not continued_column:
-        # Save the features dataframe to a csv without index or headers, for easy modeling
-        df_features.to_csv('{}_features_only{}'.format(csv_name, ext), index=False, header=False)
+        if save_features:
+            # Save the features dataframe to a csv without index or headers, for easy modeling
+            df_features.to_csv('{}_features_only{}'.format(csv_name, ext),
+                               index=False, header=False)
 
         # Save the combined csv+features to a csv with no index, but with column headers
         # for DR platform
         df_full.to_csv('{}_full{}'.format(csv_name, ext), index=False)
     else:
-        csv_name, ext = os.path.splitext(csv_path)
-        csv_name_orig, ext = csv_name.split('_full')
-        features_name = '{}_features_only{}'.format(csv_name_orig, ext)
+        csv_name_orig = csv_name.split('_full')[0]
 
-        df_features = pd.concat([pd.read_csv(features_name), df_features])
-        df_features.to_csv('{}_features_only{}'.format(csv_name_orig, ext),
-                           index=False, header=False)
+        if save_features:
+            features_name = '{}_features_only{}'.format(csv_name_orig, ext)
+            df_features = pd.concat([pd.read_csv(features_name), df_features])
+            df_features.to_csv('{}_features_only{}'.format(csv_name_orig, ext),
+                               index=False, header=False)
 
         df_full.to_csv(csv_path, index=False)
 
