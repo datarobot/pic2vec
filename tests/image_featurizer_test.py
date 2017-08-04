@@ -148,7 +148,7 @@ def test_load_and_featurize_data_multiple_columns(model, size, array_path):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
     f = ImageFeaturizer(model=model, auto_sample=True)
     f.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
-                              **LOAD_DATA_ARGS_MULT)
+                              omit_depth=True, omit_output=True, **LOAD_DATA_ARGS_MULT)
     check_array = np.load(array_path)
 
     try:
@@ -170,7 +170,7 @@ def test_load_and_featurize_single_column(model, size, array_path):
     """Test that all of the featurizations and attributes for each model are correct"""
     f = ImageFeaturizer(model=model)
     f.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
-                              **LOAD_DATA_ARGS)
+                              omit_depth=True, omit_output=True, **LOAD_DATA_ARGS)
 
     check_array = np.load(array_path)
 

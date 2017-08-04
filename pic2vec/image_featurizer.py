@@ -180,7 +180,9 @@ class ImageFeaturizer:
                                 grayscale=False,
                                 save_features=False,
                                 omit_time=False,
-                                omit_model=False
+                                omit_model=False,
+                                omit_depth=False,
+                                omit_output=False
                                 # crop_size = (299, 299),
                                 # number_crops = 0,
                                 # random_crop = False,
@@ -236,7 +238,7 @@ class ImageFeaturizer:
         """
         self.load_data(image_column_headers, image_path, csv_path, new_csv_name, grayscale)
         return self.featurize(save_features=save_features, omit_time=omit_time,
-                              omit_model=omit_model)
+                              omit_model=omit_model, omit_depth=omit_depth, omit_output=omit_output)
 
     def load_data(self,
                   image_column_headers,
@@ -340,8 +342,10 @@ class ImageFeaturizer:
         self.scaled_size = scaled_size
         self.image_path = image_path
 
-    @t.guard(save_features=t.Bool, omit_time=t.Bool, omit_model=t.Bool)
-    def featurize(self, save_features=False, omit_time=False, omit_model=False):
+    @t.guard(save_features=t.Bool, omit_time=t.Bool, omit_model=t.Bool,
+             omit_depth=t.Bool, omit_output=t.Bool)
+    def featurize(self, save_features=False, omit_time=False, omit_model=False,
+                  omit_depth=False, omit_output=False):
         """
         Featurize the loaded data, returning the dataframe and writing the features
         and the full combined data to csv
@@ -368,7 +372,8 @@ class ImageFeaturizer:
         self.featurized_data = np.zeros((self.data.shape[1],
                                          self.num_features * len(self.image_column_headers)))
 
-        # Creating or loading datetime and saved_model for testing/naming purposes
+        # Naming switches! Can turn on or off to remove time, model, depth, or output size
+        # from output filename
         if not omit_time:
             saved_time = "_{}_".format(time.strftime("%d-%b-%Y-%H:%M:%S", time.gmtime()))
         else:
@@ -377,14 +382,24 @@ class ImageFeaturizer:
             saved_model = "_{}_".format(self.model_name)
         else:
             saved_model = ""
+        if not omit_depth:
+            saved_depth = "_depth-{}_".format(self.depth)
+        else:
+            saved_depth = ""
+        if not omit_output:
+            saved_output = "_output-{}_".format(self.downsample_size)
+        else:
+            saved_output = ""
 
         csv_name, ext = os.path.splitext(self.csv_path)
         for column in range(self.data.shape[0]):
             if column == 0:
-                csv_path = "{}{}{}{}".format(csv_name, saved_model, saved_time, ext)
+                csv_path = "{}{}{}{}{}{}".format(csv_name, saved_model, saved_depth,
+                                                 saved_output, saved_time, ext)
             else:
                 # Save the name and extension separately, for robust naming
-                csv_path = '{}{}{}_full{}'.format(csv_name, saved_model, saved_time, ext)
+                csv_path = '{}{}{}{}{}_full{}'.format(csv_name, saved_model, saved_depth,
+                                                      saved_output, saved_time, ext)
 
             self.featurized_data[:,
                                  self.num_features * column:self.num_features * column +

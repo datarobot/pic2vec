@@ -106,9 +106,12 @@ def features_to_csv(data_array, full_feature_array, csv_path, image_column_heade
     num_features = full_feature_array.shape[1]
 
     logging.info('Adding image features to csv.')
+
+    # Checking how many photos are missing or blank:
     zeros_index = (data_array == np.zeros((data_array.shape[1],
                                            data_array.shape[2],
                                            data_array.shape[3])))[:, 0, 0, 0]
+    logging.info('Number of missing photos: {}'.format(len(zeros_index)))
 
     # Create column headers for features, and the features dataframe
     array_column_headers = ['{}_feature_{}'.format(image_column_header, feature) for feature in
@@ -117,6 +120,7 @@ def features_to_csv(data_array, full_feature_array, csv_path, image_column_heade
 
     missing_column_header = ['{}_missing'.format(image_column_header)]
     df_missing = pd.DataFrame(data=zeros_index, columns=missing_column_header)
+
     # Create the full combined csv+features dataframe
     df_full = pd.concat([df, df_missing, df_features], axis=1)
 
