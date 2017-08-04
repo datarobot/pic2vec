@@ -158,7 +158,7 @@ def _find_csv_image_paths(csv_path, image_column_header):
 
     """
     # Create the dataframe from the csv
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(csv_path, error_bad_lines=False)
 
     # -------------- #
     # ERROR CHECKING #

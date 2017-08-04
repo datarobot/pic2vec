@@ -74,20 +74,23 @@ def test_features_to_csv_bad_feature_array():
     # An error array with the wrong size
     error_array = np.zeros((4, 3, 2))
     with pytest.raises(ValueError):
-        features_to_csv(CHECK_DATA, error_array, CHECK_CSV_IMAGES_PATH, 'images', CHECK_IMAGE_LIST)
+        features_to_csv(CHECK_DATA, error_array, CHECK_CSV_IMAGES_PATH, 'images', CHECK_IMAGE_LIST,
+                        save_features=True)
 
 
 def test_features_to_csv_bad_column_header():
     """Raise an error when the column header is not found in the csv"""
     with pytest.raises(ValueError):
-        features_to_csv(CHECK_DATA, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH, 'derp', CHECK_IMAGE_LIST)
+        features_to_csv(CHECK_DATA, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH, 'derp', CHECK_IMAGE_LIST,
+                        save_features=True)
 
 def test_features_to_csv_bad_data_array():
     """Raise error when a bad data array is passed (i.e. wrong shape)"""
     # An error array with the wrong size
     error_array = np.zeros((4, 3, 2))
     with pytest.raises(ValueError):
-        features_to_csv(error_array, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH, 'images', CHECK_IMAGE_LIST)
+        features_to_csv(error_array, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH, 'images', CHECK_IMAGE_LIST,
+                        save_features=True)
 
 
 def test_features_to_csv():
@@ -103,7 +106,7 @@ def test_features_to_csv():
 
     # Create the test
     full_test_dataframe = features_to_csv(CHECK_DATA, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH,
-                                          'images', CHECK_IMAGE_LIST)
+                                          'images', CHECK_IMAGE_LIST, save_features=True)
 
     # Assert that the dataframe returned is correct, and the csv was generated correctly
     try:

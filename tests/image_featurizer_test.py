@@ -35,7 +35,7 @@ COMPARE_ARGS = {
                 'automatic_downsample': False,
                 'csv_path': TEST_CSV_NAME,
                 'image_list': IMAGE_LIST,
-                'depth': 1,
+                'depth': 1
                }
 
 LOAD_DATA_ARGS_MULT_ERROR = {
@@ -147,7 +147,8 @@ def test_load_data_multiple_columns():
 def test_load_and_featurize_data_multiple_columns(model, size, array_path):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
     f = ImageFeaturizer(model=model, auto_sample=True)
-    f.load_and_featurize_data(**LOAD_DATA_ARGS_MULT)
+    f.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
+                              omit_depth=True, omit_output=True, **LOAD_DATA_ARGS_MULT)
     check_array = np.load(array_path)
 
     try:
@@ -168,7 +169,9 @@ def test_load_and_featurize_data_multiple_columns(model, size, array_path):
 def test_load_and_featurize_single_column(model, size, array_path):
     """Test that all of the featurizations and attributes for each model are correct"""
     f = ImageFeaturizer(model=model)
-    f.load_and_featurize_data(**LOAD_DATA_ARGS)
+    f.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
+                              omit_depth=True, omit_output=True, **LOAD_DATA_ARGS)
+
     check_array = np.load(array_path)
 
     try:
