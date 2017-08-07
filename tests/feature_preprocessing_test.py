@@ -11,7 +11,7 @@ from pic2vec.feature_preprocessing import (_create_csv_with_image_paths,
                                            _find_directory_image_paths,
                                            _find_csv_image_paths,
                                            _find_combined_image_paths,
-                                           _image_paths_finder, convert_single_image,
+                                           _image_paths_finder, _convert_single_image,
                                            preprocess_data,
                                            natural_key)
 
@@ -148,7 +148,7 @@ def test_convert_single_image(image_source, image_path, size, grayscale):
                                   isotropic=iso,
                                   grayscale=gscale))
 
-    converted_image = convert_single_image(image_source, 'xception', image_path, size, grayscale)
+    converted_image = _convert_single_image(image_source, 'xception', image_path, size, grayscale)
 
     assert np.array_equal(check_array, converted_image)
 

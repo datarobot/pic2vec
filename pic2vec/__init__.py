@@ -15,7 +15,7 @@ from pic2vec.feature_preprocessing import (_create_csv_with_image_paths,  # NOQA
                                                     _find_directory_image_paths,
                                                     _find_csv_image_paths,
                                                     _find_combined_image_paths,
-                                                    _image_paths_finder, convert_single_image,
+                                                    _image_paths_finder, _convert_single_image,
                                                     preprocess_data)
 
 from pic2vec.data_featurizing import featurize_data, _named_path_finder, _features_to_csv  # NOQA
