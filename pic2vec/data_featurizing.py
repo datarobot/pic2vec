@@ -10,6 +10,7 @@ which contains binary values of whether the image in that row is missing.
 
 import logging
 import os
+import time
 
 import trafaret as t
 import numpy as np
@@ -50,9 +51,66 @@ def featurize_data(model, array):
     logging.info('Feature array created successfully.')
     return full_feature_array
 
+def _named_path_finder(csv_name, model_str, model_depth, model_output,
+                       omit_model, omit_depth, omit_output, omit_time):
+    """
+    Create the named path from the robust naming configuration available.
 
-def features_to_csv(data_array, full_feature_array, csv_path, image_column_header, image_list,
-                    continued_column=False, save_features=False):
+    Parameters:
+    -----------
+        omit_model : Bool
+            Boolean to omit the model name from the CSV name
+
+        omit_depth : Bool
+            Boolean to omit the model depth from the CSV name
+
+        omit_output : Bool
+            Boolean to omit the model output size from the CSV name
+
+        omit_time : Bool
+            Boolean to omit the time of creation from the CSV name
+
+        model_str : Str
+            The model name
+
+        model_depth : Str
+            The model depth
+
+        model_output : Str
+            The model output size
+
+    Returns:
+    --------
+        named_path : Str
+            The full name of the CSV file
+    """
+    # Naming switches! Can turn on or off to remove time, model, depth, or output size
+    # from output filename
+    if not omit_time:
+        saved_time = "_({})".format(time.strftime("%d-%b-%Y-%H.%M.%S", time.gmtime()))
+    else:
+        saved_time = ""
+    if not omit_model:
+        saved_model = "_{}".format(model_str)
+    else:
+        saved_model = ""
+    if not omit_depth:
+        saved_depth = "_depth-{}".format(model_depth)
+    else:
+        saved_depth = ""
+    if not omit_output:
+        saved_output = "_output-{}".format(model_output)
+    else:
+        saved_output = ""
+
+    named_path = "{}{}{}{}{}".format(csv_name, saved_model, saved_depth, saved_output, saved_time)
+    return named_path
+
+
+def _features_to_csv(data_array, full_feature_array, csv_path, image_column_header, image_list,
+                     model_str, model_depth, model_output, omit_model=False, omit_depth=False,
+                     omit_output=False, omit_time=False, continued_column=False,
+                     save_features=False):
     """
     Write the feature array to a new csv, and append the features to the appropriate
     rows of the given csv.
@@ -114,7 +172,7 @@ def features_to_csv(data_array, full_feature_array, csv_path, image_column_heade
     logging.info('Number of missing photos: {}'.format(len(zeros_index)))
 
     # Create column headers for features, and the features dataframe
-    array_column_headers = ['{}_feature_{}'.format(image_column_header, feature) for feature in
+    array_column_headers = ['{}_feat_{}'.format(image_column_header, feature) for feature in
                             range(num_features)]
     df_features = pd.DataFrame(data=full_feature_array, columns=array_column_headers)
 
@@ -127,20 +185,25 @@ def features_to_csv(data_array, full_feature_array, csv_path, image_column_heade
     # Save the name and extension separately, for robust naming
     csv_name, ext = os.path.splitext(csv_path)
 
+    # Find the CSV prefix with user naming configuration
+    named_path = _named_path_finder(csv_name, model_str, model_depth, model_output,
+                                    omit_model, omit_depth, omit_output, omit_time)
+
     if not continued_column:
         if save_features:
             # Save the features dataframe to a csv without index or headers, for easy modeling
-            df_features.to_csv('{}_features_only{}'.format(csv_name, ext),
+            df_features.to_csv('{}_features_only{}'.format(named_path, ext),
                                index=False, header=False)
 
         # Save the combined csv+features to a csv with no index, but with column headers
         # for DR platform
-        df_full.to_csv('{}_full{}'.format(csv_name, ext), index=False)
+        df_full.to_csv('{}_full{}'.format(named_path, ext), index=False)
     else:
-        csv_name_orig = csv_name.split('_full')[0]
+        csv_name_orig = named_path.split('_full')[0]
 
         if save_features:
             features_name = '{}_features_only{}'.format(csv_name_orig, ext)
+
             df_features = pd.concat([pd.read_csv(features_name), df_features])
             df_features.to_csv('{}_features_only{}'.format(csv_name_orig, ext),
                                index=False, header=False)
