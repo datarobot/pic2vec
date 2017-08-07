@@ -112,7 +112,11 @@ History
 ------------------
 * Fixed PIL truncated image bug
 
-
 0.8.0 (2017-08-02)
 ------------------
 * Added robust naming options to the generated csv files
+
+0.8.1 (2017-08-07)
+------------------
+* Fixed bugs with robust naming
+* Added error message for failed image conversion
