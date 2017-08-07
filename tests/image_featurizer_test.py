@@ -142,6 +142,25 @@ def test_load_data_multiple_columns():
     f.load_data(**LOAD_DATA_ARGS_MULT)
     compare_featurizer_class(f, (227, 227), np.zeros((1)), **COMPARE_ARGS_MULT)
 
+def test_writing_features_to_csv_with_robust_naming():
+    """Make sure the featurizer writes the name correctly to csv with robust naming config"""
+    f = ImageFeaturizer()
+    f.load_and_featurize_data(save_features=True, omit_time=True, **LOAD_DATA_ARGS_MULT)
+    check_array_path = '{}_squeezenet_depth-1_output-512'.format(CSV_NAME_MULT)
+    full_check = '{}_full'.format(check_array_path)
+    feature_check = '{}_features_only'.format(check_array_path)
+    try:
+        assert os.path.isfile(full_check)
+        assert os.path.isfile(feature_check)
+    finally:
+        if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
+            shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
+
+        if os.path.isfile('{}_full'.format(check_array_path)):
+            os.remove('{}_full'.format(check_array_path))
+            pass
+        if os.path.isfile('{}_features_only'.format(check_array_path)):
+            os.remove('{}_features_only'.format(check_array_path))
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
 def test_load_and_featurize_data_multiple_columns(model, size, array_path):
@@ -153,7 +172,6 @@ def test_load_and_featurize_data_multiple_columns(model, size, array_path):
 
     try:
         compare_featurizer_class(f, size, check_array, **COMPARE_ARGS_MULT)
-
     finally:
         # Remove path to the generated csv at the end of the test
         if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):

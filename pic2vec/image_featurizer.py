@@ -60,14 +60,13 @@ Functionality:
 
 import logging
 import os
-import time
 
 import numpy as np
 import trafaret as t
 
 from .build_featurizer import build_featurizer, supported_model_types
 from .feature_preprocessing import preprocess_data
-from .data_featurizing import featurize_data, features_to_csv
+from .data_featurizing import featurize_data, _features_to_csv, _named_path_finder
 
 
 class ImageFeaturizer:
@@ -369,44 +368,38 @@ class ImageFeaturizer:
 
         logging.info("Trying to featurize data.")
 
+        # Initialize featurized data vector with appropriate size
         self.featurized_data = np.zeros((self.data.shape[1],
                                          self.num_features * len(self.image_column_headers)))
 
-        # Naming switches! Can turn on or off to remove time, model, depth, or output size
-        # from output filename
-        if not omit_time:
-            saved_time = "_{}_".format(time.strftime("%d-%b-%Y-%H:%M:%S", time.gmtime()))
-        else:
-            saved_time = ""
-        if not omit_model:
-            saved_model = "_{}_".format(self.model_name)
-        else:
-            saved_model = ""
-        if not omit_depth:
-            saved_depth = "_depth-{}_".format(self.depth)
-        else:
-            saved_depth = ""
-        if not omit_output:
-            saved_output = "_output-{}_".format(self.downsample_size)
-        else:
-            saved_output = ""
-
+        # Save csv_names
         csv_name, ext = os.path.splitext(self.csv_path)
-        for column in range(self.data.shape[0]):
-            if column == 0:
-                csv_path = "{}{}{}{}{}{}".format(csv_name, saved_model, saved_depth,
-                                                 saved_output, saved_time, ext)
-            else:
-                # Save the name and extension separately, for robust naming
-                csv_path = '{}{}{}{}{}_full{}'.format(csv_name, saved_model, saved_depth,
-                                                      saved_output, saved_time, ext)
 
+        # For each image column, perform the full featurization and add the features to the csv
+        for column in range(self.data.shape[0]):
+
+            # Create the correct csv path if we have multiple image columns
+            if column == 0:
+                csv_path = "{}{}".format(csv_name, ext)
+            else:
+                named_path = _named_path_finder(csv_name, self.model_name, self.depth,
+                                                self.num_features, omit_model, omit_depth,
+                                                omit_output, omit_time)
+                # Save the name and extension separately, for robust naming
+                csv_path = '{}_full{}'.format(named_path, ext)
+
+            # Featurize the data, and save it to the appropriate columns
             self.featurized_data[:,
                                  self.num_features * column:self.num_features * column +
                                  self.num_features] \
                 = partial_features = featurize_data(self.featurizer, self.data[column])
 
-            full_dataframe = features_to_csv(self.data[column], partial_features, csv_path,
-                                             self.image_column_headers[column], self.image_list,
-                                             save_features=save_features, continued_column=column)
+            # Save the full dataframe to the csv
+            full_dataframe = _features_to_csv(self.data[column], partial_features, csv_path,
+                                              self.image_column_headers[column], self.image_list,
+                                              model_str=self.model_name, model_depth=self.depth,
+                                              model_output=self.num_features,
+                                              omit_model=omit_model, omit_time=omit_time,
+                                              omit_depth=omit_depth, omit_output=omit_output,
+                                              save_features=save_features, continued_column=column)
         return full_dataframe

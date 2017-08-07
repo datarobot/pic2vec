@@ -1,4 +1,4 @@
-images,images_missing,images_feature_0,images_feature_1,images_feature_2
+image,image_missing,image_feat_0,image_feat_1,image_feat_2
 borges.jpg,False,1.0,2.0,3.0
 arendt.bmp,False,4.0,5.0,6.0
 heidegger.jpg,True,0.0,0.0,0.0

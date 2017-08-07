@@ -8,7 +8,7 @@ import pytest
 from keras.layers import Conv2D, Dense, Flatten
 from keras.models import Sequential
 
-from pic2vec.data_featurizing import featurize_data, features_to_csv
+from pic2vec.data_featurizing import featurize_data, _named_path_finder, _features_to_csv
 
 np.random.seed(5102020)
 
@@ -66,6 +66,14 @@ def test_featurize_data():
     assert np.array_equal(featurize_data(MODEL, init_array), check_array)
 
 
+def test_named_path_finder():
+    """Check that named_path_finder produces the correct output (without time)"""
+    check_named_path = 'csv_name_modelstring_depth-n_output-x'
+    test_named_path = _named_path_finder('csv_name', 'modelstring', 'n', 'x',
+                                         omit_model=False, omit_depth=False, omit_output=False,
+                                         omit_time=True)
+    assert check_named_path == test_named_path
+
 def test_features_to_csv_bad_feature_array():
     """
     Test that the model raises an error when a bad array
@@ -74,23 +82,26 @@ def test_features_to_csv_bad_feature_array():
     # An error array with the wrong size
     error_array = np.zeros((4, 3, 2))
     with pytest.raises(ValueError):
-        features_to_csv(CHECK_DATA, error_array, CHECK_CSV_IMAGES_PATH, 'images', CHECK_IMAGE_LIST,
-                        save_features=True)
+        _features_to_csv(CHECK_DATA, error_array, CHECK_CSV_IMAGES_PATH, 'image', CHECK_IMAGE_LIST,
+                         model_output='', model_str='', model_depth='', omit_time=True,
+                         omit_depth=True, omit_output=True, save_features=True)
 
 
 def test_features_to_csv_bad_column_header():
     """Raise an error when the column header is not found in the csv"""
     with pytest.raises(ValueError):
-        features_to_csv(CHECK_DATA, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH, 'derp', CHECK_IMAGE_LIST,
-                        save_features=True)
+        _features_to_csv(CHECK_DATA, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH, 'derp', CHECK_IMAGE_LIST,
+                         model_output='', model_str='', model_depth='', omit_time=True,
+                         omit_depth=True, omit_output=True, save_features=True)
 
 def test_features_to_csv_bad_data_array():
     """Raise error when a bad data array is passed (i.e. wrong shape)"""
     # An error array with the wrong size
     error_array = np.zeros((4, 3, 2))
     with pytest.raises(ValueError):
-        features_to_csv(error_array, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH, 'images', CHECK_IMAGE_LIST,
-                        save_features=True)
+        _features_to_csv(error_array, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH, 'image', CHECK_IMAGE_LIST,
+                         model_output='', model_str='', model_depth='', omit_time=True,
+                         omit_depth=True, omit_output=True, save_features=True)
 
 
 def test_features_to_csv():
@@ -105,8 +116,10 @@ def test_features_to_csv():
         os.remove('{}_features_only'.format(CHECK_CSV_IMAGES_PATH))
 
     # Create the test
-    full_test_dataframe = features_to_csv(CHECK_DATA, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH,
-                                          'images', CHECK_IMAGE_LIST, save_features=True)
+    full_test_dataframe = _features_to_csv(CHECK_DATA, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH,
+                                           'image', CHECK_IMAGE_LIST, '', '', '', omit_model=True,
+                                           omit_depth=True, omit_output=True, omit_time=True,
+                                           save_features=True)
 
     # Assert that the dataframe returned is correct, and the csv was generated correctly
     try:
@@ -121,4 +134,3 @@ def test_features_to_csv():
             os.remove('{}_full'.format(CHECK_CSV_IMAGES_PATH))
         if os.path.isfile('{}_features_only'.format(CHECK_CSV_IMAGES_PATH)):
             os.remove('{}_features_only'.format(CHECK_CSV_IMAGES_PATH))
-        assert True

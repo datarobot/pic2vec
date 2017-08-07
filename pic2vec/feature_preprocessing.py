@@ -287,8 +287,8 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
 # FUNCTION FOR IMAGE VECTORIZATION #
 ####################################
 
-def convert_single_image(image_source, model_str, image_path, target_size=(299, 299),
-                         grayscale=False):
+def _convert_single_image(image_source, model_str, image_path, target_size=(299, 299),
+                          grayscale=False):
     """
     Take in a path to an image (either by URL or in a native directory)
     and convert the image to a preprocessed 4D numpy array, ready to be plugged
@@ -296,8 +296,12 @@ def convert_single_image(image_source, model_str, image_path, target_size=(299, 
 
     Parameters:
     ----------
-        image_header_type : str
-            Pointer to where images are stored for featurizer. Either 'from_url' or 'from_directory'
+        image_source : str
+            Flag for either url or directory source for image
+
+        model_str : str
+            Name of the model converting the image
+
         image_path : str
             Either the URL or the full path to the image
 
@@ -323,7 +327,9 @@ def convert_single_image(image_source, model_str, image_path, target_size=(299, 
     except (IOError, ValueError):
         # The channel dimension for a missing image is 3 if not grayscale, or 1 if grayscale
         im_size = target_size + (3 - 2 * grayscale,)
+        logging.error('ERROR: Could not load/convert image to numpy array: {}'.format(image_path))
         return np.zeros(im_size)
+
     # Load the image, and convert it to a numpy array with the target size
     image = load_img(image_file, target_size=target_size, grayscale=grayscale)
     image_array = img_to_array(image)
@@ -473,9 +479,9 @@ def preprocess_data(image_column_header,
                 image = '{}{}'.format(image_path, image)
 
             # Place the vectorized image into the image data
-            full_image_data[i, :, :, :] = convert_single_image(image_source, model_str, image,
-                                                               target_size=target_size,
-                                                               grayscale=grayscale)
+            full_image_data[i, :, :, :] = _convert_single_image(image_source, model_str, image,
+                                                                target_size=target_size,
+                                                                grayscale=grayscale)
 
             # Add the index to the dictionary to check in the future
 
