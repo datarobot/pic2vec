@@ -248,8 +248,7 @@ def test_initialize_model(model_str, expected_layers, test_size):
     check_prediction = np.load(INITIALIZE_ARRAY.format(model_str))
 
     # Check that each model predicts correctly to see if weights were correctly loaded
-    assert np.count_nonzero(abs(model.predict_on_batch(test_array) - check_prediction) >
-                            EPSILON) == 0
+    assert np.allclose(model.predict_on_batch(test_array), check_prediction)
     del model
 
 

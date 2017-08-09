@@ -67,7 +67,7 @@ def test_featurize_data():
 
     # Check the prediction vs. the saved array
     check_array = np.load('tests/data_featurizing_testing/array_testing/check_featurize.npy')
-    assert np.count_nonzero(abs(featurize_data(MODEL, init_array) - check_array) > EPSILON) == 0
+    assert np.allclose(featurize_data(MODEL, init_array), check_array)
 
 
 def test_named_path_finder():

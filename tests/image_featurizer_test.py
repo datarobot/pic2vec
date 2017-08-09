@@ -97,7 +97,7 @@ def compare_featurizer_class(featurizer,
                              featurized=False):
     """Check the necessary assertions for a featurizer image."""
     assert featurizer.scaled_size == scaled_size
-    assert np.count_nonzero(abs(featurizer.features - featurized_data) > EPSILON) == 0
+    assert np.allclose(featurizer.features, featurized_data)
     assert featurizer.downsample_size == downsample_size
     assert featurizer.image_column_headers == image_column_headers
     assert featurizer.auto_sample == automatic_downsample

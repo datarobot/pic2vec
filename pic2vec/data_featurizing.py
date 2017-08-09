@@ -109,7 +109,7 @@ def _named_path_finder(csv_name, model_str, model_depth, model_output,
 
 def _create_features_df(data_array, full_feature_array, image_column_header, df):
     # Log how many photos are missing or blank:
-    zeros_index = [np.count_nonzero(slice) == 0 for slice in data_array[:]]
+    zeros_index = [np.count_nonzero(array_slice) == 0 for array_slice in data_array[:]]
     logging.info('Number of missing photos: {}'.format(len(zeros_index)))
 
     # Create column headers for features, and the features dataframe
