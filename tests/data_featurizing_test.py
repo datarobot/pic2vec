@@ -8,6 +8,7 @@ import pytest
 from keras.layers import Conv2D, Dense, Flatten
 from keras.models import Sequential
 
+from .build_featurizer_test import EPSILON
 from pic2vec.data_featurizing import (featurize_data,
                                       _named_path_finder,
                                       _features_to_csv,
@@ -66,7 +67,7 @@ def test_featurize_data():
 
     # Check the prediction vs. the saved array
     check_array = np.load('tests/data_featurizing_testing/array_testing/check_featurize.npy')
-    assert np.array_equal(featurize_data(MODEL, init_array), check_array)
+    assert np.count_nonzero(abs(featurize_data(MODEL, init_array) - check_array) > EPSILON) == 0
 
 
 def test_named_path_finder():

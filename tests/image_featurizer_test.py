@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from pic2vec import ImageFeaturizer
-from build_featurizer_test import EPSILON
+from .build_featurizer_test import EPSILON
 
 # Constant paths
 TEST_CSV_NAME = 'tests/ImageFeaturizer_testing/csv_tests/generated_images_csv_test'
