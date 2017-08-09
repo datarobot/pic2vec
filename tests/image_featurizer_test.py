@@ -5,6 +5,7 @@ import pytest
 import shutil
 
 import numpy as np
+import pandas as pd
 
 from pic2vec import ImageFeaturizer
 
@@ -95,7 +96,7 @@ def compare_featurizer_class(featurizer,
                              featurized=False):
     """Check the necessary assertions for a featurizer image."""
     assert featurizer.scaled_size == scaled_size
-    assert np.array_equal(featurizer.featurized_data, featurized_data)
+    assert np.array_equal(featurizer.features, featurized_data)
     assert featurizer.downsample_size == downsample_size
     assert featurizer.image_column_headers == image_column_headers
     assert featurizer.auto_sample == automatic_downsample
@@ -104,6 +105,7 @@ def compare_featurizer_class(featurizer,
     assert featurizer.depth == depth
     if featurized:
         assert filecmp.cmp('{}_full'.format(csv_path), CHECK_CSV.format(featurizer.model_name))
+        assert featurizer.full_dataframe == pd.read_csv(CHECK_CSV.format(featurizer.model_name))
 
 
 def test_featurize_first():

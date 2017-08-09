@@ -20,6 +20,8 @@ from pic2vec.squeezenet import SqueezeNet
 
 random.seed(5102020)
 
+EPSILON = 0.00001
+
 # Building the checking model
 input_layer = Input(shape=(100, ))
 layer = Dense(40)(input_layer)
@@ -246,7 +248,8 @@ def test_initialize_model(model_str, expected_layers, test_size):
     check_prediction = np.load(INITIALIZE_ARRAY.format(model_str))
 
     # Check that each model predicts correctly to see if weights were correctly loaded
-    assert np.array_equal(model.predict_on_batch(test_array), check_prediction)
+    assert np.count_nonzero(abs(model.predict_on_batch(test_array) - check_prediction) >
+                            EPSILON) == 0
     del model
 
 
