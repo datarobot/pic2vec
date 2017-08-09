@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from pic2vec import ImageFeaturizer
+from build_featurizer_test import EPSILON
 
 # Constant paths
 TEST_CSV_NAME = 'tests/ImageFeaturizer_testing/csv_tests/generated_images_csv_test'
@@ -96,7 +97,7 @@ def compare_featurizer_class(featurizer,
                              featurized=False):
     """Check the necessary assertions for a featurizer image."""
     assert featurizer.scaled_size == scaled_size
-    assert np.array_equal(featurizer.features, featurized_data)
+    assert np.count_nonzero(abs(featurizer.features - featurized_data) > EPSILON) == 0
     assert featurizer.downsample_size == downsample_size
     assert featurizer.image_column_headers == image_column_headers
     assert featurizer.auto_sample == automatic_downsample
