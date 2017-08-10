@@ -63,6 +63,7 @@ import os
 
 import numpy as np
 import trafaret as t
+import pandas as pd
 
 from .build_featurizer import build_featurizer, supported_model_types
 from .feature_preprocessing import preprocess_data
@@ -157,9 +158,10 @@ class ImageFeaturizer:
         self.featurizer = featurizer
         self.visualize = featurizer.summary
 
-        # Initializing preprocessing variables for after we load the images
+        # Initializing preprocessing variables for after we load and featurize the images
         self.data = np.zeros((1))
-        self.featurized_data = np.zeros((1))
+        self.features = np.zeros((1))
+        self.full_dataframe = pd.DataFrame()
         self.csv_path = ''
         self.image_list = ''
         self.image_column_headers = ''
@@ -369,8 +371,8 @@ class ImageFeaturizer:
         logging.info("Trying to featurize data.")
 
         # Initialize featurized data vector with appropriate size
-        self.featurized_data = np.zeros((self.data.shape[1],
-                                         self.num_features * len(self.image_column_headers)))
+        self.features = np.zeros((self.data.shape[1],
+                                  self.num_features * len(self.image_column_headers)))
 
         # Save csv_names
         csv_name, ext = os.path.splitext(self.csv_path)
@@ -389,9 +391,9 @@ class ImageFeaturizer:
                 csv_path = '{}_full{}'.format(named_path, ext)
 
             # Featurize the data, and save it to the appropriate columns
-            self.featurized_data[:,
-                                 self.num_features * column:self.num_features * column +
-                                 self.num_features] \
+            self.features[:,
+                          self.num_features * column:self.num_features * column +
+                          self.num_features] \
                 = partial_features = featurize_data(self.featurizer, self.data[column])
 
             # Save the full dataframe to the csv
@@ -402,4 +404,6 @@ class ImageFeaturizer:
                                               omit_model=omit_model, omit_time=omit_time,
                                               omit_depth=omit_depth, omit_output=omit_output,
                                               save_features=save_features, continued_column=column)
+
+        self.full_dataframe = full_dataframe
         return full_dataframe

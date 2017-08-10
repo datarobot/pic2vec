@@ -8,7 +8,11 @@ import pytest
 from keras.layers import Conv2D, Dense, Flatten
 from keras.models import Sequential
 
-from pic2vec.data_featurizing import featurize_data, _named_path_finder, _features_to_csv
+from .build_featurizer_test import ATOL
+from pic2vec.data_featurizing import (featurize_data,
+                                      _named_path_finder,
+                                      _features_to_csv,
+                                      _create_features_df)
 
 np.random.seed(5102020)
 
@@ -63,7 +67,7 @@ def test_featurize_data():
 
     # Check the prediction vs. the saved array
     check_array = np.load('tests/data_featurizing_testing/array_testing/check_featurize.npy')
-    assert np.array_equal(featurize_data(MODEL, init_array), check_array)
+    assert np.allclose(featurize_data(MODEL, init_array), check_array, atol=ATOL)
 
 
 def test_named_path_finder():
@@ -103,12 +107,14 @@ def test_features_to_csv_bad_data_array():
                          model_output='', model_str='', model_depth='', omit_time=True,
                          omit_depth=True, omit_output=True, save_features=True)
 
+def test_create_features_df():
+    """Test that the correct full array is created to be passed to the features_to_csv function"""
+    df = pd.read_csv(CHECK_CSV_IMAGES_PATH)
+    full_df_test = _create_features_df(CHECK_DATA, CHECK_ARRAY, 'image', df)[0]
+    assert full_df_test.equals(pd.read_csv(CHECK_CSV_FULL_PATH))
 
 def test_features_to_csv():
-    """
-    Test that the model creates the correct csvs from a toy array,
-    csv, and image list
-    """
+    """Test that the model creates the correct csvs from a toy array, csv, and image list"""
     # Check and remove the generated csvs if they already exist
     if os.path.isfile('{}_full'.format(CHECK_CSV_IMAGES_PATH)):
         os.remove('{}_full'.format(CHECK_CSV_IMAGES_PATH))

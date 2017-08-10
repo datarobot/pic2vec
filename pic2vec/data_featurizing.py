@@ -107,6 +107,26 @@ def _named_path_finder(csv_name, model_str, model_depth, model_output,
     return named_path
 
 
+def _create_features_df(data_array, full_feature_array, image_column_header, df):
+    # Log how many photos are missing or blank:
+    zeros_index = [np.count_nonzero(array_slice) == 0 for array_slice in data_array[:]]
+    logging.info('Number of missing photos: {}'.format(len(zeros_index)))
+
+    # Create column headers for features, and the features dataframe
+    array_column_headers = ['{}_feat_{}'.format(image_column_header, feature) for feature in
+                            range(full_feature_array.shape[1])]
+
+    df_features = pd.DataFrame(data=full_feature_array, columns=array_column_headers)
+
+    # Create the missing column header
+    missing_column_header = ['{}_missing'.format(image_column_header)]
+    df_missing = pd.DataFrame(data=zeros_index, columns=missing_column_header)
+
+    # Create the full combined csv+features dataframe
+    df_full = pd.concat([df, df_missing, df_features], axis=1)
+
+    return df_full, df_features
+
 def _features_to_csv(data_array, full_feature_array, csv_path, image_column_header, image_list,
                      model_str, model_depth, model_output, omit_model=False, omit_depth=False,
                      omit_output=False, omit_time=False, continued_column=False,
@@ -160,27 +180,10 @@ def _features_to_csv(data_array, full_feature_array, csv_path, image_column_head
                          'Gave feature array of shape: {}'.format(full_feature_array.shape))
     # --------------------------------------- #
 
-    # Save number of features
-    num_features = full_feature_array.shape[1]
-
     logging.info('Adding image features to csv.')
 
-    # Checking how many photos are missing or blank:
-    zeros_index = (data_array == np.zeros((data_array.shape[1],
-                                           data_array.shape[2],
-                                           data_array.shape[3])))[:, 0, 0, 0]
-    logging.info('Number of missing photos: {}'.format(len(zeros_index)))
-
-    # Create column headers for features, and the features dataframe
-    array_column_headers = ['{}_feat_{}'.format(image_column_header, feature) for feature in
-                            range(num_features)]
-    df_features = pd.DataFrame(data=full_feature_array, columns=array_column_headers)
-
-    missing_column_header = ['{}_missing'.format(image_column_header)]
-    df_missing = pd.DataFrame(data=zeros_index, columns=missing_column_header)
-
-    # Create the full combined csv+features dataframe
-    df_full = pd.concat([df, df_missing, df_features], axis=1)
+    df_full, df_features = _create_features_df(data_array, full_feature_array,
+                                               image_column_header, df)
 
     # Save the name and extension separately, for robust naming
     csv_name, ext = os.path.splitext(csv_path)
@@ -205,8 +208,7 @@ def _features_to_csv(data_array, full_feature_array, csv_path, image_column_head
             features_name = '{}_features_only{}'.format(csv_name_orig, ext)
 
             df_features = pd.concat([pd.read_csv(features_name), df_features])
-            df_features.to_csv('{}_features_only{}'.format(csv_name_orig, ext),
-                               index=False, header=False)
+            df_features.to_csv(features_name, index=False, header=False)
 
         df_full.to_csv(csv_path, index=False)
 

@@ -5,8 +5,10 @@ import pytest
 import shutil
 
 import numpy as np
+import pandas as pd
 
 from pic2vec import ImageFeaturizer
+from .build_featurizer_test import ATOL
 
 # Constant paths
 TEST_CSV_NAME = 'tests/ImageFeaturizer_testing/csv_tests/generated_images_csv_test'
@@ -95,7 +97,7 @@ def compare_featurizer_class(featurizer,
                              featurized=False):
     """Check the necessary assertions for a featurizer image."""
     assert featurizer.scaled_size == scaled_size
-    assert np.array_equal(featurizer.featurized_data, featurized_data)
+    assert np.allclose(featurizer.features, featurized_data, atol=ATOL)
     assert featurizer.downsample_size == downsample_size
     assert featurizer.image_column_headers == image_column_headers
     assert featurizer.auto_sample == automatic_downsample
@@ -104,6 +106,7 @@ def compare_featurizer_class(featurizer,
     assert featurizer.depth == depth
     if featurized:
         assert filecmp.cmp('{}_full'.format(csv_path), CHECK_CSV.format(featurizer.model_name))
+        assert featurizer.full_dataframe == pd.read_csv(CHECK_CSV.format(featurizer.model_name))
 
 
 def test_featurize_first():
@@ -165,13 +168,13 @@ def test_writing_features_to_csv_with_robust_naming():
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
 def test_load_and_featurize_data_multiple_columns(model, size, array_path):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
-    f = ImageFeaturizer(model=model, auto_sample=True)
-    f.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
-                              omit_depth=True, omit_output=True, **LOAD_DATA_ARGS_MULT)
+    feat = ImageFeaturizer(model=model, auto_sample=True)
+    feat.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
+                                 omit_depth=True, omit_output=True, **LOAD_DATA_ARGS_MULT)
     check_array = np.load(array_path)
 
     try:
-        compare_featurizer_class(f, size, check_array, **COMPARE_ARGS_MULT)
+        compare_featurizer_class(feat, size, check_array, **COMPARE_ARGS_MULT)
     finally:
         # Remove path to the generated csv at the end of the test
         if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
@@ -182,19 +185,21 @@ def test_load_and_featurize_data_multiple_columns(model, size, array_path):
             pass
         if os.path.isfile('{}_features_only'.format(CSV_NAME_MULT)):
             os.remove('{}_features_only'.format(CSV_NAME_MULT))
+        del feat
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS, ids=MODELS)
 def test_load_and_featurize_single_column(model, size, array_path):
     """Test that all of the featurizations and attributes for each model are correct"""
-    f = ImageFeaturizer(model=model)
-    f.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
-                              omit_depth=True, omit_output=True, **LOAD_DATA_ARGS)
+    feat = ImageFeaturizer(model=model)
+    feat.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
+                                 omit_depth=True, omit_output=True, **LOAD_DATA_ARGS)
 
     check_array = np.load(array_path)
 
     try:
-        compare_featurizer_class(f, size, check_array, **COMPARE_ARGS)
+        compare_featurizer_class(feat, size, check_array, **COMPARE_ARGS)
     finally:
         # Remove path to the generated csv at the end of the test
         if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
             shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
+        del feat

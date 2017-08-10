@@ -18,7 +18,7 @@ from pic2vec.feature_preprocessing import (_create_csv_with_image_paths,  # NOQA
                                                     _image_paths_finder, _convert_single_image,
                                                     preprocess_data)
 
-from pic2vec.data_featurizing import featurize_data, _named_path_finder, _features_to_csv  # NOQA
+from pic2vec.data_featurizing import featurize_data, _named_path_finder, _features_to_csv # NOQA
 
 from pic2vec.squeezenet import SqueezeNet  # NOQA
 
