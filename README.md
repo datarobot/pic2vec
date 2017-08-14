@@ -12,8 +12,7 @@ Featurize images using a small, contained pre-trained deep learning network
 Features
 --------
 
-This is the prototype for image features engineering.  Currently, only
-Python 2.7 is supported.
+This is the prototype for image features engineering. Supports Python 2.7, 3.4, 3.5, and 3.6.
 
 ``pic2vec`` is a python package that performs automated feature extraction
 for image data. It supports training models via the
@@ -55,7 +54,7 @@ image_column_name = 'images'
 my_csv = 'path/to/data.csv'
 my_image_directory = 'path/to/image/directory/'
 
-my_featurizer = ImageFeaturizer(depth=2)
+my_featurizer = ImageFeaturizer(model='xception', depth=2, auto_sample=True)
 
 my_featurizer.load_data(image_column_name, csv_path = my_csv, image_path = my_image_directory)
 
