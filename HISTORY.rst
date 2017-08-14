@@ -4,6 +4,7 @@ History
 0.8.2 (2017-08-14)
 ------------------
 * Updated trafaret requirement for PyPi package
+* Updated cats vs. dogs example
 
 0.8.1 (2017-08-07)
 ------------------
