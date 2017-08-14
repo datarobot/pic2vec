@@ -246,6 +246,7 @@ class ImageFeaturizer:
                   image_path='',
                   csv_path='',
                   new_csv_name='featurizer_csv/generated_images_csv',
+                  batch_size=1000,
                   grayscale=False
 
                   # crop_size = (299, 299),
@@ -323,6 +324,7 @@ class ImageFeaturizer:
         (image_data, csv_path, list_of_image_paths) = \
             preprocess_data(image_column_headers[0], self.model_name, image_path, csv_path,
                             new_csv_name, scaled_size, grayscale)
+
         full_image_list = [list_of_image_paths]
         full_image_data = np.expand_dims(image_data, axis=0)
 

@@ -1,6 +1,9 @@
 =======
 History
 =======
+0.8.2 (2017-08-14)
+------------------
+* Updated trafaret requirement for PyPi package
 
 0.8.1 (2017-08-07)
 ------------------

@@ -352,14 +352,16 @@ def _convert_single_image(image_source, model_str, image_path, target_size=(299,
          csv_path=t.String(allow_blank=True),
          new_csv_name=t.String(allow_blank=True),
          target_size=t.Tuple(t.Int, t.Int),
-         grayscale=t.Bool)
+         grayscale=t.Bool,
+         batch_size=t.Int)
 def preprocess_data(image_column_header,
                     model_str,
                     image_path='',
                     csv_path='',
                     new_csv_name='featurizer_csv/generated_images_csv',
                     target_size=(299, 299),
-                    grayscale=False):
+                    grayscale=False,
+                    batch_size=1000):
     """
     Receive the data (some combination of image directory + csv), find
     the list of valid images, and then convert each to an array and adds
