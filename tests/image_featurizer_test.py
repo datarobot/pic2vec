@@ -3,7 +3,6 @@ import filecmp
 import os
 import pytest
 import shutil
-import gc
 
 import numpy as np
 import pandas as pd
@@ -187,9 +186,6 @@ def test_load_and_featurize_data_multiple_columns(model, size, array_path):
         if os.path.isfile('{}_features_only'.format(CSV_NAME_MULT)):
             os.remove('{}_features_only'.format(CSV_NAME_MULT))
         del feat
-        for i in range(3):
-            gc.collect()
-
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS, ids=MODELS)
 def test_load_and_featurize_single_column(model, size, array_path):
@@ -207,5 +203,3 @@ def test_load_and_featurize_single_column(model, size, array_path):
         if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
             shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
         del feat
-        for i in range(3):
-            gc.collect()

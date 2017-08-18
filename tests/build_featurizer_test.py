@@ -3,7 +3,6 @@ import os
 import random
 import warnings
 import logging
-import gc
 
 import keras.backend as K
 import numpy as np
@@ -252,9 +251,6 @@ def test_initialize_model(model_str, expected_layers, test_size):
     # Check that each model predicts correctly to see if weights were correctly loaded
     assert np.allclose(model.predict_on_batch(test_array), check_prediction, atol=ATOL)
     del model
-    for i in range(20):
-        gc.collect()
-
 
 
 FEATURIZER_MODEL_DICT = dict.fromkeys(MODELS)
@@ -316,8 +312,6 @@ def test_build_featurizer(depth, autosample, sample_size, expected_size, model_s
                              model_str=model_str, loaded_model=FEATURIZER_MODEL_DICT[model_str])
     assert model.layers[-1].output_shape == (None, expected_size)
     del model
-    for i in range(20):
-        gc.collect()
 
 
 if __name__ == '__main__':
