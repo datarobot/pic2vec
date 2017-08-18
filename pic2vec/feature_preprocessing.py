@@ -19,7 +19,6 @@ except ImportError:
     from urllib.request import urlretrieve
 import re
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 Image.DEBUG = 0
 

@@ -93,22 +93,21 @@ Check the dist folder to see what you need to fill in for the {VERSION} section.
 3: Troubleshooting
 ---------------
 
-1. If you see error similar to `TypeError: find_packages() got an unexpected
+1. If you see an error similar to `TypeError: find_packages() got an unexpected
 keyword argument 'include'` then you need to upgrade your setuptools.
 
 ```bash
 pip install -U setuptools
 ```
 
-2. If you see error similar to `No local packages or working download links
+2. If you see an error similar to `No local packages or working download links
 found for tensorflow`  then you need to upgrade your pip.
 
 ```bash
 pip install -U pip
 ```
 
-3. If you have problems with tests or strange runtime exceptions - make sure
-your Keras installation don't configured for Theano use. Open `~/.keras/keras.json`
-and check that `backend` parameter value is `tensorflow`. If it is `theano` -
-simply remove that file, on next execution Keras will find your tensorflow
-and create correct configuration file.
+3. If you have problems with tests or strange runtime exceptions, make sure
+your Keras installation isn't configured for Theano use. Open `~/.keras/keras.json`
+and check that the `backend` parameter value is set to `tensorflow`. If it is `theano` -
+simply remove that file, and on next execution Keras will find your Tensorflow install and create the correct configuration file.
