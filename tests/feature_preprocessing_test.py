@@ -281,7 +281,7 @@ PREPROCESS_DATA_CASES = [
                         ]
 @pytest.mark.parametrize('image_path, csv_path, new_csv_name, check_arrays, image_list',
                          PREPROCESS_DATA_CASES, ids=['dir_only', 'csv_only', 'combined'])
-def test_preprocess_data(grayscale, image_path, csv_path, new_csv_name, check_arrays, image_list):
+def test_preprocess_data(image_path, csv_path, new_csv_name, check_arrays, image_list):
     """
     Full integration test: check for Type and Value errors for badly passed variables,
     and make sure that the network preprocesses data correctly for all three cases.
