@@ -7,6 +7,7 @@ import random
 import numpy as np
 import pytest
 
+from .build_featurizer_test import ATOL
 from pic2vec.feature_preprocessing import (_create_csv_with_image_paths,
                                            _find_directory_image_paths,
                                            _find_csv_image_paths,
@@ -150,7 +151,7 @@ def test_convert_single_image(image_source, image_path, size, grayscale):
 
     converted_image = _convert_single_image(image_source, 'xception', image_path, size, grayscale)
 
-    assert np.array_equal(check_array, converted_image)
+    assert np.allclose(check_array, converted_image, atol=ATOL)
 
 
 PATHS_FINDER_CASES = [
@@ -241,9 +242,9 @@ def compare_preprocessing(case, csv_name, check_arrays, image_list):
         assert len(case[0]) == 4
 
     # Check all data vectors correctly generated
-    assert np.array_equal(case[0][0], check_arrays[0])
-    assert np.array_equal(case[0][1], check_arrays[1])
-    assert np.array_equal(case[0][2], check_arrays[2])
+    assert np.allclose(case[0][0], check_arrays[0], atol=ATOL)
+    assert np.allclose(case[0][1], check_arrays[1], atol=ATOL)
+    assert np.allclose(case[0][2], check_arrays[2], atol=ATOL)
 
     # csv path correctly returned as non-existent, and correct image list returned
     assert case[1] == csv_name
