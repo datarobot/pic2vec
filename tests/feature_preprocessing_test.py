@@ -250,24 +250,37 @@ def compare_preprocessing(case, csv_name, check_arrays, image_list):
     assert case[1] == csv_name
     assert case[2] == image_list
 
+@pytest.mark.xfail
+def test_preprocess_data_grayscale():
+    # Ensure the new csv doesn't already exist
+    if os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS):
+        os.remove(ERROR_NEW_CSV_NAME_PREPROCESS)
+
+    # Create the full (data, csv_path, image_list) for each of the three cases
+    preprocessed_case = preprocess_data(IMG_COL_HEAD, 'xception', grayscale=True,
+                                        image_path=IMAGE_PATH, csv_path=DIRECTORY_CSV_PATH_PREPROCESS,
+                                        new_csv_name=ERROR_NEW_CSV_NAME_PREPROCESS)
+
+    # Ensure a new csv wasn't created when they weren't needed
+    assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
+
+    compare_preprocessing(preprocessed_case, DIRECTORY_CSV_PATH_PREPROCESS, \
+                          GRAYSCALE_ARRAYS, COMBINED_LIST_PREPROCESS)
+
 
 PREPROCESS_DATA_CASES = [
-                         (False, IMAGE_PATH, '', NEW_CSV_NAME_PREPROCESS,
+                         (IMAGE_PATH, '', NEW_CSV_NAME_PREPROCESS,
                           DIRECTORY_ARRAYS, IMAGE_LIST),
 
-                         (False, '', URL_PATH, ERROR_NEW_CSV_NAME_PREPROCESS,
+                         ('', URL_PATH, ERROR_NEW_CSV_NAME_PREPROCESS,
                           CSV_ARRAYS, URL_LIST),
 
-                         (False, IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
+                         (IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
                           ERROR_NEW_CSV_NAME_PREPROCESS, COMBINED_ARRAYS,
                           COMBINED_LIST_PREPROCESS),
-
-                         (True, IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
-                          ERROR_NEW_CSV_NAME_PREPROCESS, GRAYSCALE_ARRAYS,
-                          COMBINED_LIST_PREPROCESS)
                         ]
-@pytest.mark.parametrize('grayscale, image_path, csv_path, new_csv_name, check_arrays, image_list',
-                         PREPROCESS_DATA_CASES, ids=['dir_only', 'csv_only', 'combined', 'gray'])
+@pytest.mark.parametrize('image_path, csv_path, new_csv_name, check_arrays, image_list',
+                         PREPROCESS_DATA_CASES, ids=['dir_only', 'csv_only', 'combined'])
 def test_preprocess_data(grayscale, image_path, csv_path, new_csv_name, check_arrays, image_list):
     """
     Full integration test: check for Type and Value errors for badly passed variables,
@@ -278,7 +291,7 @@ def test_preprocess_data(grayscale, image_path, csv_path, new_csv_name, check_ar
         os.remove(new_csv_name)
 
     # Create the full (data, csv_path, image_list) for each of the three cases
-    preprocessed_case = preprocess_data(IMG_COL_HEAD, 'xception', grayscale=grayscale,
+    preprocessed_case = preprocess_data(IMG_COL_HEAD, 'xception', grayscale=False,
                                         image_path=image_path, csv_path=csv_path,
                                         new_csv_name=new_csv_name)
 
