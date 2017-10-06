@@ -129,7 +129,7 @@ def test_features_to_csv():
 
     # Assert that the dataframe returned is correct, and the csv was generated correctly
     try:
-        assert np.allclose(full_test_dataframe, pd.read_csv(CHECK_CSV_FULL_PATH), atol=ATOL)
+        assert np.array_equal(full_test_dataframe, pd.read_csv(CHECK_CSV_FULL_PATH))
         assert filecmp.cmp('{}_features_only'.format(CHECK_CSV_IMAGES_PATH),
                            CHECK_CSV_FEATURES_ONLY_PATH)
         assert filecmp.cmp('{}_full'.format(CHECK_CSV_IMAGES_PATH), CHECK_CSV_FULL_PATH)
