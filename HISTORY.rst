@@ -1,6 +1,11 @@
 =======
 History
 =======
+0.9.0 (2017-09-24)
+------------------
+* Fixed Keras backwards compatibility issues (include_top deprecated, require_flatten added)
+* Fixed ResNet50 update issues (removed a zero-padding layer, updated weights)
+
 0.8.2 (2017-08-14)
 ------------------
 * Updated trafaret requirement for PyPi package

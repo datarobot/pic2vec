@@ -98,7 +98,7 @@ def test_splice_layer():
     # Create the spliced and added layers by hand
     check_layer = K.constant(9, shape=(3, 4))
     # Check the math
-    assert np.array_equal(K.eval(check_layer), K.eval(x))
+    assert np.allclose(K.eval(check_layer), K.eval(x), atol=ATOL)
 
 
 def test_find_pooling_constant_upsample():
@@ -142,7 +142,7 @@ def test_downsample_model_features():
                             ])
     check_tensor = K.variable(check_array)
     # Check that they are equal: that it returns the correct tensor
-    assert np.array_equal(K.eval(check_tensor), K.eval(x))
+    assert np.allclose(K.eval(check_tensor), K.eval(x), atol=ATOL)
 
 
 def test_check_downsampling_mismatch_bad_num_features():
@@ -176,8 +176,8 @@ def check_model_equal(model1, model2):
 
     for layer in range(len(model1.layers)):
         for array in range(len(model1.layers[layer].get_weights())):
-            assert np.array_equal(model1.layers[layer].get_weights()[array],
-                                  model2.layers[layer].get_weights()[array])
+            assert np.allclose(model1.layers[layer].get_weights()[array],
+                                  model2.layers[layer].get_weights()[array], atol=ATOL)
 
 
 def test_initialize_model_weights_not_found():
@@ -223,7 +223,7 @@ INITIALIZE_MODEL_CASES = [
                           ('squeezenet', 67, (1, 227, 227, 3)),
                           ('vgg16', 23, (1, 224, 224, 3)),
                           ('vgg19', 26, (1, 224, 224, 3)),
-                          ('resnet50', 177, (1, 224, 224, 3)),
+                          ('resnet50', 176, (1, 224, 224, 3)),
                           ('inceptionv3', 313, (1, 299, 299, 3)),
                           ('xception', 134, (1, 299, 299, 3)),
                          ]
