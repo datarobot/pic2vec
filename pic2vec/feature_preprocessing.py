@@ -352,7 +352,8 @@ def _convert_single_image(image_source, model_str, image_path, target_size=(299,
          new_csv_name=t.String(allow_blank=True),
          target_size=t.Tuple(t.Int, t.Int),
          grayscale=t.Bool,
-         batch_size=t.Int)
+         batch_size=t.Int,
+         index=t.Int)
 def preprocess_data(image_column_header,
                     model_str,
                     image_path='',
@@ -360,7 +361,8 @@ def preprocess_data(image_column_header,
                     new_csv_name='featurizer_csv/generated_images_csv',
                     target_size=(299, 299),
                     grayscale=False,
-                    batch_size=1000):
+                    batch_size=1000,
+                    index=0):
     """
     Receive the data (some combination of image directory + csv), find
     the list of valid images, and then convert each to an array and adds
@@ -388,9 +390,9 @@ def preprocess_data(image_column_header,
 
     Returns:
     -------
-        full_image_data : np.ndarray
-            a 4D numpy tensor containing all of the vectorized images, ready
-            to be pushed through the featurizer
+        image_data : np.ndarray
+            a 4D numpy tensor containing the (full or batched) vectorized images,
+            ready to be pushed through the featurizer
 
         csv_path : str
             the path to the csv that represents the image data
@@ -447,44 +449,51 @@ def preprocess_data(image_column_header,
     else:
         channels = 3
 
-    full_image_data = np.zeros((num_images, target_size[0], target_size[1], channels))
+
+
+    if not batch_size:
+        image_data = np.zeros((num_images, target_size[0], target_size[1], channels))
+        batch_size = num_images
+    else:
+        if index+batch_size > num_images:
+            batch_size = num_images-index
+        image_data = np.zeros((batch_size, target_size[0], target_size[1], channels))
 
     # Create the full image tensor
-    i = 0
-
     logging.info('Converting images.')
 
     image_dict = {}
 
+
     # Iterate through each image in the list of image names
-    for image in list_of_image_paths:
+    for image in list_of_image_paths[index:index+batch_size]:
 
         # If the image is in the csv, but not in the directory, set it to all zeros
         # This allows the featurizer to correctly append features when there is
         # mismatch between the csv and the directory. Otherwise it would lose rows
         if image == '':
-            full_image_data[i, :, :, :] = 0
-            i += 1
+            image_data[index, :, :, :] = 0
+            index += 1
             continue
 
         # If the image has already been vectorized before, just copy that slice
         if image in image_dict:
-            full_image_data[i, :, :, :] = full_image_data[image_dict[image], :, :, :]
+            image_data[index, :, :, :] = image_data[image_dict[image], :, :, :]
 
         # Otherwise, vectorize the image
         else:
-            image_dict[image] = i
+            # Add the index to the dictionary to check in the future
+            image_dict[image] = index
 
             # If an image directory exists, append its path to the image name
             if image_path != '':
                 image = '{}{}'.format(image_path, image)
 
             # Place the vectorized image into the image data
-            full_image_data[i, :, :, :] = _convert_single_image(image_source, model_str, image,
+            image_data[index, :, :, :] = _convert_single_image(image_source, model_str, image,
                                                                 target_size=target_size,
                                                                 grayscale=grayscale)
 
-            # Add the index to the dictionary to check in the future
 
             # Progress report at the set intervals
             if len(list_of_image_paths) < 1000:
@@ -493,9 +502,9 @@ def preprocess_data(image_column_header,
                 report_step = 500
             else:
                 report_step = 1000
-            if not i % report_step:
+            if not index % report_step:
                 logging.info('Converted {} images. Only {} images left to go.'
-                             .format(i, num_images - i))
-            i += 1
+                             .format(index, batch_size - index))
+            index += 1
 
-    return full_image_data, csv_path, list_of_image_paths
+    return image_data, csv_path, list_of_image_paths

@@ -58,7 +58,7 @@ CSV_ARRAYS = [borges_array, arendt_array, sappho_array]
 COMBINED_ARRAYS = [np.zeros((borges_array.shape)), arendt_array, sappho_array, arendt_array]
 GRAYSCALE_ARRAYS = [np.zeros((arendt_grayscale_array.shape)), arendt_grayscale_array,
                     sappho_grayscale_array, arendt_grayscale_array]
-
+BATCH_ARRAYS = [arendt_array, sappho_array, arendt_array]
 
 # ---- TESTING ---- #
 def test_create_csv_with_image_paths():
@@ -70,10 +70,12 @@ def test_create_csv_with_image_paths():
 
     _create_csv_with_image_paths(IMAGE_LIST, new_csv_path, IMG_COL_HEAD)
 
-    assert filecmp.cmp(new_csv_path, '{}create_csv_check'.format(CSV_PATH))
+    try:
+        assert filecmp.cmp(new_csv_path, '{}create_csv_check'.format(CSV_PATH))
 
-    if os.path.isfile(new_csv_path):
-        os.remove(new_csv_path)
+    finally:
+        if os.path.isfile(new_csv_path):
+            os.remove(new_csv_path)
 
 
 def test_natural_sort():
@@ -269,19 +271,35 @@ def test_preprocess_data_grayscale():
 
 
 PREPROCESS_DATA_CASES = [
+                          #Tests an image directory-only preprocessing step
                          (IMAGE_PATH, '', NEW_CSV_NAME_PREPROCESS,
-                          DIRECTORY_ARRAYS, IMAGE_LIST),
+                          DIRECTORY_ARRAYS, IMAGE_LIST, None, None),
 
+                          # Tests a CSV-only URL-based preprocessing step
                          ('', URL_PATH, ERROR_NEW_CSV_NAME_PREPROCESS,
-                          CSV_ARRAYS, URL_LIST),
+                          CSV_ARRAYS, URL_LIST, None, None),
 
+                          # Tests a combined directory+csv preprocessing step
                          (IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
                           ERROR_NEW_CSV_NAME_PREPROCESS, COMBINED_ARRAYS,
-                          COMBINED_LIST_PREPROCESS),
+                          COMBINED_LIST_PREPROCESS, None, None),
+
+                          # Tests a minibatch
+                         (IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
+                          ERROR_NEW_CSV_NAME_PREPROCESS, COMBINED_ARRAYS[1:3],
+                          COMBINED_LIST_PREPROCESS, 2, 1),
+
+                          # Tests minibatch with overflow
+                          (IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
+                           ERROR_NEW_CSV_NAME_PREPROCESS, BATCH_ARRAYS,
+                           COMBINED_LIST_PREPROCESS, 5, 1)
                         ]
-@pytest.mark.parametrize('image_path, csv_path, new_csv_name, check_arrays, image_list',
-                         PREPROCESS_DATA_CASES, ids=['dir_only', 'csv_only', 'combined'])
-def test_preprocess_data(image_path, csv_path, new_csv_name, check_arrays, image_list):
+@pytest.mark.parametrize('image_path, csv_path, new_csv_name, check_arrays, image_list, '
+                         'batch_size, index',
+                         PREPROCESS_DATA_CASES, ids=['dir_only', 'csv_only', 'combined',
+                                                     'batch', 'batch_overflow'])
+def test_preprocess_data(image_path, csv_path, new_csv_name, check_arrays, image_list,
+                                  batch_size, index):
     """
     Full integration test: check for Type and Value errors for badly passed variables,
     and make sure that the network preprocesses data correctly for all three cases.
@@ -297,16 +315,19 @@ def test_preprocess_data(image_path, csv_path, new_csv_name, check_arrays, image
 
     # Ensure a new csv wasn't created when they weren't needed, and that a new csv
     # WAS created when it was needed. Then, remove the new csv.
-    assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
+    try:
+        assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
 
-    if new_csv_name == NEW_CSV_NAME_PREPROCESS:
-        csv_path = new_csv_name
+        if new_csv_name == NEW_CSV_NAME_PREPROCESS:
+            csv_path = new_csv_name
 
-    compare_preprocessing(preprocessed_case, csv_path, check_arrays, image_list)
 
-    if new_csv_name == NEW_CSV_NAME_PREPROCESS:
-        assert os.path.isfile(new_csv_name)
-        os.remove(new_csv_name)
+            compare_preprocessing(preprocessed_case, csv_path, check_arrays, image_list)
+
+    finally:
+        if new_csv_name == NEW_CSV_NAME_PREPROCESS:
+            assert os.path.isfile(new_csv_name)
+            os.remove(new_csv_name)
 
 
 if __name__ == "__main__":
