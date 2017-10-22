@@ -452,59 +452,60 @@ def preprocess_data(image_column_header,
 
 
     if not batch_size:
-        image_data = np.zeros((num_images, target_size[0], target_size[1], channels))
+        image_data = np.ones((num_images, target_size[0], target_size[1], channels))
         batch_size = num_images
     else:
         if index+batch_size > num_images:
             batch_size = num_images-index
-        image_data = np.zeros((batch_size, target_size[0], target_size[1], channels))
+        image_data = np.ones((batch_size, target_size[0], target_size[1], channels))
 
     # Create the full image tensor
     logging.info('Converting images.')
 
     image_dict = {}
 
+    new_index = 0
 
     # Iterate through each image in the list of image names
     for image in list_of_image_paths[index:index+batch_size]:
-
         # If the image is in the csv, but not in the directory, set it to all zeros
         # This allows the featurizer to correctly append features when there is
         # mismatch between the csv and the directory. Otherwise it would lose rows
         if image == '':
-            image_data[index, :, :, :] = 0
-            index += 1
+            image_data[new_index, :, :, :] = 0
+            new_index += 1
             continue
 
         # If the image has already been vectorized before, just copy that slice
         if image in image_dict:
-            image_data[index, :, :, :] = image_data[image_dict[image], :, :, :]
+            image_data[new_index, :, :, :] = image_data[image_dict[image], :, :, :]
 
         # Otherwise, vectorize the image
         else:
             # Add the index to the dictionary to check in the future
-            image_dict[image] = index
+            image_dict[image] = new_index
 
             # If an image directory exists, append its path to the image name
             if image_path != '':
                 image = '{}{}'.format(image_path, image)
 
             # Place the vectorized image into the image data
-            image_data[index, :, :, :] = _convert_single_image(image_source, model_str, image,
+            image_data[new_index, :, :, :] = _convert_single_image(image_source, model_str, image,
                                                                 target_size=target_size,
                                                                 grayscale=grayscale)
 
 
-            # Progress report at the set intervals
-            if len(list_of_image_paths) < 1000:
-                report_step = 100
-            elif len(list_of_image_paths) < 5000:
-                report_step = 500
-            else:
-                report_step = 1000
-            if not index % report_step:
-                logging.info('Converted {} images. Only {} images left to go.'
-                             .format(index, batch_size - index))
-            index += 1
+        # Progress report at the set intervals
+        if len(list_of_image_paths) < 1000:
+            report_step = 100
+        elif len(list_of_image_paths) < 5000:
+            report_step = 500
+        else:
+            report_step = 1000
+        if not index % report_step:
+            logging.info('Converted {} images. Only {} images left to go.'
+                         .format(index, batch_size - index))
 
-    return image_data, csv_path, list_of_image_paths
+        new_index += 1
+
+    return image_data, csv_path, list_of_image_paths[index:index+batch_size]

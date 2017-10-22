@@ -7,7 +7,7 @@ import random
 import numpy as np
 import pytest
 
-from .build_featurizer_test import ATOL
+from tests.build_featurizer_test import ATOL
 from pic2vec.feature_preprocessing import (_create_csv_with_image_paths,
                                            _find_directory_image_paths,
                                            _find_csv_image_paths,
@@ -58,7 +58,7 @@ CSV_ARRAYS = [borges_array, arendt_array, sappho_array]
 COMBINED_ARRAYS = [np.zeros((borges_array.shape)), arendt_array, sappho_array, arendt_array]
 GRAYSCALE_ARRAYS = [np.zeros((arendt_grayscale_array.shape)), arendt_grayscale_array,
                     sappho_grayscale_array, arendt_grayscale_array]
-BATCH_ARRAYS = [arendt_array, sappho_array, arendt_array]
+BATCH_ARRAYS_DIR = [arendt_array, borges_array]
 
 # ---- TESTING ---- #
 def test_create_csv_with_image_paths():
@@ -238,15 +238,11 @@ def test_preprocess_data_invalid_model_str():
 def compare_preprocessing(case, csv_name, check_arrays, image_list):
     """Compare a case from a full preprocessing step with the expected values of that case"""
     # Check correct number of images vectorized
-    if image_list != COMBINED_LIST_PREPROCESS:
-        assert len(case[0]) == 3
-    else:
-        assert len(case[0]) == 4
+    assert len(case[0]) == len(check_arrays)
 
+    for image in range(len(check_arrays)):
     # Check all data vectors correctly generated
-    assert np.allclose(case[0][0], check_arrays[0], atol=ATOL)
-    assert np.allclose(case[0][1], check_arrays[1], atol=ATOL)
-    assert np.allclose(case[0][2], check_arrays[2], atol=ATOL)
+        assert np.allclose(case[0][image], check_arrays[image], atol=ATOL)
 
     # csv path correctly returned as non-existent, and correct image list returned
     assert case[1] == csv_name
@@ -273,31 +269,42 @@ def test_preprocess_data_grayscale():
 PREPROCESS_DATA_CASES = [
                           #Tests an image directory-only preprocessing step
                          (IMAGE_PATH, '', NEW_CSV_NAME_PREPROCESS,
-                          DIRECTORY_ARRAYS, IMAGE_LIST, None, None),
+                          DIRECTORY_ARRAYS, IMAGE_LIST, 1000, 0),
 
                           # Tests a CSV-only URL-based preprocessing step
                          ('', URL_PATH, ERROR_NEW_CSV_NAME_PREPROCESS,
-                          CSV_ARRAYS, URL_LIST, None, None),
+                          CSV_ARRAYS, URL_LIST, 1000, 0),
 
                           # Tests a combined directory+csv preprocessing step
                          (IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
                           ERROR_NEW_CSV_NAME_PREPROCESS, COMBINED_ARRAYS,
-                          COMBINED_LIST_PREPROCESS, None, None),
+                          COMBINED_LIST_PREPROCESS, 1000, 0),
 
-                          # Tests a minibatch
+                          # Tests a minibatch with directory only
+                         (IMAGE_PATH, '', NEW_CSV_NAME_PREPROCESS, BATCH_ARRAYS_DIR,
+                          IMAGE_LIST[0:2], 2, 0),
+
+                          # Tests a minibatch with CSV only
+                         ('', URL_PATH,
+                          ERROR_NEW_CSV_NAME_PREPROCESS, CSV_ARRAYS[1:3],
+                          URL_LIST[1:3], 2, 1),
+
+                          # Tests a minibatch with combined CSV and directory
                          (IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
                           ERROR_NEW_CSV_NAME_PREPROCESS, COMBINED_ARRAYS[1:3],
-                          COMBINED_LIST_PREPROCESS, 2, 1),
+                          COMBINED_LIST_PREPROCESS[1:3], 2, 1),
 
                           # Tests minibatch with overflow
                           (IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
-                           ERROR_NEW_CSV_NAME_PREPROCESS, BATCH_ARRAYS,
-                           COMBINED_LIST_PREPROCESS, 5, 1)
+                           ERROR_NEW_CSV_NAME_PREPROCESS, COMBINED_ARRAYS[1:],
+                           COMBINED_LIST_PREPROCESS[1:], 5, 1)
                         ]
+
+
 @pytest.mark.parametrize('image_path, csv_path, new_csv_name, check_arrays, image_list, '
                          'batch_size, index',
-                         PREPROCESS_DATA_CASES, ids=['dir_only', 'csv_only', 'combined',
-                                                     'batch', 'batch_overflow'])
+                         PREPROCESS_DATA_CASES, ids=['dir_only', 'csv_only', 'combined', 'batch_dir',
+                                                     'batch_csv', 'batch_combined', 'batch_overflow'])
 def test_preprocess_data(image_path, csv_path, new_csv_name, check_arrays, image_list,
                                   batch_size, index):
     """
@@ -311,30 +318,25 @@ def test_preprocess_data(image_path, csv_path, new_csv_name, check_arrays, image
     # Create the full (data, csv_path, image_list) for each of the three cases
     preprocessed_case = preprocess_data(IMG_COL_HEAD, 'xception', grayscale=False,
                                         image_path=image_path, csv_path=csv_path,
-                                        new_csv_name=new_csv_name)
+                                        new_csv_name=new_csv_name, batch_size=batch_size,
+                                        index=index)
 
     # Ensure a new csv wasn't created when they weren't needed, and that a new csv
     # WAS created when it was needed. Then, remove the new csv.
     try:
         assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
 
+
         if new_csv_name == NEW_CSV_NAME_PREPROCESS:
             csv_path = new_csv_name
 
 
-            compare_preprocessing(preprocessed_case, csv_path, check_arrays, image_list)
+        compare_preprocessing(preprocessed_case, csv_path, check_arrays, image_list)
 
     finally:
         if new_csv_name == NEW_CSV_NAME_PREPROCESS:
             assert os.path.isfile(new_csv_name)
             os.remove(new_csv_name)
 
-
-if __name__ == "__main__":
-    test_create_csv_with_image_paths()
-    test_find_directory_image_paths()
-    test_find_csv_image_paths()
-    test_find_combined_image_paths()
-    test_convert_single_image()
-    test_image_paths_finder()
-    test_preprocess_data()
+        if os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS):
+            os.remove(ERROR_NEW_CSV_NAME_PREPROCESS)
