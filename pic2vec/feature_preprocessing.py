@@ -322,6 +322,7 @@ def _convert_single_image(image_source, model_str, image_path, target_size=(299,
             image_file = urlretrieve(image_path)[0]
         elif image_source == 'directory':
             image_file = image_path
+
     # If the image can't be retrieved, return a zeros vector of the appropriate size
     except (IOError, ValueError):
         # The channel dimension for a missing image is 3 if not grayscale, or 1 if grayscale

@@ -32,10 +32,9 @@ NEW_IMG_COL_HEAD = 'new_images'
 
 # Image lists for directory and url
 IMAGE_LIST = ['arendt.bmp', 'borges.jpg', 'sappho.png']
-URL_LIST = ['http://i2.wp.com/roadsandkingdoms.com/uploads/2013/11/Jorge_Luis_Borges.jpg',
-            'http://sisareport.com/wp-content/uploads/2016/09/%E2%96%B2-%ED'
-            '%95%9C%EB%82%98-%EC%95%84%EB%A0%8C%ED%8A%B8Hannah-Arendt-1906-1975.bmp',
-            'http://queerbio.com/wiki/images/thumb/8/8d/Sappho.png/200px-Sappho.png'
+URL_LIST = ['https://s3.amazonaws.com/datarobot_public_datasets/images/pic2vec/borges.jpg',
+            'https://s3.amazonaws.com/datarobot_public_datasets/images/pic2vec/arendt.bmp',
+            'https://s3.amazonaws.com/datarobot_public_datasets/images/pic2vec/sappho.png'
             ]
 
 # Preprocessing paths
