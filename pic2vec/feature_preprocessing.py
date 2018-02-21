@@ -63,6 +63,7 @@ preprocessing_dict = {
     },
 }
 
+
 def _create_csv_with_image_paths(list_of_image_paths, new_csv_name, image_column_header):
     """
     Take in a list of image names, and create a new csv file where each
@@ -126,7 +127,7 @@ def _find_directory_image_paths(image_directory):
             if Image.open(image_directory + fichier).format in valid:
                 list_of_image_paths.append(fichier)
                 Image.close()
-        except:
+        except IOError:
             pass
 
     return sorted(list_of_image_paths, key=natural_key)
@@ -450,14 +451,12 @@ def preprocess_data(image_column_header,
     else:
         channels = 3
 
-
-
     if not batch_size:
         image_data = np.ones((num_images, target_size[0], target_size[1], channels))
         batch_size = num_images
     else:
-        if index+batch_size > num_images:
-            batch_size = num_images-index
+        if index + batch_size > num_images:
+            batch_size = num_images - index
         image_data = np.ones((batch_size, target_size[0], target_size[1], channels))
 
     # Create the full image tensor
@@ -468,7 +467,7 @@ def preprocess_data(image_column_header,
     new_index = 0
 
     # Iterate through each image in the list of image names
-    for image in list_of_image_paths[index:index+batch_size]:
+    for image in list_of_image_paths[index:index + batch_size]:
         # If the image is in the csv, but not in the directory, set it to all zeros
         # This allows the featurizer to correctly append features when there is
         # mismatch between the csv and the directory. Otherwise it would lose rows
@@ -492,9 +491,8 @@ def preprocess_data(image_column_header,
 
             # Place the vectorized image into the image data
             image_data[new_index, :, :, :] = _convert_single_image(image_source, model_str, image,
-                                                                target_size=target_size,
-                                                                grayscale=grayscale)
-
+                                                                   target_size=target_size,
+                                                                   grayscale=grayscale)
 
         # Progress report at the set intervals
         if len(list_of_image_paths) < 1000:
@@ -509,4 +507,4 @@ def preprocess_data(image_column_header,
 
         new_index += 1
 
-    return image_data, csv_path, list_of_image_paths[index:index+batch_size]
+    return image_data, csv_path, list_of_image_paths[index:index + batch_size]

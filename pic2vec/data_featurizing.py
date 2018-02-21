@@ -18,6 +18,7 @@ import pandas as pd
 
 from keras.models import Model
 
+
 @t.guard(model=t.Type(Model), array=t.Type(np.ndarray))
 def featurize_data(model, array):
     """
@@ -50,6 +51,7 @@ def featurize_data(model, array):
     # Return features
     logging.info('Feature array created successfully.')
     return full_feature_array
+
 
 def _named_path_finder(csv_name, model_str, model_depth, model_output,
                        omit_model, omit_depth, omit_output, omit_time):
@@ -126,6 +128,7 @@ def _create_features_df(data_array, full_feature_array, image_column_header, df)
     df_full = pd.concat([df, df_missing, df_features], axis=1)
 
     return df_full, df_features
+
 
 def _features_to_csv(data_array, full_feature_array, csv_path, image_column_header, image_list,
                      model_str, model_depth, model_output, omit_model=False, omit_depth=False,
