@@ -108,6 +108,8 @@ class ImageFeaturizer:
 
 
     """
+    size_dict = {'squeezenet': (227, 227), 'vgg16': (224, 224), 'vgg19': (224, 224),
+                 'resnet50': (224, 224), 'inceptionv3': (299, 299), 'xception': (299, 299)}
 
     @t.guard(depth=t.Int(gte=1, lte=4),
              auto_sample=t.Bool,
@@ -178,6 +180,7 @@ class ImageFeaturizer:
                                 image_path='',
                                 csv_path='',
                                 new_csv_name='featurizer_csv/generated_images_csv',
+                                batch_size=1000,
                                 grayscale=False,
                                 save_features=False,
                                 omit_time=False,
@@ -237,7 +240,8 @@ class ImageFeaturizer:
                 to the same path as the csv containing the list of names
 
         """
-        self.load_data(image_column_headers, image_path, csv_path, new_csv_name, grayscale)
+        self.load_data(image_column_headers, image_path, csv_path,
+                       new_csv_name, batch_size, grayscale)
         return self.featurize(save_features=save_features, omit_time=omit_time,
                               omit_model=omit_model, omit_depth=omit_depth, omit_output=omit_output)
 
@@ -247,8 +251,7 @@ class ImageFeaturizer:
                   csv_path='',
                   new_csv_name='featurizer_csv/generated_images_csv',
                   batch_size=1000,
-                  grayscale=False
-
+                  grayscale=False,
                   # crop_size = (299, 299),
                   # number_crops = 0,
                   # random_crop = False,
