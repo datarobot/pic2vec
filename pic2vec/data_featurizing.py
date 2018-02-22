@@ -18,7 +18,6 @@ import pandas as pd
 
 from keras.models import Model
 
-
 @t.guard(model=t.Type(Model), array=t.Type(np.ndarray))
 def featurize_data(model, array):
     """
@@ -46,13 +45,11 @@ def featurize_data(model, array):
 
     # Perform predictions
     logging.info('Creating feature array.')
-    model.compile('sgd','mse')
     full_feature_array = model.predict(array, verbose=1)
 
     # Return features
     logging.info('Feature array created successfully.')
     return full_feature_array
-
 
 def _named_path_finder(csv_name, model_str, model_depth, model_output,
                        omit_model, omit_depth, omit_output, omit_time):
@@ -130,8 +127,7 @@ def _create_features_df(data_array, full_feature_array, image_column_header, df)
 
     return df_full, df_features
 
-
-def _features_to_csv(data_array, full_feature_array, df, image_column_header, image_list,
+def _features_to_csv(data_array, full_feature_array, csv_path, image_column_header, image_list,
                      model_str, model_depth, model_output, omit_model=False, omit_depth=False,
                      omit_output=False, omit_time=False, continued_column=False,
                      save_features=False):
@@ -162,6 +158,8 @@ def _features_to_csv(data_array, full_feature_array, df, image_column_header, im
         just the features, and another containing the full combined csv and features
 
     """
+    # Read the original csv
+    df = pd.read_csv(csv_path)
 
     # -------------- #
     # ERROR CHECKING #
@@ -187,10 +185,32 @@ def _features_to_csv(data_array, full_feature_array, df, image_column_header, im
     df_full, df_features = _create_features_df(data_array, full_feature_array,
                                                image_column_header, df)
 
-    if continued_column:
-            df_features = pd.concat([features_name, df_features])
+    # Save the name and extension separately, for robust naming
+    csv_name, ext = os.path.splitext(csv_path)
+
+    # Find the CSV prefix with user naming configuration
+    named_path = _named_path_finder(csv_name, model_str, model_depth, model_output,
+                                    omit_model, omit_depth, omit_output, omit_time)
+
+    if not continued_column:
+        if save_features:
+            # Save the features dataframe to a csv without index or headers, for easy modeling
+            df_features.to_csv('{}_features_only{}'.format(named_path, ext),
+                               index=False, header=False)
+
+        # Save the combined csv+features to a csv with no index, but with column headers
+        # for DR platform
+        df_full.to_csv('{}_full{}'.format(named_path, ext), index=False)
+    else:
+        csv_name_orig = named_path.split('_full')[0]
+
+        if save_features:
+            features_name = '{}_features_only{}'.format(csv_name_orig, ext)
+
+            df_features = pd.concat([pd.read_csv(features_name), df_features])
             df_features.to_csv(features_name, index=False, header=False)
 
+        df_full.to_csv(csv_path, index=False)
 
     # Return the full combined dataframe
-    return df_full, df_features
+    return df_full
