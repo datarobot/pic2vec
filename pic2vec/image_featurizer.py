@@ -66,9 +66,9 @@ import trafaret as t
 import pandas as pd
 
 from .build_featurizer import build_featurizer, supported_model_types
-from .feature_preprocessing import preprocess_data
-from .data_featurizing import featurize_data, _features_to_csv, _named_path_finder, \
-    _image_paths_finder
+from .feature_preprocessing import preprocess_data, _image_paths_finder
+from .data_featurizing import featurize_data, _features_to_csv, _named_path_finder
+
 
 logger = logging.getLogger(__name__)
 
@@ -169,7 +169,7 @@ class ImageFeaturizer:
         self.features = np.zeros((1))
         self.full_dataframe = pd.DataFrame()
         self.csv_path = ''
-        self.image_list = ''
+        self.image_dict = {}
         self.image_column_headers = ''
         self.image_path = ''
 
@@ -265,7 +265,7 @@ class ImageFeaturizer:
                          batch_size=1000,
                          grayscale=False,
                          save_features=False):
-        tot_num_images = sum(full_image_dict[image_list].count() for image_list in full_image_dict)
+        tot_num_images = sum(len(full_image_dict[image_list]) for image_list in full_image_dict)
 
         for column in full_image_dict:
             index = 0
@@ -282,8 +282,6 @@ class ImageFeaturizer:
                                             save_array=False)
 
                 batch_features = self.featurize(batch_data, column, batch=True, save_features=False)
-
-
 
     # TODO: Batch processing has to first fully featurize one column, then the next, then the next
     # (if there are multiple columns). Otherwise the ordering gets fucked up.
@@ -349,16 +347,17 @@ class ImageFeaturizer:
         # Save size that model scales to
         scaled_size = SIZE_DICT[self.model_name]
 
-        # Save the full image tensor, the path to the csv, and the list of image paths
-        (image_data, csv_path) = \
-            preprocess_data(image_column_headers[0], self.model_name,
-                            full_image_dict[image_column_headers[0]],
-                            image_path, csv_path, new_csv_name, scaled_size, grayscale)
-
         # If the full_image_dict hasn't been passed in, build it
         if not full_image_dict:
             full_image_dict = self._full_image_dict_finder(image_path, csv_path,
                                                            image_column_headers, new_csv_name)
+
+        # Save the full image tensor, the path to the csv, and the list of image paths
+        print(full_image_dict[image_column_headers[0]])
+        (image_data, csv_path, list_of_image_paths) = \
+            preprocess_data(image_column_headers[0], self.model_name,
+                            full_image_dict[image_column_headers[0]],
+                            image_path, csv_path, new_csv_name, scaled_size, grayscale)
 
         full_image_data = np.expand_dims(image_data, axis=0)
 
@@ -379,9 +378,15 @@ class ImageFeaturizer:
         self.scaled_size = scaled_size
         self.image_path = image_path
 
-    @t.guard(save_features=t.Bool, omit_time=t.Bool, omit_model=t.Bool,
-             omit_depth=t.Bool, omit_output=t.Bool)
-    def featurize(self, batch_data=self.data, image_column_headers=self.image_column_headers,
+    @t.guard(batch_data=t.Type(np.ndarray),
+             batch=t.Bool,
+             save_features=t.Bool,
+             omit_time=t.Bool,
+             omit_model=t.Bool,
+             omit_depth=t.Bool,
+             omit_output=t.Bool,
+             image_column_headers=t.String(allow_blank=True))
+    def featurize(self, batch_data=np.zeros((1)), image_column_headers='',
                   batch=False, save_features=False, omit_time=False, omit_model=False,
                   omit_depth=False, omit_output=False):
         """
@@ -400,11 +405,18 @@ class ImageFeaturizer:
                 to the same path as the csv containing the list of names
 
         """
+        if batch_data == np.zeros((1)):
+            batch_data = self.data
+        if image_column_headers == '':
+            image_column_headers = self.image_column_headers
+
         # Check data has been loaded, and that the data was vectorized correctly
         if np.array_equal(batch_data, np.zeros((1))):
             raise IOError('Must load data into the model first. Call load_data.')
+        if batch:
+            assert len(image_column_headers) == 1
         if not batch:
-            assert len(self.image_column_headers) == self.data.shape[0]
+            assert len(image_column_headers) == self.data.shape[0]
 
         logging.info("Trying to featurize data.")
 
@@ -430,8 +442,8 @@ class ImageFeaturizer:
 
             # Featurize the data, and save it to the appropriate columns
             features[:,
-                          self.num_features * column:self.num_features * column +
-                          self.num_features] \
+                     self.num_features * column:self.num_features * column +
+                     self.num_features] \
                 = partial_features = featurize_data(self.featurizer, self.data[column])
 
             # Save the full dataframe to the csv
@@ -476,8 +488,8 @@ class ImageFeaturizer:
             list_of_image_paths = _image_paths_finder(image_path, csv_path,
                                                       column, new_csv_name)
 
-            full_image_dict[column] = list_of_image_paths
-
+            full_image_dict[column] = list_of_image_paths[0]
+        print("This is the full dictionary: {}".format(full_image_dict))
         return full_image_dict
 
     def _input_fixer(self, image_column_headers, image_path):
@@ -508,5 +520,6 @@ class ImageFeaturizer:
             path_to_new_csv = os.path.dirname(new_csv_name)
             if not os.path.isdir(path_to_new_csv) and path_to_new_csv != '':
                 os.makedirs(path_to_new_csv)
+            csv_path = new_csv_name
 
-        return path_to_new_csv
+        return csv_path

@@ -18,7 +18,6 @@ import pandas as pd
 
 from keras.models import Model
 
-
 @t.guard(model=t.Type(Model), array=t.Type(np.ndarray))
 def featurize_data(model, array):
     """
@@ -131,7 +130,7 @@ def _create_features_df(data_array, full_feature_array, image_column_header, df)
     return df_full, df_features
 
 
-def _features_to_csv(data_array, full_feature_array, df, image_column_header, image_list,
+def create_full_features(data_array, full_feature_array, df, image_column_header, image_list,
                      model_str, model_depth, model_output, omit_model=False, omit_depth=False,
                      omit_output=False, omit_time=False, continued_column=False,
                      save_features=False):
@@ -189,7 +188,6 @@ def _features_to_csv(data_array, full_feature_array, df, image_column_header, im
 
     if continued_column:
             df_features = pd.concat([features_name, df_features])
-            df_features.to_csv(features_name, index=False, header=False)
 
 
     # Return the full combined dataframe

@@ -365,6 +365,7 @@ def _find_image_source(csv_path, image_path, new_csv_name):
 
 @t.guard(image_column_header=t.String(allow_blank=False),
          model_str=t.String(allow_blank=False),
+         list_of_image_paths=t.List(t.String(allow_blank=True)),
          image_path=t.String(allow_blank=True),
          csv_path=t.String(allow_blank=True),
          new_csv_name=t.String(allow_blank=True),
@@ -372,7 +373,7 @@ def _find_image_source(csv_path, image_path, new_csv_name):
          grayscale=t.Bool)
 def preprocess_data(image_column_header,
                     model_str,
-                    dict_of_image_paths,
+                    list_of_image_paths,
                     image_path='',
                     csv_path='',
                     new_csv_name='featurizer_csv/generated_images.csv',
@@ -439,7 +440,7 @@ def preprocess_data(image_column_header,
     # ------------------------------------------------------ #
 
     # BUILDING IMAGE PATH LIST #
-    num_images = sum(dict_of_image_paths[image_list].count() for image_list in dict_of_image_paths)
+    num_images = len(list_of_image_paths)
 
     image_source, csv_path = _find_image_source(csv_path, image_path, new_csv_name)
 
@@ -457,7 +458,7 @@ def preprocess_data(image_column_header,
     index = 0
 
     # Iterate through each image in the list of image names
-    for image in dict_of_image_paths:
+    for image in list_of_image_paths:
         # If the image is in the csv, but not in the directory, set it to all zeros
         # This allows the featurizer to correctly append features when there is
         # mismatch between the csv and the directory. Otherwise it would lose rows
