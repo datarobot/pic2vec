@@ -372,9 +372,10 @@ def _find_image_source(csv_path, image_path, new_csv_name):
          grayscale=t.Bool)
 def preprocess_data(image_column_header,
                     model_str,
+                    dict_of_image_paths,
                     image_path='',
                     csv_path='',
-                    new_csv_name='featurizer_csv/generated_images_csv',
+                    new_csv_name='featurizer_csv/generated_images.csv',
                     target_size=(299, 299),
                     grayscale=False):
     """
@@ -425,24 +426,20 @@ def preprocess_data(image_column_header,
     if image_path == '' and csv_path == '':
         raise ValueError('Need to load either an image directory or a CSV with'
                          ' URLs, if no image directory included.')
-
     # Raise an error if the image_path doesn't point to a directory
     if image_path and not os.path.isdir(image_path):
         raise TypeError('image_path must lead to a directory if '
                         'it is initialized. It is where the images are stored.')
-
     # Raise an error if the csv_path doesn't point to a file
     if csv_path and not os.path.isfile(csv_path):
         raise TypeError('csv_path must lead to a file if it is initialized.'
                         ' This is the csv containing pointers to the images.')
-
     if model_str not in preprocessing_dict.keys():
         raise ValueError('model_str must be one the following: {}'.format(preprocessing_dict.keys))
     # ------------------------------------------------------ #
 
     # BUILDING IMAGE PATH LIST #
-    list_of_image_paths, num_images = _image_paths_finder(image_path, csv_path,
-                                                          image_column_header, new_csv_name)
+    num_images = sum(dict_of_image_paths[image_list].count() for image_list in dict_of_image_paths)
 
     image_source, csv_path = _find_image_source(csv_path, image_path, new_csv_name)
 
@@ -460,7 +457,7 @@ def preprocess_data(image_column_header,
     index = 0
 
     # Iterate through each image in the list of image names
-    for image in list_of_image_paths:
+    for image in dict_of_image_paths:
         # If the image is in the csv, but not in the directory, set it to all zeros
         # This allows the featurizer to correctly append features when there is
         # mismatch between the csv and the directory. Otherwise it would lose rows

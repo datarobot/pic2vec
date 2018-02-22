@@ -1,1 +1,4 @@
-{}
+{
+  "tests/data_featurizing_test.py": true, 
+  "tests/image_featurizer_test.py::test_load_data_single_column": true
+}
