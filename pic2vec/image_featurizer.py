@@ -446,7 +446,7 @@ class ImageFeaturizer:
         full_dataframe = self._featurize_helper(features, image_column_headers, save_features)
 
         if save_csv:
-            save_csv(omit_model, omit_depth, omit_output, omit_time)
+            self.save_csv(omit_model, omit_depth, omit_output, omit_time)
 
         return full_dataframe
 
@@ -475,7 +475,8 @@ class ImageFeaturizer:
                                 continued_column=bool(column),
                                 save_features=save_features)
             if save_features:
-                self.df_features = df_features
+                self.features = df_features
+                self.features = 
         return self.full_dataframe, self.df_features
 
     def save_csv(self, omit_model=False, omit_depth=False, omit_output=False, omit_time=False,
@@ -486,7 +487,7 @@ class ImageFeaturizer:
         name_path = _named_path_finder(csv_name, self.model_name, self.depth, self.num_features,
                                        omit_model, omit_depth, omit_output, omit_time)
 
-        self._creating_csv_path(self.csv_path, self.image_column_headers, self.new_csv_name)
+        self._creating_csv_path(self.csv_path, self.image_column_headers, self.csv_path)
 
         self.full_dataframe.to_csv("{}{}".format(name_path, ext), index=False)
         if save_features:

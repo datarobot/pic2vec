@@ -170,12 +170,13 @@ def test_save_csv():
         if os.path.isfile('{}_features_only'.format(check_array_path)):
             os.remove('{}_features_only'.format(check_array_path))
 
+
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
 def test_load_then_featurize_data_multiple_columns(model, size, array_path):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
     feat = ImageFeaturizer(model=model, auto_sample=True)
-    feat.load_data(save_features=True, **LOAD_DATA_ARGS_MULT)
-    feat.featurize()
+    feat.load_data(**LOAD_DATA_ARGS_MULT)
+    feat.featurize(save_features=True, save_csv=True)
     check_array = np.load(array_path)
 
     try:
