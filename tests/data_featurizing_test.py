@@ -1,7 +1,4 @@
 """Test data_featurizing module"""
-import filecmp
-import os
-
 import numpy as np
 import pandas as pd
 import pytest

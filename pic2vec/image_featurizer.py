@@ -255,7 +255,6 @@ class ImageFeaturizer:
         csv = self.batch_processing(full_image_dict, image_column_headers, image_path, csv_path,
                                     new_csv_name, batch_size, grayscale, save_features)
 
-
     def batch_processing(self,
                          full_image_dict,
                          image_column_headers,
@@ -292,7 +291,6 @@ class ImageFeaturizer:
                   full_image_dict='',
                   csv_path='',
                   new_csv_name='featurizer_csv/generated_images_csv',
-                  batch_size=1000,
                   grayscale=False,
                   save_array=True,
                   df=pd.DataFrame()
@@ -345,17 +343,42 @@ class ImageFeaturizer:
         image_column_headers, image_path = self._input_fixer(image_column_headers, image_path)
         self._creating_csv_path(csv_path, image_column_headers, new_csv_name)
 
-        # Save size that model scales to
-        scaled_size = SIZE_DICT[self.model_name]
-
         # If the full_image_dict hasn't been passed in, build it
         if not full_image_dict:
             full_image_dict, df = self._full_image_dict_finder(image_path, csv_path,
                                                                image_column_headers, new_csv_name)
 
+        scaled_size, full_image_data, csv_path = \
+            self._load_data_helper(self.model_name, image_column_headers,
+                                   image_path, full_image_dict, csv_path,
+                                   new_csv_name, grayscale, save_array, df)
+
+        # Save all of the necessary data to the featurizer
+        if save_array:
+            self.data = full_image_data
+        self.csv_path = csv_path
+        self.image_dict = full_image_dict
+        self.image_column_headers = image_column_headers
+        self.image_path = image_path
+        self.df_original = df
+        self.scaled_size = scaled_size
+
+    def _load_data_helper(self,
+                          model_name,
+                          image_column_headers,
+                          image_path,
+                          full_image_dict,
+                          csv_path,
+                          new_csv_name,
+                          grayscale,
+                          save_array,
+                          df):
+        # Save size that model scales to
+        scaled_size = SIZE_DICT[model_name]
+
         # Save the full image tensor, the path to the csv, and the list of image paths
         (image_data, csv_path, list_of_image_paths) = \
-            preprocess_data(image_column_headers[0], self.model_name,
+            preprocess_data(image_column_headers[0], model_name,
                             full_image_dict[image_column_headers[0]],
                             image_path, csv_path, new_csv_name, scaled_size, grayscale)
 
@@ -364,20 +387,12 @@ class ImageFeaturizer:
         if len(image_column_headers) > 1:
             for column in image_column_headers[1:]:
                 (image_data, csv_path, list_of_image_paths) = \
-                    preprocess_data(column, self.model_name, full_image_dict[column], image_path,
+                    preprocess_data(column, model_name, full_image_dict[column], image_path,
                                     csv_path, new_csv_name, scaled_size, grayscale)
                 full_image_data = np.concatenate((full_image_data,
                                                   np.expand_dims(image_data, axis=0)))
 
-        # Save all of the necessary data to the featurizer
-        if save_array:
-            self.data = full_image_data
-        self.csv_path = csv_path
-        self.image_dict = full_image_dict
-        self.image_column_headers = image_column_headers
-        self.scaled_size = scaled_size
-        self.image_path = image_path
-        self.df_original = df
+        return scaled_size, full_image_data, csv_path
 
     @t.guard(batch_data=t.Type(np.ndarray),
              image_column_headers=t.String(allow_blank=True),

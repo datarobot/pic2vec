@@ -170,6 +170,28 @@ def test_save_csv():
         if os.path.isfile('{}_features_only'.format(check_array_path)):
             os.remove('{}_features_only'.format(check_array_path))
 
+@pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
+def test_load_then_featurize_data_multiple_columns(model, size, array_path):
+    """Test featurizations and attributes for each model are correct with multiple image columns"""
+    feat = ImageFeaturizer(model=model, auto_sample=True)
+    feat.load_data(save_features=True, **LOAD_DATA_ARGS_MULT)
+    feat.featurize()
+    check_array = np.load(array_path)
+
+    try:
+        compare_featurizer_class(feat, size, check_array, **COMPARE_ARGS_MULT)
+    finally:
+        # Remove path to the generated csv at the end of the test
+        if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
+            shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
+
+        if os.path.isfile('{}_full'.format(CSV_NAME_MULT)):
+            os.remove('{}_full'.format(CSV_NAME_MULT))
+            pass
+        if os.path.isfile('{}_features_only'.format(CSV_NAME_MULT)):
+            os.remove('{}_features_only'.format(CSV_NAME_MULT))
+        del feat
+
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
 def test_load_and_featurize_data_multiple_columns(model, size, array_path):
