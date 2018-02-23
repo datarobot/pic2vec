@@ -11,8 +11,8 @@ from keras.models import Sequential
 from .build_featurizer_test import ATOL
 from pic2vec.data_featurizing import (featurize_data,
                                       _named_path_finder,
-                                      _features_to_csv,
-                                      _create_features_df)
+                                      create_features,
+                                      _create_features_df_helper)
 
 np.random.seed(5102020)
 
@@ -87,17 +87,15 @@ def test_features_to_csv_bad_feature_array():
     # An error array with the wrong size
     error_array = np.zeros((4, 3, 2))
     with pytest.raises(ValueError):
-        _features_to_csv(CHECK_DATA, error_array, CHECK_CSV_IMAGES_PATH, 'image', CHECK_IMAGE_LIST,
-                         model_output='', model_str='', model_depth='', omit_time=True,
-                         omit_depth=True, omit_output=True, save_features=True)
+        create_features(CHECK_DATA, error_array, CHECK_CSV_IMAGES_PATH, 'image', CHECK_IMAGE_LIST,
+                        save_features=True)
 
 
 def test_features_to_csv_bad_column_header():
     """Raise an error when the column header is not found in the csv"""
     with pytest.raises(ValueError):
-        _features_to_csv(CHECK_DATA, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH, 'derp', CHECK_IMAGE_LIST,
-                         model_output='', model_str='', model_depth='', omit_time=True,
-                         omit_depth=True, omit_output=True, save_features=True)
+        create_features(CHECK_DATA, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH, 'derp', CHECK_IMAGE_LIST,
+                        save_features=True)
 
 
 def test_features_to_csv_bad_data_array():
@@ -105,15 +103,14 @@ def test_features_to_csv_bad_data_array():
     # An error array with the wrong size
     error_array = np.zeros((4, 3, 2))
     with pytest.raises(ValueError):
-        _features_to_csv(error_array, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH, 'image', CHECK_IMAGE_LIST,
-                         model_output='', model_str='', model_depth='', omit_time=True,
-                         omit_depth=True, omit_output=True, save_features=True)
+        create_features(error_array, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH, 'image', CHECK_IMAGE_LIST,
+                        save_features=True)
 
 
-def test_create_features_df():
-    """Test that the correct full array is created to be passed to the features_to_csv function"""
+def test_create_features_df_helper():
+    """Test that the correct full array is created to be passed to the create_features function"""
     df = pd.read_csv(CHECK_CSV_IMAGES_PATH)
-    full_df_test = _create_features_df(CHECK_DATA, CHECK_ARRAY, 'image', df)[0]
+    full_df_test = _create_features_df_helper(CHECK_DATA, CHECK_ARRAY, 'image', df)[0]
     assert full_df_test.equals(pd.read_csv(CHECK_CSV_FULL_PATH))
 
 
@@ -126,10 +123,8 @@ def test_features_to_csv():
         os.remove('{}_features_only'.format(CHECK_CSV_IMAGES_PATH))
 
     # Create the test
-    full_test_dataframe = _features_to_csv(CHECK_DATA, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH,
-                                           'image', CHECK_IMAGE_LIST, '', '', '', omit_model=True,
-                                           omit_depth=True, omit_output=True, omit_time=True,
-                                           save_features=True)
+    full_test_dataframe = create_features(CHECK_DATA, CHECK_ARRAY, CHECK_CSV_IMAGES_PATH,
+                                          'image', CHECK_IMAGE_LIST, save_features=True)
 
     # Assert that the dataframe returned is correct, and the csv was generated correctly
     try:

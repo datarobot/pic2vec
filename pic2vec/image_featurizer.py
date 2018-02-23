@@ -67,7 +67,7 @@ import pandas as pd
 
 from .build_featurizer import build_featurizer, supported_model_types
 from .feature_preprocessing import preprocess_data, _image_paths_finder
-from .data_featurizing import featurize_data, _features_to_csv, _named_path_finder
+from .data_featurizing import featurize_data, create_features, _named_path_finder
 
 
 logger = logging.getLogger(__name__)
@@ -167,6 +167,7 @@ class ImageFeaturizer:
         # Initializing preprocessing variables for after we load and featurize the images
         self.data = np.zeros((1))
         self.features = np.zeros((1))
+        self.df_original = pd.DataFrame()
         self.full_dataframe = pd.DataFrame()
         self.csv_path = ''
         self.image_dict = {}
@@ -247,14 +248,15 @@ class ImageFeaturizer:
         # Fix column headers and image path if necessary
         image_column_headers, image_path = self._input_fixer(image_column_headers, image_path)
 
-        full_image_dict = self._full_image_dict_finder(image_path, csv_path,
-                                                       image_column_headers, new_csv_name)
+        full_image_dict, self.df_original = self._full_image_dict_finder(image_path, csv_path,
+                                                                         image_column_headers,
+                                                                         new_csv_name)
 
         csv = self.batch_processing(full_image_dict, image_column_headers, image_path, csv_path,
                                     new_csv_name, batch_size, grayscale, save_features)
 
-        create_final_csv(csv, omit_time=omit_time, omit_model=omit_model, omit_depth=omit_depth,
-                         omit_output=omit_output)
+        self.save_csv(csv, omit_time=omit_time, omit_model=omit_model, omit_depth=omit_depth,
+                      omit_output=omit_output)
 
     def batch_processing(self,
                          full_image_dict,
@@ -349,11 +351,10 @@ class ImageFeaturizer:
 
         # If the full_image_dict hasn't been passed in, build it
         if not full_image_dict:
-            full_image_dict = self._full_image_dict_finder(image_path, csv_path,
-                                                           image_column_headers, new_csv_name)
+            full_image_dict, df = self._full_image_dict_finder(image_path, csv_path,
+                                                               image_column_headers, new_csv_name)
 
         # Save the full image tensor, the path to the csv, and the list of image paths
-        print(full_image_dict[image_column_headers[0]])
         (image_data, csv_path, list_of_image_paths) = \
             preprocess_data(image_column_headers[0], self.model_name,
                             full_image_dict[image_column_headers[0]],
@@ -377,18 +378,21 @@ class ImageFeaturizer:
         self.image_column_headers = image_column_headers
         self.scaled_size = scaled_size
         self.image_path = image_path
+        self.df_original = df
 
     @t.guard(batch_data=t.Type(np.ndarray),
+             image_column_headers=t.String(allow_blank=True),
              batch=t.Bool,
              save_features=t.Bool,
-             omit_time=t.Bool,
+             save_csv=t.Bool,
              omit_model=t.Bool,
              omit_depth=t.Bool,
              omit_output=t.Bool,
-             image_column_headers=t.String(allow_blank=True))
+             omit_time=t.Bool,
+             )
     def featurize(self, batch_data=np.zeros((1)), image_column_headers='',
-                  batch=False, save_features=False, omit_time=False, omit_model=False,
-                  omit_depth=False, omit_output=False):
+                  batch=False, save_features=False, save_csv=False, omit_model=False,
+                  omit_depth=False, omit_output=False, omit_time=False):
         """
         Featurize the loaded data, returning the dataframe and writing the features
         and the full combined data to csv
@@ -424,21 +428,21 @@ class ImageFeaturizer:
         features = np.zeros((batch_data.shape[1],
                              self.num_features * len(image_column_headers)))
 
-        # Save csv_names
-        csv_name, ext = os.path.splitext(self.csv_path)
+        # Save csv
+        full_dataframe = self._featurize_helper(features, image_column_headers, save_features)
 
+        if save_csv:
+            save_csv(omit_model, omit_depth, omit_output, omit_time)
+
+        return full_dataframe
+
+    def _featurize_helper(self, features, image_column_headers, save_features):
         # For each image column, perform the full featurization and add the features to the csv
         for column in range(self.data.shape[0]):
-
-            # Create the correct csv path if we have multiple image columns
-            if column == 0:
-                csv_path = "{}{}".format(csv_name, ext)
+            if not column:
+                df_prev = pd.read_csv(self.csv_path)
             else:
-                named_path = _named_path_finder(csv_name, self.model_name, self.depth,
-                                                self.num_features, omit_model, omit_depth,
-                                                omit_output, omit_time)
-                # Save the name and extension separately, for robust naming
-                csv_path = '{}_full{}'.format(named_path, ext)
+                df_prev = self.full_dataframe
 
             # Featurize the data, and save it to the appropriate columns
             features[:,
@@ -446,17 +450,27 @@ class ImageFeaturizer:
                      self.num_features] \
                 = partial_features = featurize_data(self.featurizer, self.data[column])
 
-            # Save the full dataframe to the csv
-            full_dataframe = _features_to_csv(self.data[column], partial_features, csv_path,
-                                              self.image_column_headers[column], self.image_list,
-                                              model_str=self.model_name, model_depth=self.depth,
-                                              model_output=self.num_features,
-                                              omit_model=omit_model, omit_time=omit_time,
-                                              omit_depth=omit_depth, omit_output=omit_output,
-                                              save_features=save_features, continued_column=column)
+            # Save the full dataframe
+            self.full_dataframe, df_features = \
+                create_features(self.data[column],
+                                partial_features,
+                                df_prev,
+                                self.image_column_headers[column],
+                                self.image_dict[image_column_headers[column]],
+                                df_prev,
+                                continued_column=bool(column),
+                                save_features=save_features)
 
-        self.full_dataframe = full_dataframe
-        return full_dataframe
+        return self.full_dataframe
+
+    def save_csv(self, omit_model=False, omit_depth=False, omit_output=False, omit_time=False):
+        # Save the name and extension separately, for robust naming
+        csv_name, ext = os.path.splitext(self.csv_path)
+
+        name_path = _named_path_finder(csv_name, self.model_name, self.depth, self.num_features,
+                                       omit_model, omit_depth, omit_output, omit_time)
+
+        self.full_dataframe.to_csv("{}{}".format(name_path, ext), index=False)
 
     @t.guard(confirm=t.Bool)
     def clear_input(self, confirm=False):
@@ -485,12 +499,12 @@ class ImageFeaturizer:
         full_image_dict = {}
 
         for column in image_column_headers:
-            list_of_image_paths = _image_paths_finder(image_path, csv_path,
-                                                      column, new_csv_name)
+            list_of_image_paths, df = _image_paths_finder(image_path, csv_path,
+                                                          column, new_csv_name)
 
-            full_image_dict[column] = list_of_image_paths[0]
+            full_image_dict[column] = list_of_image_paths
         print("This is the full dictionary: {}".format(full_image_dict))
-        return full_image_dict
+        return full_image_dict, df
 
     def _input_fixer(self, image_column_headers, image_path):
             # Convert column header to list if it's passed a single string

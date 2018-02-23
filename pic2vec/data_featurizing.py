@@ -18,6 +18,7 @@ import pandas as pd
 
 from keras.models import Model
 
+
 @t.guard(model=t.Type(Model), array=t.Type(np.ndarray))
 def featurize_data(model, array):
     """
@@ -45,7 +46,11 @@ def featurize_data(model, array):
 
     # Perform predictions
     logging.info('Creating feature array.')
-    model.compile('sgd','mse')
+
+    # NOTE: No clue why this is here, it's to make the models note break due to
+    # Keras update: https://github.com/keras-team/keras/issues/9394
+    model.compile('sgd', 'mse')
+
     full_feature_array = model.predict(array, verbose=1)
 
     # Return features
@@ -109,7 +114,7 @@ def _named_path_finder(csv_name, model_str, model_depth, model_output,
     return named_path
 
 
-def _create_features_df(data_array, full_feature_array, image_column_header, df):
+def _create_features_df_helper(data_array, full_feature_array, image_column_header, df):
     # Log how many photos are missing or blank:
     zeros_index = [np.count_nonzero(array_slice) == 0 for array_slice in data_array[:]]
     logging.info('Number of missing photos: {}'.format(len(zeros_index)))
@@ -130,10 +135,9 @@ def _create_features_df(data_array, full_feature_array, image_column_header, df)
     return df_full, df_features
 
 
-def create_full_features(data_array, full_feature_array, df, image_column_header, image_list,
-                     model_str, model_depth, model_output, omit_model=False, omit_depth=False,
-                     omit_output=False, omit_time=False, continued_column=False,
-                     save_features=False):
+def create_features(data_array, new_feature_array, df_prev, image_column_header,
+                    image_list, df_features_prev, continued_column=False,
+                    save_features=False):
     """
     Write the feature array to a new csv, and append the features to the appropriate
     rows of the given csv.
@@ -166,7 +170,7 @@ def create_full_features(data_array, full_feature_array, df, image_column_header
     # ERROR CHECKING #
 
     # Raise error if the image_column_header is not in the csv
-    if image_column_header not in df.columns:
+    if image_column_header not in df_prev.columns:
         raise ValueError('Must pass the name of the column where the images are '
                          'stored in the csv. The column passed was not in the csv.')
 
@@ -176,19 +180,18 @@ def create_full_features(data_array, full_feature_array, df, image_column_header
                          ' Gave feature array of shape: {}'.format(data_array.shape))
 
     # Raise error if the feature array has the wrong shape
-    if len(full_feature_array.shape) != 2:
+    if len(new_feature_array.shape) != 2:
         raise ValueError('Feature array must be 2D array, with shape: [batch, num_features]. '
-                         'Gave feature array of shape: {}'.format(full_feature_array.shape))
+                         'Gave feature array of shape: {}'.format(new_feature_array.shape))
     # --------------------------------------- #
 
     logging.info('Adding image features to csv.')
 
-    df_full, df_features = _create_features_df(data_array, full_feature_array,
-                                               image_column_header, df)
+    df_full, df_features = _create_features_df_helper(data_array, new_feature_array,
+                                                      image_column_header, df_prev)
 
-    if continued_column:
-            df_features = pd.concat([features_name, df_features])
-
+    if continued_column and save_features:
+        df_features = pd.concat([df_features_prev, df_features])
 
     # Return the full combined dataframe
     return df_full, df_features

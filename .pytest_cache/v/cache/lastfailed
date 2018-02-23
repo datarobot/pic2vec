@@ -80,12 +80,6 @@
   "tests/data_featurizing_test.py::test_features_to_csv_bad_column_header": true, 
   "tests/data_featurizing_test.py::test_features_to_csv_bad_data_array": true, 
   "tests/data_featurizing_test.py::test_features_to_csv_bad_feature_array": true, 
-  "tests/feature_preprocessing_test.py::test_preprocess_data[combined]": true, 
-  "tests/feature_preprocessing_test.py::test_preprocess_data[csv_only]": true, 
-  "tests/feature_preprocessing_test.py::test_preprocess_data[dir_only]": true, 
-  "tests/feature_preprocessing_test.py::test_preprocess_data_invalid_model_str": true, 
-  "tests/feature_preprocessing_test.py::test_preprocess_data_invalid_url_or_dir": true, 
-  "tests/feature_preprocessing_test.py::test_preprocess_data_no_input": true, 
   "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns[inceptionv3]": true, 
   "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns[resnet50]": true, 
   "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns[squeezenet]": true, 
@@ -97,6 +91,5 @@
   "tests/image_featurizer_test.py::test_load_and_featurize_single_column[squeezenet]": true, 
   "tests/image_featurizer_test.py::test_load_and_featurize_single_column[vgg16]": true, 
   "tests/image_featurizer_test.py::test_load_and_featurize_single_column[vgg19]": true, 
-  "tests/image_featurizer_test.py::test_load_and_featurize_single_column[xception]": true, 
-  "tests/image_featurizer_test.py::test_writing_features_to_csv_with_robust_naming": true
+  "tests/image_featurizer_test.py::test_load_and_featurize_single_column[xception]": true
 }
