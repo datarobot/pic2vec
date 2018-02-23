@@ -176,7 +176,8 @@ def test_load_then_featurize_data_multiple_columns(model, size, array_path):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
     feat = ImageFeaturizer(model=model, auto_sample=True)
     feat.load_data(**LOAD_DATA_ARGS_MULT)
-    feat.featurize(save_features=True, save_csv=True)
+    feat.featurize(save_features=True, omit_time=True, omit_model=True, omit_depth=True,
+                   omit_output=True, save_csv=True)
     check_array = np.load(array_path)
 
     try:

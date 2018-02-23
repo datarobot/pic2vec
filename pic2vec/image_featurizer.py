@@ -169,6 +169,7 @@ class ImageFeaturizer:
         self.features = np.zeros((1))
         self.df_original = pd.DataFrame()
         self.full_dataframe = pd.DataFrame()
+        self.df_features = pd.DataFrame()
         self.csv_path = ''
         self.image_dict = {}
         self.image_column_headers = ''
@@ -475,8 +476,8 @@ class ImageFeaturizer:
                                 continued_column=bool(column),
                                 save_features=save_features)
             if save_features:
-                self.features = df_features
-                self.features = 
+                self.df_features = df_features
+                self.features = features
         return self.full_dataframe, self.df_features
 
     def save_csv(self, omit_model=False, omit_depth=False, omit_output=False, omit_time=False,
@@ -489,7 +490,7 @@ class ImageFeaturizer:
 
         self._creating_csv_path(self.csv_path, self.image_column_headers, self.csv_path)
 
-        self.full_dataframe.to_csv("{}{}".format(name_path, ext), index=False)
+        self.full_dataframe.to_csv("{}_full{}".format(name_path, ext), index=False)
         if save_features:
             self.df_features.to_csv("{}_features_only{}".format(name_path, ext), index=False)
 
