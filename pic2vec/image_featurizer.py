@@ -255,8 +255,6 @@ class ImageFeaturizer:
         csv = self.batch_processing(full_image_dict, image_column_headers, image_path, csv_path,
                                     new_csv_name, batch_size, grayscale, save_features)
 
-        self.save_csv(csv, omit_time=omit_time, omit_model=omit_model, omit_depth=omit_depth,
-                      omit_output=omit_output)
 
     def batch_processing(self,
                          full_image_dict,
@@ -296,7 +294,8 @@ class ImageFeaturizer:
                   new_csv_name='featurizer_csv/generated_images_csv',
                   batch_size=1000,
                   grayscale=False,
-                  save_array=True
+                  save_array=True,
+                  df=pd.DataFrame()
                   # crop_size = (299, 299),
                   # number_crops = 0,
                   # random_crop = False,
@@ -460,17 +459,23 @@ class ImageFeaturizer:
                                 df_prev,
                                 continued_column=bool(column),
                                 save_features=save_features)
+            if save_features:
+                self.df_features = df_features
+        return self.full_dataframe, self.df_features
 
-        return self.full_dataframe
-
-    def save_csv(self, omit_model=False, omit_depth=False, omit_output=False, omit_time=False):
+    def save_csv(self, omit_model=False, omit_depth=False, omit_output=False, omit_time=False,
+                 save_features=False):
         # Save the name and extension separately, for robust naming
         csv_name, ext = os.path.splitext(self.csv_path)
 
         name_path = _named_path_finder(csv_name, self.model_name, self.depth, self.num_features,
                                        omit_model, omit_depth, omit_output, omit_time)
 
+        self._creating_csv_path(self.csv_path, self.image_column_headers, self.new_csv_name)
+
         self.full_dataframe.to_csv("{}{}".format(name_path, ext), index=False)
+        if save_features:
+            self.df_features.to_csv("{}_features_only{}".format(name_path, ext), index=False)
 
     @t.guard(confirm=t.Bool)
     def clear_input(self, confirm=False):
