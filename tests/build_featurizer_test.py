@@ -68,6 +68,7 @@ def test_decapitate_model_too_deep():
     with pytest.raises(ValueError):
         _decapitate_model(CHECK_MODEL, 8)
 
+
 def test_decapitate_model():
     """
     This test creates a toy network, and checks that it calls the right errors
@@ -88,6 +89,7 @@ def test_splice_layer_bad_split():
     """Check error with bad split on the tensor"""
     with pytest.raises(ValueError):
         _splice_layer(SPLICING_TENSOR, 5)
+
 
 def test_splice_layer():
     """Test method splices tensors correctly"""
@@ -177,7 +179,7 @@ def check_model_equal(model1, model2):
     for layer in range(len(model1.layers)):
         for array in range(len(model1.layers[layer].get_weights())):
             assert np.allclose(model1.layers[layer].get_weights()[array],
-                                  model2.layers[layer].get_weights()[array], atol=ATOL)
+                               model2.layers[layer].get_weights()[array], atol=ATOL)
 
 
 def test_initialize_model_weights_not_found():
@@ -220,13 +222,15 @@ def test_initialize_model_wrong_weights():
 
 
 INITIALIZE_MODEL_CASES = [
-                          ('squeezenet', 67, (1, 227, 227, 3)),
-                          ('vgg16', 23, (1, 224, 224, 3)),
-                          ('vgg19', 26, (1, 224, 224, 3)),
-                          ('resnet50', 176, (1, 224, 224, 3)),
-                          ('inceptionv3', 313, (1, 299, 299, 3)),
-                          ('xception', 134, (1, 299, 299, 3)),
-                         ]
+    ('squeezenet', 67, (1, 227, 227, 3)),
+    ('vgg16', 23, (1, 224, 224, 3)),
+    ('vgg19', 26, (1, 224, 224, 3)),
+    ('resnet50', 176, (1, 224, 224, 3)),
+    ('inceptionv3', 313, (1, 299, 299, 3)),
+    ('xception', 134, (1, 299, 299, 3)),
+]
+
+
 @pytest.mark.parametrize('model_str, expected_layers, test_size',
                          INITIALIZE_MODEL_CASES, ids=MODELS)
 def test_initialize_model(model_str, expected_layers, test_size):
@@ -236,7 +240,7 @@ def test_initialize_model(model_str, expected_layers, test_size):
     if model_str == 'squeezenet':
         try:
             model_downloaded_weights = SqueezeNet()
-        except:
+        except Exception:
             raise AssertionError('Problem loading SqueezeNet weights.')
         check_model_equal(model, model_downloaded_weights)
 
@@ -255,53 +259,55 @@ def test_initialize_model(model_str, expected_layers, test_size):
 
 FEATURIZER_MODEL_DICT = dict.fromkeys(MODELS)
 FEAT_CASES = [  # squeezenet
-              (1, False, 128, 128, 'squeezenet'), (1, False, 0, 512, 'squeezenet'),
-              (1, True, 0, 256, 'squeezenet'), (2, True, 0, 256, 'squeezenet'),
-              (2, False, 128, 128, 'squeezenet'), (2, False, 0, 512, 'squeezenet'),
-              (3, False, 96, 96, 'squeezenet'), (3, False, 0, 384, 'squeezenet'),
-              (3, True, 0, 192, 'squeezenet'), (4, True, 0, 192, 'squeezenet'),
-              (4, False, 96, 96, 'squeezenet'), (4, False, 0, 384, 'squeezenet'),
+    (1, False, 128, 128, 'squeezenet'), (1, False, 0, 512, 'squeezenet'),
+    (1, True, 0, 256, 'squeezenet'), (2, True, 0, 256, 'squeezenet'),
+    (2, False, 128, 128, 'squeezenet'), (2, False, 0, 512, 'squeezenet'),
+    (3, False, 96, 96, 'squeezenet'), (3, False, 0, 384, 'squeezenet'),
+    (3, True, 0, 192, 'squeezenet'), (4, True, 0, 192, 'squeezenet'),
+    (4, False, 96, 96, 'squeezenet'), (4, False, 0, 384, 'squeezenet'),
 
-              # vgg16
-              (1, False, 1024, 1024, 'vgg16'), (1, False, 0, 4096, 'vgg16'),
-              (1, True, 0, 2048, 'vgg16'), (2, True, 0, 2048, 'vgg16'),
-              (2, False, 1024, 1024, 'vgg16'), (2, False, 0, 4096, 'vgg16'),
-              (3, False, 128, 128, 'vgg16'), (3, False, 0, 512, 'vgg16'),
-              (3, True, 0, 256, 'vgg16'), (4, True, 0, 256, 'vgg16'),
-              (4, False, 128, 128, 'vgg16'), (4, False, 0, 512, 'vgg16'),
+    # vgg16
+    (1, False, 1024, 1024, 'vgg16'), (1, False, 0, 4096, 'vgg16'),
+    (1, True, 0, 2048, 'vgg16'), (2, True, 0, 2048, 'vgg16'),
+    (2, False, 1024, 1024, 'vgg16'), (2, False, 0, 4096, 'vgg16'),
+    (3, False, 128, 128, 'vgg16'), (3, False, 0, 512, 'vgg16'),
+    (3, True, 0, 256, 'vgg16'), (4, True, 0, 256, 'vgg16'),
+    (4, False, 128, 128, 'vgg16'), (4, False, 0, 512, 'vgg16'),
 
-              # vgg19
-              (1, False, 1024, 1024, 'vgg19'), (1, False, 0, 4096, 'vgg19'),
-              (1, True, 0, 2048, 'vgg19'), (2, True, 0, 2048, 'vgg19'),
-              (2, False, 1024, 1024, 'vgg19'), (2, False, 0, 4096, 'vgg19'),
-              (3, False, 128, 128, 'vgg19'), (3, False, 0, 512, 'vgg19'),
-              (3, True, 0, 256, 'vgg19'), (4, True, 0, 256, 'vgg19'),
-              (4, False, 128, 128, 'vgg19'), (4, False, 0, 512, 'vgg19'),
+    # vgg19
+    (1, False, 1024, 1024, 'vgg19'), (1, False, 0, 4096, 'vgg19'),
+    (1, True, 0, 2048, 'vgg19'), (2, True, 0, 2048, 'vgg19'),
+    (2, False, 1024, 1024, 'vgg19'), (2, False, 0, 4096, 'vgg19'),
+    (3, False, 128, 128, 'vgg19'), (3, False, 0, 512, 'vgg19'),
+    (3, True, 0, 256, 'vgg19'), (4, True, 0, 256, 'vgg19'),
+    (4, False, 128, 128, 'vgg19'), (4, False, 0, 512, 'vgg19'),
 
-              # resnet50
-              (1, False, 512, 512, 'resnet50'), (1, False, 0, 2048, 'resnet50'),
-              (1, True, 0, 1024, 'resnet50'), (2, True, 0, 1024, 'resnet50'),
-              (2, False, 512, 512, 'resnet50'), (2, False, 0, 2048, 'resnet50'),
-              (3, False, 512, 512, 'resnet50'), (3, False, 0, 2048, 'resnet50'),
-              (3, True, 0, 1024, 'resnet50'), (4, True, 0, 1024, 'resnet50'),
-              (4, False, 512, 512, 'resnet50'), (4, False, 0, 2048, 'resnet50'),
+    # resnet50
+    (1, False, 512, 512, 'resnet50'), (1, False, 0, 2048, 'resnet50'),
+    (1, True, 0, 1024, 'resnet50'), (2, True, 0, 1024, 'resnet50'),
+    (2, False, 512, 512, 'resnet50'), (2, False, 0, 2048, 'resnet50'),
+    (3, False, 512, 512, 'resnet50'), (3, False, 0, 2048, 'resnet50'),
+    (3, True, 0, 1024, 'resnet50'), (4, True, 0, 1024, 'resnet50'),
+    (4, False, 512, 512, 'resnet50'), (4, False, 0, 2048, 'resnet50'),
 
-              # inceptionv3
-              (1, False, 512, 512, 'inceptionv3'), (1, False, 0, 2048, 'inceptionv3'),
-              (1, True, 0, 1024, 'inceptionv3'), (2, True, 0, 1024, 'inceptionv3'),
-              (2, False, 512, 512, 'inceptionv3'), (2, False, 0, 2048, 'inceptionv3'),
-              (3, False, 512, 512, 'inceptionv3'), (3, False, 0, 2048, 'inceptionv3'),
-              (3, True, 0, 1024, 'inceptionv3'), (4, True, 0, 640, 'inceptionv3'),
-              (4, False, 320, 320, 'inceptionv3'), (4, False, 0, 1280, 'inceptionv3'),
+    # inceptionv3
+    (1, False, 512, 512, 'inceptionv3'), (1, False, 0, 2048, 'inceptionv3'),
+    (1, True, 0, 1024, 'inceptionv3'), (2, True, 0, 1024, 'inceptionv3'),
+    (2, False, 512, 512, 'inceptionv3'), (2, False, 0, 2048, 'inceptionv3'),
+    (3, False, 512, 512, 'inceptionv3'), (3, False, 0, 2048, 'inceptionv3'),
+    (3, True, 0, 1024, 'inceptionv3'), (4, True, 0, 640, 'inceptionv3'),
+    (4, False, 320, 320, 'inceptionv3'), (4, False, 0, 1280, 'inceptionv3'),
 
-              # xception
-              (1, False, 512, 512, 'xception'), (1, False, 0, 2048, 'xception'),
-              (1, True, 0, 1024, 'xception'), (2, True, 0, 512, 'xception'),
-              (2, False, 256, 256, 'xception'), (2, False, 0, 1024, 'xception'),
-              (3, False, 182, 182, 'xception'), (3, False, 0, 728, 'xception'),
-              (3, True, 0, 364, 'xception'), (4, True, 0, 364, 'xception'),
-              (4, False, 182, 182, 'xception'), (4, False, 0, 728, 'xception')
-             ]
+    # xception
+    (1, False, 512, 512, 'xception'), (1, False, 0, 2048, 'xception'),
+    (1, True, 0, 1024, 'xception'), (2, True, 0, 512, 'xception'),
+    (2, False, 256, 256, 'xception'), (2, False, 0, 1024, 'xception'),
+    (3, False, 182, 182, 'xception'), (3, False, 0, 728, 'xception'),
+    (3, True, 0, 364, 'xception'), (4, True, 0, 364, 'xception'),
+    (4, False, 182, 182, 'xception'), (4, False, 0, 728, 'xception')
+]
+
+
 @pytest.mark.parametrize('depth, autosample, sample_size, expected_size, model_str', FEAT_CASES)
 def test_build_featurizer(depth, autosample, sample_size, expected_size, model_str):
     """Test all of the model iterations"""

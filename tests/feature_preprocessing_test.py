@@ -3,11 +3,11 @@ import filecmp
 import logging
 import os
 import random
-
+import pandas as pd
 import numpy as np
 import pytest
 
-from .build_featurizer_test import ATOL
+from tests.build_featurizer_test import ATOL
 from pic2vec.feature_preprocessing import (_create_csv_with_image_paths,
                                            _find_directory_image_paths,
                                            _find_csv_image_paths,
@@ -32,10 +32,9 @@ NEW_IMG_COL_HEAD = 'new_images'
 
 # Image lists for directory and url
 IMAGE_LIST = ['arendt.bmp', 'borges.jpg', 'sappho.png']
-URL_LIST = ['http://i2.wp.com/roadsandkingdoms.com/uploads/2013/11/Jorge_Luis_Borges.jpg',
-            'http://sisareport.com/wp-content/uploads/2016/09/%E2%96%B2-%ED'
-            '%95%9C%EB%82%98-%EC%95%84%EB%A0%8C%ED%8A%B8Hannah-Arendt-1906-1975.bmp',
-            'http://queerbio.com/wiki/images/thumb/8/8d/Sappho.png/200px-Sappho.png'
+URL_LIST = ['https://s3.amazonaws.com/datarobot_public_datasets/images/pic2vec/borges.jpg',
+            'https://s3.amazonaws.com/datarobot_public_datasets/images/pic2vec/arendt.bmp',
+            'https://s3.amazonaws.com/datarobot_public_datasets/images/pic2vec/sappho.png'
             ]
 
 # Preprocessing paths
@@ -58,9 +57,11 @@ CSV_ARRAYS = [borges_array, arendt_array, sappho_array]
 COMBINED_ARRAYS = [np.zeros((borges_array.shape)), arendt_array, sappho_array, arendt_array]
 GRAYSCALE_ARRAYS = [np.zeros((arendt_grayscale_array.shape)), arendt_grayscale_array,
                     sappho_grayscale_array, arendt_grayscale_array]
-
+BATCH_ARRAYS_DIR = [arendt_array, borges_array]
 
 # ---- TESTING ---- #
+
+
 def test_create_csv_with_image_paths():
     """Test method creates csv correctly from list of images"""
     new_csv_path = 'tests/feature_preprocessing_testing/csv_testing/generated_create_csv_test'
@@ -70,10 +71,12 @@ def test_create_csv_with_image_paths():
 
     _create_csv_with_image_paths(IMAGE_LIST, new_csv_path, IMG_COL_HEAD)
 
-    assert filecmp.cmp(new_csv_path, '{}create_csv_check'.format(CSV_PATH))
+    try:
+        assert filecmp.cmp(new_csv_path, '{}create_csv_check'.format(CSV_PATH))
 
-    if os.path.isfile(new_csv_path):
-        os.remove(new_csv_path)
+    finally:
+        if os.path.isfile(new_csv_path):
+            os.remove(new_csv_path)
 
 
 def test_natural_sort():
@@ -96,13 +99,14 @@ def test_find_directory_image_paths():
 def test_find_csv_image_paths():
     """Test method correctly finds image paths in the csv, and in the right order"""
     check_image_paths = ['borges.jpg', 'arendt.bmp', 'sappho.png']
-    test_image_paths = _find_csv_image_paths('{}csv_image_path_check'.format(CSV_PATH),
-                                             IMG_COL_HEAD)
+    test_image_paths, df = _find_csv_image_paths('{}csv_image_path_check'.format(CSV_PATH),
+                                                 IMG_COL_HEAD)
 
     with pytest.raises(ValueError):
         _find_csv_image_paths('{}csv_image_path_check'.format(CSV_PATH), 'Error Column')
 
     assert test_image_paths == check_image_paths
+    assert pd.read_csv('{}csv_image_path_check'.format(CSV_PATH)).equals(df)
 
 
 def test_find_combined_image_paths():
@@ -112,9 +116,9 @@ def test_find_combined_image_paths():
     invalid_csv_image_path = 'heidegger.png'
     invalid_directory_image_path = 'borges.jpg'
 
-    test_path = _find_combined_image_paths(IMAGE_PATH,
-                                           '{}directory_combined_image_path_test'
-                                           .format(CSV_PATH), IMG_COL_HEAD)
+    test_path, df = _find_combined_image_paths(IMAGE_PATH,
+                                               '{}directory_combined_image_path_test'
+                                               .format(CSV_PATH), IMG_COL_HEAD)
 
     with pytest.raises(ValueError):
         _find_combined_image_paths(IMAGE_PATH,
@@ -125,12 +129,15 @@ def test_find_combined_image_paths():
     assert invalid_directory_image_path not in test_path
 
     assert check_image_paths == test_path
+    assert pd.read_csv('{}directory_combined_image_path_test'.format(CSV_PATH)).equals(df)
 
 
 CONVERT_IMAGE_CASES = [
-                       ('url', URL_LIST[0]),
-                       ('directory', '{}borges.jpg'.format(IMAGE_PATH))
-                      ]
+    ('url', URL_LIST[0]),
+    ('directory', '{}borges.jpg'.format(IMAGE_PATH))
+]
+
+
 @pytest.mark.parametrize('grayscale', [None, True], ids=['RGB', 'grayscale'])
 @pytest.mark.parametrize('size', [(299, 299), (299, 467)], ids=['scaled', 'isotropic'])
 @pytest.mark.parametrize('image_source,image_path', CONVERT_IMAGE_CASES, ids=['url', 'directory'])
@@ -155,14 +162,16 @@ def test_convert_single_image(image_source, image_path, size, grayscale):
 
 
 PATHS_FINDER_CASES = [
-                      (IMAGE_PATH, '', NEW_IMG_COL_HEAD,
-                       '{}paths_finder_integration_test'.format(CSV_PATH), IMAGE_LIST),
+    (IMAGE_PATH, '', NEW_IMG_COL_HEAD,
+     '{}paths_finder_integration_test'.format(CSV_PATH), IMAGE_LIST),
 
-                      ('', URL_PATH, IMG_COL_HEAD, '', URL_LIST),
+    ('', URL_PATH, IMG_COL_HEAD, '', URL_LIST),
 
-                      (IMAGE_PATH, '{}directory_combined_image_path_test'.format(CSV_PATH),
-                       IMG_COL_HEAD, '', ['', 'arendt.bmp', 'sappho.png'])
-                     ]
+    (IMAGE_PATH, '{}directory_combined_image_path_test'.format(CSV_PATH),
+     IMG_COL_HEAD, '', ['', 'arendt.bmp', 'sappho.png'])
+]
+
+
 @pytest.mark.parametrize('image_path, csv_path, image_column_header, new_csv, check_images',
                          PATHS_FINDER_CASES, ids=['directory_only', 'csv_only', 'combined'])
 def test_image_paths_finder(image_path, csv_path, image_column_header, new_csv, check_images):
@@ -175,7 +184,7 @@ def test_image_paths_finder(image_path, csv_path, image_column_header, new_csv, 
         os.remove(new_csv)
 
     # generated image lists
-    case = _image_paths_finder(image_path, csv_path, image_column_header, new_csv)
+    case, df = _image_paths_finder(image_path, csv_path, image_column_header, new_csv)
 
     if new_csv != '':
         assert os.path.isfile(new_csv)
@@ -201,7 +210,7 @@ def test_preprocess_data_fake_dir():
         logging.error('Whoops, that labyrinth exists. '
                       'Change error_dir to a directory path that does not exist.')
     with pytest.raises(TypeError):
-        preprocess_data(IMG_COL_HEAD, 'xception', image_path=error_dir,
+        preprocess_data(IMG_COL_HEAD, 'xception', list_of_images=IMAGE_LIST, image_path=error_dir,
                         new_csv_name=ERROR_NEW_CSV_NAME_PREPROCESS)
 
     assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
@@ -216,14 +225,15 @@ def test_preprocess_data_fake_csv():
         logging.error(
             'Whoops, that dreamer exists. change to error_file to a file path that does not exist.')
     with pytest.raises(TypeError):
-        preprocess_data(IMG_COL_HEAD, 'xception', csv_path=error_file,
+        preprocess_data(IMG_COL_HEAD, 'xception', csv_path=error_file, list_of_images=IMAGE_LIST,
                         new_csv_name=ERROR_NEW_CSV_NAME_PREPROCESS)
 
     assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
 
+
 def test_preprocess_data_invalid_url_or_dir():
     """Raise an error if the image in the column is an invalid path"""
-    preprocess_data(IMG_COL_HEAD, 'xception', csv_path=ERROR_ROW_CSV)
+    preprocess_data(IMG_COL_HEAD, 'xception', list_of_images=IMAGE_LIST, csv_path=ERROR_ROW_CSV)
 
 
 def test_preprocess_data_invalid_model_str():
@@ -236,19 +246,16 @@ def test_preprocess_data_invalid_model_str():
 def compare_preprocessing(case, csv_name, check_arrays, image_list):
     """Compare a case from a full preprocessing step with the expected values of that case"""
     # Check correct number of images vectorized
-    if image_list != COMBINED_LIST_PREPROCESS:
-        assert len(case[0]) == 3
-    else:
-        assert len(case[0]) == 4
+    assert len(case[0]) == len(check_arrays)
 
-    # Check all data vectors correctly generated
-    assert np.allclose(case[0][0], check_arrays[0], atol=ATOL)
-    assert np.allclose(case[0][1], check_arrays[1], atol=ATOL)
-    assert np.allclose(case[0][2], check_arrays[2], atol=ATOL)
+    for image in range(len(check_arrays)):
+        # Check all data vectors correctly generated
+        assert np.allclose(case[0][image], check_arrays[image], atol=ATOL)
 
     # csv path correctly returned as non-existent, and correct image list returned
     assert case[1] == csv_name
     assert case[2] == image_list
+
 
 @pytest.mark.xfail
 def test_preprocess_data_grayscale():
@@ -258,27 +265,33 @@ def test_preprocess_data_grayscale():
 
     # Create the full (data, csv_path, image_list) for each of the three cases
     preprocessed_case = preprocess_data(IMG_COL_HEAD, 'xception', grayscale=True,
-                                        image_path=IMAGE_PATH, csv_path=DIRECTORY_CSV_PATH_PREPROCESS,
+                                        image_path=IMAGE_PATH,
+                                        csv_path=DIRECTORY_CSV_PATH_PREPROCESS,
                                         new_csv_name=ERROR_NEW_CSV_NAME_PREPROCESS)
 
     # Ensure a new csv wasn't created when they weren't needed
     assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
 
-    compare_preprocessing(preprocessed_case, DIRECTORY_CSV_PATH_PREPROCESS, \
+    compare_preprocessing(preprocessed_case, DIRECTORY_CSV_PATH_PREPROCESS,
                           GRAYSCALE_ARRAYS, COMBINED_LIST_PREPROCESS)
 
 
 PREPROCESS_DATA_CASES = [
-                         (IMAGE_PATH, '', NEW_CSV_NAME_PREPROCESS,
-                          DIRECTORY_ARRAYS, IMAGE_LIST),
+    # Tests an image directory-only preprocessing step
+    (IMAGE_PATH, '', NEW_CSV_NAME_PREPROCESS,
+     DIRECTORY_ARRAYS, IMAGE_LIST),
 
-                         ('', URL_PATH, ERROR_NEW_CSV_NAME_PREPROCESS,
-                          CSV_ARRAYS, URL_LIST),
+    # Tests a CSV-only URL-based preprocessing step
+    ('', URL_PATH, ERROR_NEW_CSV_NAME_PREPROCESS,
+     CSV_ARRAYS, URL_LIST),
 
-                         (IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
-                          ERROR_NEW_CSV_NAME_PREPROCESS, COMBINED_ARRAYS,
-                          COMBINED_LIST_PREPROCESS),
-                        ]
+    # Tests a combined directory+csv preprocessing step
+    (IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
+     ERROR_NEW_CSV_NAME_PREPROCESS, COMBINED_ARRAYS,
+     COMBINED_LIST_PREPROCESS),
+]
+
+
 @pytest.mark.parametrize('image_path, csv_path, new_csv_name, check_arrays, image_list',
                          PREPROCESS_DATA_CASES, ids=['dir_only', 'csv_only', 'combined'])
 def test_preprocess_data(image_path, csv_path, new_csv_name, check_arrays, image_list):
@@ -291,29 +304,20 @@ def test_preprocess_data(image_path, csv_path, new_csv_name, check_arrays, image
         os.remove(new_csv_name)
 
     # Create the full (data, csv_path, image_list) for each of the three cases
-    preprocessed_case = preprocess_data(IMG_COL_HEAD, 'xception', grayscale=False,
+    preprocessed_case = preprocess_data(IMG_COL_HEAD, 'xception', list_of_images=image_list,
+                                        grayscale=False,
                                         image_path=image_path, csv_path=csv_path,
                                         new_csv_name=new_csv_name)
 
-    # Ensure a new csv wasn't created when they weren't needed, and that a new csv
-    # WAS created when it was needed. Then, remove the new csv.
-    assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
-
+    # Ensure a new csv wasn't created when they weren't needed, and that the preprocessing steps
+    # All ran correctly.
     if new_csv_name == NEW_CSV_NAME_PREPROCESS:
         csv_path = new_csv_name
-
     compare_preprocessing(preprocessed_case, csv_path, check_arrays, image_list)
 
-    if new_csv_name == NEW_CSV_NAME_PREPROCESS:
-        assert os.path.isfile(new_csv_name)
-        os.remove(new_csv_name)
+    try:
+        assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
 
-
-if __name__ == "__main__":
-    test_create_csv_with_image_paths()
-    test_find_directory_image_paths()
-    test_find_csv_image_paths()
-    test_find_combined_image_paths()
-    test_convert_single_image()
-    test_image_paths_finder()
-    test_preprocess_data()
+    finally:
+        if os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS):
+            os.remove(ERROR_NEW_CSV_NAME_PREPROCESS)
