@@ -585,7 +585,7 @@ class ImageFeaturizer:
                 batch_features_df = \
                     pd.concat([batch_features_df,
                                self.featurize(batch_data, column, True, save_features)[1]],
-                               ignore_index=True, axis=0)
+                              ignore_index=True, axis=0)
 
                 # Increment index by batch size
                 index += batch_size

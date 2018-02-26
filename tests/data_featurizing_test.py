@@ -85,7 +85,7 @@ def test_create_features_bad_feature_array():
     error_feature_array = np.zeros((4, 3, 2))
     with pytest.raises(ValueError):
         create_features(CHECK_DATA, error_feature_array, pd.read_csv(CHECK_CSV_IMAGES_PATH),
-                        'image', CHECK_IMAGE_LIST, pd.DataFrame(), continued_column=False,
+                        'image', CHECK_IMAGE_LIST, continued_column=False,
                         save_features=True)
 
 
@@ -93,7 +93,7 @@ def test_features_to_csv_bad_column_header():
     """Raise an error when the column header is not found in the csv"""
     with pytest.raises(ValueError):
         create_features(CHECK_DATA, CHECK_ARRAY, pd.read_csv(CHECK_CSV_IMAGES_PATH), 'derp',
-                        CHECK_IMAGE_LIST, pd.DataFrame(), continued_column=False,
+                        CHECK_IMAGE_LIST, continued_column=False,
                         save_features=True)
 
 
@@ -103,7 +103,7 @@ def test_features_to_csv_bad_data_array():
     error_array = np.zeros((4, 3, 2))
     with pytest.raises(ValueError):
         create_features(error_array, CHECK_ARRAY, pd.read_csv(CHECK_CSV_IMAGES_PATH), 'image',
-                        CHECK_IMAGE_LIST, pd.DataFrame(), continued_column=False,
+                        CHECK_IMAGE_LIST, continued_column=False,
                         save_features=True)
 
 
@@ -119,8 +119,8 @@ def test_features_to_csv():
     # Create the test
     full_test_dataframe = create_features(CHECK_DATA, CHECK_ARRAY,
                                           pd.read_csv(CHECK_CSV_IMAGES_PATH),
-                                          'image', CHECK_IMAGE_LIST, pd.DataFrame(),
-                                          continued_column=False, save_features=True)
+                                          'image', CHECK_IMAGE_LIST,continued_column=False,
+                                          save_features=True)
 
     print(full_test_dataframe[1])
     # Assert that the dataframes returned are correct
