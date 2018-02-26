@@ -9,8 +9,6 @@ which contains binary values of whether the image in that row is missing.
 """
 
 import logging
-import os
-import time
 
 import trafaret as t
 import numpy as np
@@ -50,7 +48,6 @@ def featurize_data(model, array):
     # NOTE: No clue why this is here, it's to make the models note break due to
     # Keras update: https://github.com/keras-team/keras/issues/9394
     model.compile('sgd', 'mse')
-
     full_feature_array = model.predict(array, verbose=1)
 
     # Return features
@@ -125,7 +122,7 @@ def _create_features_df_helper(data_array, full_feature_array, image_column_head
 
     df_features = pd.DataFrame(data=full_feature_array, columns=array_column_headers)
 
-    # Create the missing column header
+    # Create the missing column
     missing_column_header = ['{}_missing'.format(image_column_header)]
     df_missing = pd.DataFrame(data=zeros_index, columns=missing_column_header)
 
@@ -136,7 +133,7 @@ def _create_features_df_helper(data_array, full_feature_array, image_column_head
 
 
 def create_features(data_array, new_feature_array, df_prev, image_column_header,
-                    image_list, df_features_prev, continued_column=False,
+                    image_list, continued_column=False, df_features_prev=pd.DataFrame(),
                     save_features=False):
     """
     Write the feature array to a new csv, and append the features to the appropriate
@@ -191,7 +188,7 @@ def create_features(data_array, new_feature_array, df_prev, image_column_header,
                                                       image_column_header, df_prev)
 
     if continued_column and save_features:
-        df_features = pd.concat([df_features_prev, df_features])
+        df_features = pd.concat([df_features_prev, df_features], axis=1)
 
     # Return the full combined dataframe
     return df_full, df_features

@@ -85,9 +85,20 @@ def _create_csv_with_image_paths(list_of_images, new_csv_name, image_column_head
         image file, and saves it to the csv_name path
 
     """
+    _create_csv_path(new_csv_name)
     df = pd.DataFrame(list_of_images, columns=[image_column_header])
     df.to_csv(new_csv_name, index=False)
     return df
+
+
+def _create_csv_path(new_csv_name):
+    """
+    Create the necessary csv along with the appropriate directories
+    """
+    # Create the filepath to the new csv
+    path_to_new_csv = os.path.dirname(new_csv_name)
+    if not os.path.isdir(path_to_new_csv) and path_to_new_csv != '':
+        os.makedirs(path_to_new_csv)
 
 
 def natural_key(string_):
