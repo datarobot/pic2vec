@@ -37,10 +37,10 @@ CHECK_ARRAY = np.array([[1., 2., 3.],
 
 # Create model
 MODEL = Sequential([
-                    Conv2D(5, (3, 3), input_shape=(5, 5, 3), activation='relu'),
-                    Flatten(),
-                    Dense(5)
-                   ])
+    Conv2D(5, (3, 3), input_shape=(5, 5, 3), activation='relu'),
+    Flatten(),
+    Dense(5)
+])
 
 
 def test_featurize_data_bad_array():
@@ -96,6 +96,7 @@ def test_features_to_csv_bad_column_header():
                         CHECK_IMAGE_LIST, continued_column=False,
                         save_features=True)
 
+
 def test_features_to_csv_bad_data_array():
     """Raise error when a bad data array is passed (i.e. wrong shape)"""
     # An error array with the wrong size
@@ -112,12 +113,13 @@ def test_create_features_df_helper():
     full_df_test = _create_features_df_helper(CHECK_DATA, CHECK_ARRAY, 'image', df)[0]
     assert full_df_test.equals(pd.read_csv(CHECK_CSV_FULL_PATH))
 
+
 def test_features_to_csv():
     """Test that the model creates the correct csvs from a toy array, csv, and image list"""
     # Create the test
     full_test_dataframe = create_features(CHECK_DATA, CHECK_ARRAY,
                                           pd.read_csv(CHECK_CSV_IMAGES_PATH),
-                                          'image', CHECK_IMAGE_LIST,continued_column=False,
+                                          'image', CHECK_IMAGE_LIST, continued_column=False,
                                           save_features=True)
 
     print(full_test_dataframe[1])

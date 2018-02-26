@@ -463,14 +463,12 @@ def preprocess_data(image_column_header,
     else:
         channels = 3
 
-
-
     if not batch_size:
         image_data = np.ones((num_images, target_size[0], target_size[1], channels))
         batch_size = num_images
     else:
-        if index+batch_size > num_images:
-            batch_size = num_images-index
+        if index + batch_size > num_images:
+            batch_size = num_images - index
         image_data = np.ones((batch_size, target_size[0], target_size[1], channels))
 
     # Create the full image tensor
@@ -505,14 +503,13 @@ def preprocess_data(image_column_header,
 
             # Place the vectorized image into the image data
             image_data[new_index, :, :, :] = _convert_single_image(image_source, model_str, image,
-                                                                target_size=target_size,
-                                                                grayscale=grayscale)
-
+                                                                   target_size=target_size,
+                                                                   grayscale=grayscale)
 
         # Progress report at the set intervals
-        if len(list_of_image_paths) < 1000:
+        if len(list_of_images) < 1000:
             report_step = 100
-        elif len(list_of_image_paths) < 5000:
+        elif len(list_of_images) < 5000:
             report_step = 500
         else:
             report_step = 1000
