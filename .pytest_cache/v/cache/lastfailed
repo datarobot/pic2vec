@@ -5,11 +5,5 @@
   "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns[squeezenet]": true, 
   "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns[vgg16]": true, 
   "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns[vgg19]": true, 
-  "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns[xception]": true, 
-  "tests/image_featurizer_test.py::test_load_and_featurize_single_column[inceptionv3]": true, 
-  "tests/image_featurizer_test.py::test_load_and_featurize_single_column[resnet50]": true, 
-  "tests/image_featurizer_test.py::test_load_and_featurize_single_column[squeezenet]": true, 
-  "tests/image_featurizer_test.py::test_load_and_featurize_single_column[vgg16]": true, 
-  "tests/image_featurizer_test.py::test_load_and_featurize_single_column[vgg19]": true, 
-  "tests/image_featurizer_test.py::test_load_and_featurize_single_column[xception]": true
+  "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns[xception]": true
 }
