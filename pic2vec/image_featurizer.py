@@ -554,7 +554,7 @@ class ImageFeaturizer:
 
         full_features_df = pd.DataFrame()
         full_df = df_original
-
+        full_df_columns_list = []
         # Iterate through each image column
         for column_index in range(len(image_column_headers)):
             # Initialize the batch index and save the column name
@@ -566,6 +566,7 @@ class ImageFeaturizer:
             list_of_image_paths = full_image_dict[column]
             num_images = len(list_of_image_paths)
 
+            batch_features_list = []
             # Loop through the images, featurizing each batch
             while index < num_images:
                 # Cap the batch size against the total number of images left to prevent overflow
@@ -582,18 +583,18 @@ class ImageFeaturizer:
 
                 # If this is the first batch, the batch features will be saved alone.
                 # Otherwise, they are concatenated to the last batch
-                batch_features_df = \
-                    pd.concat([batch_features_df,
-                               self.featurize(batch_data, column, True, save_features)[1]],
-                              ignore_index=True, axis=0)
+                batch_features_list.append(self.featurize(batch_data, column,
+                                                          True, save_features)[1])
 
                 # Increment index by batch size
                 index += batch_size
-
+            batch_features_df = pd.concat(batch_features_list, ignore_index=True)
+            full_df_columns_list.append(batch_features_df)
             # After the full column's features are calculated, concatenate them to the
             # full dataframe and the features dataframe across the column axis
-            full_df = pd.concat([full_df, batch_features_df], axis=1)
-            full_features_df = pd.concat([full_features_df, batch_features_df], axis=1)
+
+        full_features_df = pd.concat(full_df_columns_list, axis=1)
+        full_df = pd.concat([full_df, full_features_df], axis=1)
 
         # Return the full dataframe and features dataframe
         return full_df, full_features_df
