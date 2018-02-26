@@ -119,7 +119,7 @@ def test_features_to_csv():
     # Create the test
     full_test_dataframe = create_features(CHECK_DATA, CHECK_ARRAY,
                                           pd.read_csv(CHECK_CSV_IMAGES_PATH),
-                                          'image', CHECK_IMAGE_LIST,continued_column=False,
+                                          'image', CHECK_IMAGE_LIST, continued_column=False,
                                           save_features=True)
 
     print(full_test_dataframe[1])

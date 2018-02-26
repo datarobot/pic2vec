@@ -225,7 +225,7 @@ def test_preprocess_data_fake_csv():
         logging.error(
             'Whoops, that dreamer exists. change to error_file to a file path that does not exist.')
     with pytest.raises(TypeError):
-        preprocess_data(IMG_COL_HEAD, 'xception', csv_path=error_file,list_of_images=IMAGE_LIST,
+        preprocess_data(IMG_COL_HEAD, 'xception', csv_path=error_file, list_of_images=IMAGE_LIST,
                         new_csv_name=ERROR_NEW_CSV_NAME_PREPROCESS)
 
     assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
@@ -317,7 +317,6 @@ def test_preprocess_data(image_path, csv_path, new_csv_name, check_arrays, image
 
     try:
         assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
-
 
     finally:
         if os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS):
