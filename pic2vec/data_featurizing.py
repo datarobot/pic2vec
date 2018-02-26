@@ -9,7 +9,6 @@ which contains binary values of whether the image in that row is missing.
 """
 
 import logging
-import os
 import time
 
 import trafaret as t
@@ -45,6 +44,10 @@ def featurize_data(model, array):
 
     # Perform predictions
     logging.info('Creating feature array.')
+
+    # NOTE: No clue why this is here, it's to make the models note break due to
+    # Keras update: https://github.com/keras-team/keras/issues/9394
+    model.compile('sgd', 'mse')
     full_feature_array = model.predict(array, verbose=1)
 
     # Return features
@@ -107,7 +110,7 @@ def _named_path_finder(csv_name, model_str, model_depth, model_output,
     return named_path
 
 
-def _create_features_df(data_array, full_feature_array, image_column_header, df):
+def _create_features_df_helper(data_array, full_feature_array, image_column_header, df):
     # Log how many photos are missing or blank:
     zeros_index = [np.count_nonzero(array_slice) == 0 for array_slice in data_array[:]]
     logging.info('Number of missing photos: {}'.format(len(zeros_index)))
@@ -118,7 +121,7 @@ def _create_features_df(data_array, full_feature_array, image_column_header, df)
 
     df_features = pd.DataFrame(data=full_feature_array, columns=array_column_headers)
 
-    # Create the missing column header
+    # Create the missing column
     missing_column_header = ['{}_missing'.format(image_column_header)]
     df_missing = pd.DataFrame(data=zeros_index, columns=missing_column_header)
 
@@ -127,10 +130,10 @@ def _create_features_df(data_array, full_feature_array, image_column_header, df)
 
     return df_full, df_features
 
-def _features_to_csv(data_array, full_feature_array, csv_path, image_column_header, image_list,
-                     model_str, model_depth, model_output, omit_model=False, omit_depth=False,
-                     omit_output=False, omit_time=False, continued_column=False,
-                     save_features=False):
+
+def create_features(data_array, new_feature_array, df_prev, image_column_header,
+                    image_list, continued_column=False, df_features_prev=pd.DataFrame(),
+                    save_features=False):
     """
     Write the feature array to a new csv, and append the features to the appropriate
     rows of the given csv.
@@ -165,7 +168,7 @@ def _features_to_csv(data_array, full_feature_array, csv_path, image_column_head
     # ERROR CHECKING #
 
     # Raise error if the image_column_header is not in the csv
-    if image_column_header not in df.columns:
+    if image_column_header not in df_prev.columns:
         raise ValueError('Must pass the name of the column where the images are '
                          'stored in the csv. The column passed was not in the csv.')
 
@@ -175,42 +178,18 @@ def _features_to_csv(data_array, full_feature_array, csv_path, image_column_head
                          ' Gave feature array of shape: {}'.format(data_array.shape))
 
     # Raise error if the feature array has the wrong shape
-    if len(full_feature_array.shape) != 2:
+    if len(new_feature_array.shape) != 2:
         raise ValueError('Feature array must be 2D array, with shape: [batch, num_features]. '
-                         'Gave feature array of shape: {}'.format(full_feature_array.shape))
+                         'Gave feature array of shape: {}'.format(new_feature_array.shape))
     # --------------------------------------- #
 
     logging.info('Adding image features to csv.')
 
-    df_full, df_features = _create_features_df(data_array, full_feature_array,
-                                               image_column_header, df)
+    df_full, df_features = _create_features_df_helper(data_array, new_feature_array,
+                                                      image_column_header, df_prev)
 
-    # Save the name and extension separately, for robust naming
-    csv_name, ext = os.path.splitext(csv_path)
-
-    # Find the CSV prefix with user naming configuration
-    named_path = _named_path_finder(csv_name, model_str, model_depth, model_output,
-                                    omit_model, omit_depth, omit_output, omit_time)
-
-    if not continued_column:
-        if save_features:
-            # Save the features dataframe to a csv without index or headers, for easy modeling
-            df_features.to_csv('{}_features_only{}'.format(named_path, ext),
-                               index=False, header=False)
-
-        # Save the combined csv+features to a csv with no index, but with column headers
-        # for DR platform
-        df_full.to_csv('{}_full{}'.format(named_path, ext), index=False)
-    else:
-        csv_name_orig = named_path.split('_full')[0]
-
-        if save_features:
-            features_name = '{}_features_only{}'.format(csv_name_orig, ext)
-
-            df_features = pd.concat([pd.read_csv(features_name), df_features])
-            df_features.to_csv(features_name, index=False, header=False)
-
-        df_full.to_csv(csv_path, index=False)
+    if continued_column and save_features:
+        df_features = pd.concat([df_features_prev, df_features], axis=1)
 
     # Return the full combined dataframe
     return df_full

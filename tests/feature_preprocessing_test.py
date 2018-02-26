@@ -3,7 +3,7 @@ import filecmp
 import logging
 import os
 import random
-
+import pandas as pd
 import numpy as np
 import pytest
 
@@ -97,13 +97,14 @@ def test_find_directory_image_paths():
 def test_find_csv_image_paths():
     """Test method correctly finds image paths in the csv, and in the right order"""
     check_image_paths = ['borges.jpg', 'arendt.bmp', 'sappho.png']
-    test_image_paths = _find_csv_image_paths('{}csv_image_path_check'.format(CSV_PATH),
-                                             IMG_COL_HEAD)
+    test_image_paths, df = _find_csv_image_paths('{}csv_image_path_check'.format(CSV_PATH),
+                                                 IMG_COL_HEAD)
 
     with pytest.raises(ValueError):
         _find_csv_image_paths('{}csv_image_path_check'.format(CSV_PATH), 'Error Column')
 
     assert test_image_paths == check_image_paths
+    assert pd.read_csv('{}csv_image_path_check'.format(CSV_PATH)).equals(df)
 
 
 def test_find_combined_image_paths():
@@ -113,9 +114,9 @@ def test_find_combined_image_paths():
     invalid_csv_image_path = 'heidegger.png'
     invalid_directory_image_path = 'borges.jpg'
 
-    test_path = _find_combined_image_paths(IMAGE_PATH,
-                                           '{}directory_combined_image_path_test'
-                                           .format(CSV_PATH), IMG_COL_HEAD)
+    test_path, df = _find_combined_image_paths(IMAGE_PATH,
+                                               '{}directory_combined_image_path_test'
+                                               .format(CSV_PATH), IMG_COL_HEAD)
 
     with pytest.raises(ValueError):
         _find_combined_image_paths(IMAGE_PATH,
@@ -126,6 +127,7 @@ def test_find_combined_image_paths():
     assert invalid_directory_image_path not in test_path
 
     assert check_image_paths == test_path
+    assert pd.read_csv('{}directory_combined_image_path_test'.format(CSV_PATH)).equals(df)
 
 
 CONVERT_IMAGE_CASES = [
@@ -176,7 +178,7 @@ def test_image_paths_finder(image_path, csv_path, image_column_header, new_csv, 
         os.remove(new_csv)
 
     # generated image lists
-    case = _image_paths_finder(image_path, csv_path, image_column_header, new_csv)
+    case, df = _image_paths_finder(image_path, csv_path, image_column_header, new_csv)
 
     if new_csv != '':
         assert os.path.isfile(new_csv)
@@ -202,7 +204,7 @@ def test_preprocess_data_fake_dir():
         logging.error('Whoops, that labyrinth exists. '
                       'Change error_dir to a directory path that does not exist.')
     with pytest.raises(TypeError):
-        preprocess_data(IMG_COL_HEAD, 'xception', image_path=error_dir,
+        preprocess_data(IMG_COL_HEAD, 'xception', list_of_images=IMAGE_LIST, image_path=error_dir,
                         new_csv_name=ERROR_NEW_CSV_NAME_PREPROCESS)
 
     assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
@@ -217,14 +219,14 @@ def test_preprocess_data_fake_csv():
         logging.error(
             'Whoops, that dreamer exists. change to error_file to a file path that does not exist.')
     with pytest.raises(TypeError):
-        preprocess_data(IMG_COL_HEAD, 'xception', csv_path=error_file,
+        preprocess_data(IMG_COL_HEAD, 'xception', csv_path=error_file,list_of_images=IMAGE_LIST,
                         new_csv_name=ERROR_NEW_CSV_NAME_PREPROCESS)
 
     assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
 
 def test_preprocess_data_invalid_url_or_dir():
     """Raise an error if the image in the column is an invalid path"""
-    preprocess_data(IMG_COL_HEAD, 'xception', csv_path=ERROR_ROW_CSV)
+    preprocess_data(IMG_COL_HEAD, 'xception', list_of_images=IMAGE_LIST, csv_path=ERROR_ROW_CSV)
 
 
 def test_preprocess_data_invalid_model_str():
@@ -315,27 +317,22 @@ def test_preprocess_data(image_path, csv_path, new_csv_name, check_arrays, image
         os.remove(new_csv_name)
 
     # Create the full (data, csv_path, image_list) for each of the three cases
-    preprocessed_case = preprocess_data(IMG_COL_HEAD, 'xception', grayscale=False,
+    preprocessed_case = preprocess_data(IMG_COL_HEAD, 'xception', list_of_images=image_list,
+                                        grayscale=False,
                                         image_path=image_path, csv_path=csv_path,
                                         new_csv_name=new_csv_name, batch_size=batch_size,
                                         index=index)
 
-    # Ensure a new csv wasn't created when they weren't needed, and that a new csv
-    # WAS created when it was needed. Then, remove the new csv.
+    # Ensure a new csv wasn't created when they weren't needed, and that the preprocessing steps
+    # All ran correctly.
+    if new_csv_name == NEW_CSV_NAME_PREPROCESS:
+        csv_path = new_csv_name
+    compare_preprocessing(preprocessed_case, csv_path, check_arrays, image_list)
+
     try:
         assert not os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS)
 
 
-        if new_csv_name == NEW_CSV_NAME_PREPROCESS:
-            csv_path = new_csv_name
-
-
-        compare_preprocessing(preprocessed_case, csv_path, check_arrays, image_list)
-
     finally:
-        if new_csv_name == NEW_CSV_NAME_PREPROCESS:
-            assert os.path.isfile(new_csv_name)
-            os.remove(new_csv_name)
-
         if os.path.isfile(ERROR_NEW_CSV_NAME_PREPROCESS):
             os.remove(ERROR_NEW_CSV_NAME_PREPROCESS)
