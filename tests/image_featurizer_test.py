@@ -97,7 +97,7 @@ def compare_featurizer_class(featurizer,
                              featurized=False):
     """Check the necessary assertions for a featurizer image."""
     assert featurizer.scaled_size == scaled_size
-    assert np.allclose(featurizer.features, featurized_data, atol=ATOL)
+    assert np.allclose(featurizer.features.as_matrix(), featurized_data, atol=ATOL)
     assert featurizer.downsample_size == downsample_size
     assert featurizer.image_column_headers == image_column_headers
     assert featurizer.auto_sample == automatic_downsample
@@ -148,11 +148,11 @@ def test_load_data_multiple_columns():
     compare_featurizer_class(f, (227, 227), np.zeros((1)), **COMPARE_ARGS_MULT)
 
 
-@pytest.mark.xfail
 def test_save_csv():
     """Make sure the featurizer writes the name correctly to csv with robust naming config"""
     f = ImageFeaturizer()
-    f.load_and_featurize_data(save_features=True, omit_time=True, **LOAD_DATA_ARGS_MULT)
+    f.load_and_featurize_data(save_csv=True, save_features=True, omit_time=True,
+                              **LOAD_DATA_ARGS_MULT)
     check_array_path = '{}_squeezenet_depth-1_output-512'.format(CSV_NAME_MULT)
     full_check = '{}_full'.format(check_array_path)
     feature_check = '{}_features_only'.format(check_array_path)
@@ -196,7 +196,7 @@ def test_load_then_featurize_data_multiple_columns(model, size, array_path):
 
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
-def test_load_and_featurize_data_multiple_columns(model, size, array_path):
+def test_load_and_featurize_data_multiple_columns_no_batch_processing(model, size, array_path):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
     feat = ImageFeaturizer(model=model, auto_sample=True)
     feat.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
@@ -204,6 +204,8 @@ def test_load_and_featurize_data_multiple_columns(model, size, array_path):
     check_array = np.load(array_path)
 
     try:
+        print(check_array.shape)
+        print(feat.num_features)
         compare_featurizer_class(feat, size, check_array, **COMPARE_ARGS_MULT)
     finally:
         # Remove path to the generated csv at the end of the test
