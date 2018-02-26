@@ -85,21 +85,6 @@ if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
     shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
 
 
-# Model fixtures
-@pytest.fixture(scope='module', autouse=True)
-def model_dict():
-    # Initialize the dictionary
-    model_dict = {'sample': {}, 'no_sample': {}}
-
-    # For each of the sampling options, and for each model, build the model and save it to the dict
-    for sample in ['sample', 'no_sample']:
-        for model in MODELS:
-            auto_sample = (sample == 'sample')
-            model_dict[sample][model] = ImageFeaturizer(model=model, auto_sample=auto_sample)
-
-    return model_dict
-
-
 def compare_featurizer_class(featurizer,
                              scaled_size,
                              featurized_data,
@@ -138,10 +123,9 @@ def testing_featurizer_build():
     compare_featurizer_class(f, (0, 0), np.zeros((1)), 0, '', False, '', {}, 1)
 
 
-def test_load_data_single_column(model_dict):
+def test_load_data_single_column():
     """Test that the featurizer saves attributes correctly after loading data"""
-    f = model_dict['no_sample']['squeezenet']
-    f.clear_input(confirm=True)
+    f = ImageFeaturizer()
     f.load_data(**LOAD_DATA_ARGS)
     compare_featurizer_class(f, (227, 227), np.zeros((1)), **COMPARE_ARGS)
 
@@ -150,26 +134,23 @@ def test_load_data_single_column(model_dict):
         shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
 
 
-def test_load_data_multiple_columns_no_csv(model_dict):
+def test_load_data_multiple_columns_no_csv():
     """Test featurizer raises error if multiple columns passed with only a directory"""
-    f = model_dict['no_sample']['squeezenet']
-    f.clear_input(confirm=True)
+    f = ImageFeaturizer()
     with pytest.raises(ValueError):
         f.load_data(**LOAD_DATA_ARGS_MULT_ERROR)
 
 
-def test_load_data_multiple_columns(model_dict):
+def test_load_data_multiple_columns():
     """Test featurizer loads data correctly with multiple image columns"""
-    f = model_dict['sample']['squeezenet']
-    f.clear_input(confirm=True)
+    f = ImageFeaturizer(auto_sample=True)
     f.load_data(**LOAD_DATA_ARGS_MULT)
     compare_featurizer_class(f, (227, 227), np.zeros((1)), **COMPARE_ARGS_MULT)
 
 
-def test_save_csv(model_dict):
+def test_save_csv():
     """Make sure the featurizer writes the name correctly to csv with robust naming config"""
-    f = model_dict['no_sample']['squeezenet']
-    f.clear_input(confirm=True)
+    f = ImageFeaturizer()
     f.load_and_featurize_data(save_csv=True, save_features=True, omit_time=True,
                               **LOAD_DATA_ARGS_MULT)
     check_array_path = '{}_squeezenet_depth-1_output-512'.format(CSV_NAME_MULT)
@@ -191,10 +172,9 @@ def test_save_csv(model_dict):
 
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
-def test_load_then_featurize_data_multiple_columns(model, size, array_path, model_dict):
+def test_load_then_featurize_data_multiple_columns(model, size, array_path):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
-    feat = model_dict['sample'][model]
-    feat.clear_input(confirm=True)
+    feat = ImageFeaturizer(model=model, auto_sample=True)
     feat.load_data(**LOAD_DATA_ARGS_MULT)
     feat.featurize(save_features=True, omit_time=True, omit_model=True, omit_depth=True,
                    omit_output=True, save_csv=True)
@@ -212,13 +192,13 @@ def test_load_then_featurize_data_multiple_columns(model, size, array_path, mode
             pass
         if os.path.isfile('{}_features_only'.format(CSV_NAME_MULT)):
             os.remove('{}_features_only'.format(CSV_NAME_MULT))
+        del feat
 
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
-def test_load_and_featurize_multiple_columns_no_batch(model, size, array_path, model_dict):
+def test_load_and_featurize_data_multiple_columns_no_batch_processing(model, size, array_path):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
-    feat = model_dict['sample'][model]
-    feat.clear_input(confirm=True)
+    feat = ImageFeaturizer(model=model, auto_sample=True)
     feat.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
                                  omit_depth=True, omit_output=True, **LOAD_DATA_ARGS_MULT)
     check_array = np.load(array_path)
@@ -237,13 +217,13 @@ def test_load_and_featurize_multiple_columns_no_batch(model, size, array_path, m
             pass
         if os.path.isfile('{}_features_only'.format(CSV_NAME_MULT)):
             os.remove('{}_features_only'.format(CSV_NAME_MULT))
+        del feat
 
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
-def test_load_and_featurize_data_multiple_columns_with_batch(model, size, array_path, model_dict):
+def test_load_and_featurize_data_multiple_columns_with_batch_processing(model, size, array_path):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
-    feat = model_dict['sample'][model]
-    feat.clear_input(confirm=True)
+    feat = ImageFeaturizer(model=model, auto_sample=True)
     feat.load_and_featurize_data(batch_size=2, save_features=True, omit_time=True, omit_model=True,
                                  omit_depth=True, omit_output=True, **LOAD_DATA_ARGS_MULT)
     check_array = np.load(array_path)
@@ -262,13 +242,13 @@ def test_load_and_featurize_data_multiple_columns_with_batch(model, size, array_
             pass
         if os.path.isfile('{}_features_only'.format(CSV_NAME_MULT)):
             os.remove('{}_features_only'.format(CSV_NAME_MULT))
+        del feat
 
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS, ids=MODELS)
-def test_load_and_featurize_single_column_no_batch(model, size, array_path, model_dict):
+def test_load_and_featurize_single_column_no_batch_processing(model, size, array_path):
     """Test that all of the featurizations and attributes for each model are correct"""
-    feat = model_dict['no_sample'][model]
-    feat.clear_input(confirm=True)
+    feat = ImageFeaturizer(model=model)
     feat.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
                                  omit_depth=True, omit_output=True, **LOAD_DATA_ARGS)
 
@@ -280,13 +260,13 @@ def test_load_and_featurize_single_column_no_batch(model, size, array_path, mode
         # Remove path to the generated csv at the end of the test
         if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
             shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
+        del feat
 
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS, ids=MODELS)
-def test_load_and_featurize_single_column_with_batch(model, size, array_path, model_dict):
+def test_load_and_featurize_single_column_with_batch_processing(model, size, array_path):
     """Test that all of the featurizations and attributes for each model are correct"""
-    feat = model_dict['no_sample'][model]
-    feat.clear_input(confirm=True)
+    feat = ImageFeaturizer(model=model)
     feat.load_and_featurize_data(batch_size=2, save_features=True, omit_time=True, omit_model=True,
                                  omit_depth=True, omit_output=True, **LOAD_DATA_ARGS)
 
