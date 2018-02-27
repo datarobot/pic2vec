@@ -250,7 +250,7 @@ class ImageFeaturizer:
         # If the image_dict hasn't been passed in (which only happens in batch processing),
         # build the full image dict and save the original dataframe
         if not image_dict:
-            image_dict, df = self._full_image_dict_finder(image_path, csv_path,image_column_headers,
+            image_dict, df = self._full_image_dict_finder(image_path, csv_path, image_column_headers,
                                                           new_csv_name, save_csv)
             self.df_original = df
             self.full_dataframe = df
@@ -434,11 +434,11 @@ class ImageFeaturizer:
 
         # If batch processing is turned off, load the images in one big batch and features them all
         else:
-            self.load_data(image_column_headers, image_path, full_image_dict, csv_path,
-                           new_csv_name, grayscale, save_data, save_csv)
+            full_data = self.load_data(image_column_headers, image_path, full_image_dict, csv_path,
+                                       new_csv_name, grayscale, save_data, save_csv)
 
             full_df, features_df = \
-                self.featurize(image_column_headers=image_column_headers,
+                self.featurize(full_data, image_column_headers=image_column_headers,
                                save_features=save_features,
                                save_csv=save_csv, omit_time=omit_time, omit_model=omit_model,
                                omit_depth=omit_depth, omit_output=omit_output)
