@@ -109,6 +109,16 @@ def compare_featurizer_class(featurizer,
         assert featurizer.full_dataframe == pd.read_csv(CHECK_CSV.format(featurizer.model_name))
 
 
+def compare_empty_input(featurizer):
+    assert np.array_equal(featurizer.data, np.zeros((1)))
+    assert featurizer.features.equals(pd.DataFrame())
+    assert featurizer.full_dataframe.equals(pd.DataFrame())
+    assert featurizer.csv_path == ''
+    assert featurizer.image_list == ''
+    assert featurizer.image_column_headers == ''
+    assert featurizer.image_path == ''
+
+
 def test_featurize_first():
     """Test that the featurizer raises an error if featurize is called before loading data"""
     f = ImageFeaturizer()
@@ -148,7 +158,7 @@ def test_load_data_multiple_columns():
     compare_featurizer_class(f, (227, 227), np.zeros((1)), **COMPARE_ARGS_MULT)
 
 
-def test_save_csv():
+def test_load_and_featurize_save_csv():
     """Make sure the featurizer writes the name correctly to csv with robust naming config"""
     f = ImageFeaturizer()
     f.load_and_featurize_data(save_csv=True, save_features=True, omit_time=True,
@@ -169,6 +179,20 @@ def test_save_csv():
             pass
         if os.path.isfile('{}_features_only'.format(check_array_path)):
             os.remove('{}_features_only'.format(check_array_path))
+
+
+def test_clear_input():
+    f = ImageFeaturizer()
+    f.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
+                              omit_depth=True, omit_output=True, **LOAD_DATA_ARGS)
+    f.clear_input(confirm=True)
+    compare_empty_input(f)
+
+
+def test_clear_input_no_confirm():
+    f = ImageFeaturizer()
+    with pytest.raises(ValueError):
+        f.clear_input()
 
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
@@ -196,7 +220,7 @@ def test_load_then_featurize_data_multiple_columns(model, size, array_path):
 
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
-def test_load_and_featurize_data_multiple_columns_no_batch_processing(model, size, array_path):
+def test_load_and_featurize_data_multiple_columns_batch_overlap(model, size, array_path):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
     feat = ImageFeaturizer(model=model, auto_sample=True)
     feat.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
@@ -249,7 +273,7 @@ def test_load_and_featurize_data_multiple_columns_with_batch_processing(model, s
 def test_load_and_featurize_single_column_no_batch_processing(model, size, array_path):
     """Test that all of the featurizations and attributes for each model are correct"""
     feat = ImageFeaturizer(model=model)
-    feat.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
+    feat.load_and_featurize_data(batch_size=0, save_features=True, omit_time=True, omit_model=True,
                                  omit_depth=True, omit_output=True, **LOAD_DATA_ARGS)
 
     check_array = np.load(array_path)
