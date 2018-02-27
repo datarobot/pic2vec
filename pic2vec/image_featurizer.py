@@ -189,7 +189,8 @@ class ImageFeaturizer:
                   csv_path='',
                   new_csv_name='featurizer_csv/generated_images_csv',
                   grayscale=False,
-                  save_data=True
+                  save_data=True,
+                  save_csv=False
                   # crop_size = (299, 299),
                   # number_crops = 0,
                   # random_crop = False,
@@ -249,9 +250,10 @@ class ImageFeaturizer:
         # If the image_dict hasn't been passed in (which only happens in batch processing),
         # build the full image dict and save the original dataframe
         if not image_dict:
-            image_dict, df = self._full_image_dict_finder(image_path, csv_path,
-                                                          image_column_headers, new_csv_name)
+            image_dict, df = self._full_image_dict_finder(image_path, csv_path,image_column_headers,
+                                                          new_csv_name, save_csv)
             self.df_original = df
+            self.full_dataframe = df
             self.image_column_headers = image_column_headers
             self.image_dict = image_dict
 
@@ -270,7 +272,7 @@ class ImageFeaturizer:
         return full_image_data
 
     @t.guard(batch_data=t.Type(np.ndarray),
-             image_column_headers=t.String(allow_blank=True),
+             image_column_headers=t.List(t.String(allow_blank=True)) | t.String(allow_blank=True),
              batch_processing=t.Bool,
              save_features=t.Bool,
              save_csv=t.Bool,
@@ -347,7 +349,7 @@ class ImageFeaturizer:
                                 grayscale=False,
                                 save_data=False,
                                 save_features=False,
-                                save_csv=True,
+                                save_csv=False,
                                 omit_time=False,
                                 omit_model=False,
                                 omit_depth=False,
@@ -412,7 +414,7 @@ class ImageFeaturizer:
         # how many images exist in total, to control batch processing.
         full_image_dict, df_original = self._full_image_dict_finder(image_path, csv_path,
                                                                     image_column_headers,
-                                                                    new_csv_name)
+                                                                    new_csv_name, save_csv)
         # Save the fixed inputs and full image dict
         self.df_original = df_original
         self.image_column_headers = image_column_headers
@@ -427,18 +429,22 @@ class ImageFeaturizer:
                                                           new_csv_name, batch_size, grayscale,
                                                           save_features)
 
-            # Save the full dataframe with the features!
+            # Save the full dataframe with the features
             self.full_dataframe = full_df
 
         # If batch processing is turned off, load the images in one big batch and features them all
         else:
             self.load_data(image_column_headers, image_path, full_image_dict, csv_path,
-                           new_csv_name, grayscale, save_data)
+                           new_csv_name, grayscale, save_data, save_csv)
+
             full_df, features_df = \
                 self.featurize(image_column_headers=image_column_headers,
                                save_features=save_features,
                                save_csv=save_csv, omit_time=omit_time, omit_model=omit_model,
                                omit_depth=omit_depth, omit_output=omit_output)
+
+            # Save the full dataframe with the features
+            self.full_dataframe = full_df
 
         # Save features and csv if flags are enabled
         if save_features:
@@ -469,10 +475,9 @@ class ImageFeaturizer:
         argument in order to run.
         """
         if not confirm:
-            logger.warning("If you're sure you would like to clear the inputs of this model, rerun"
-                           " the function with the following argument: clear_input(confirm=True). "
-                           "This operation cannot be reversed.")
-            return
+            raise ValueError('If you\'re sure you would like to clear the inputs of this model, '
+                             'rerun the function with the following argument: '
+                             'clear_input(confirm=True). This operation cannot be reversed.')
 
         self.data = np.zeros((1))
         self.features = pd.DataFrame()
@@ -514,15 +519,16 @@ class ImageFeaturizer:
                                                   np.expand_dims(image_data, axis=0)))
         return scaled_size, full_image_data, csv_path
 
-    def _featurize_helper(self, features, image_column_headers, save_features, batch_data):
+    def _featurize_helper(self, features, image_column_headers,
+                          save_features, batch_data):
         full_dataframe = pd.DataFrame()
         # For each image column, perform the full featurization and add the features to the csv
         for column in range(batch_data.shape[0]):
             if not column:
-                df_prev = self.full_dataframe = pd.read_csv(self.csv_path)
+                df_prev = self.df_original
             else:
                 df_prev = self.full_dataframe
-
+            print(df_prev)
             # Featurize the data, and save it to the appropriate columns
             partial_features = featurize_data(self.featurizer, batch_data[column])
 
@@ -579,7 +585,7 @@ class ImageFeaturizer:
                 # Load the images
                 batch_data = self.load_data(column, image_path,
                                             batch_image_dict, csv_path, new_csv_name,
-                                            grayscale, False)
+                                            grayscale, False, False)
 
                 # If this is the first batch, the batch features will be saved alone.
                 # Otherwise, they are concatenated to the last batch
@@ -599,12 +605,13 @@ class ImageFeaturizer:
         # Return the full dataframe and features dataframe
         return full_df, full_features_df
 
-    def _full_image_dict_finder(self, image_path, csv_path, image_column_headers, new_csv_name):
+    def _full_image_dict_finder(self, image_path, csv_path, image_column_headers, new_csv_name,
+                                save_csv):
         full_image_dict = {}
 
         for column in image_column_headers:
             list_of_image_paths, df = _image_paths_finder(image_path, csv_path,
-                                                          column, new_csv_name)
+                                                          column, new_csv_name, save_csv)
 
             full_image_dict[column] = list_of_image_paths
         return full_image_dict, df

@@ -198,7 +198,7 @@ def test_image_paths_finder(image_path, csv_path, image_column_header, new_csv, 
 def test_preprocess_data_no_input():
     """Raise error if no csv or directory is passed"""
     with pytest.raises(ValueError):
-        preprocess_data(IMG_COL_HEAD, 'xception')
+        preprocess_data(IMG_COL_HEAD, 'xception', [''])
 
 
 def test_preprocess_data_fake_dir():
@@ -239,7 +239,7 @@ def test_preprocess_data_invalid_url_or_dir():
 def test_preprocess_data_invalid_model_str():
     """Raise an error if the model_str is not a valid model"""
     with pytest.raises(ValueError):
-        preprocess_data(IMG_COL_HEAD, 'derp', csv_path=DIRECTORY_CSV_PATH_PREPROCESS,
+        preprocess_data(IMG_COL_HEAD, 'derp', [''], csv_path=DIRECTORY_CSV_PATH_PREPROCESS,
                         new_csv_name=ERROR_NEW_CSV_NAME_PREPROCESS)
 
 
