@@ -28,7 +28,6 @@ import trafaret as t  # noqa: E402
 import keras.applications as ka  # noqa: E402
 from keras.preprocessing.image import load_img, img_to_array  # noqa: E402
 
-
 ##############################################
 # FUNCTIONS FOR BUILDING LIST OF IMAGE PATHS #
 ##############################################
@@ -63,14 +62,15 @@ preprocessing_dict = {
     },
 }
 
-def _create_csv_with_image_paths(list_of_image_paths, new_csv_name, image_column_header):
+
+def _create_csv_with_image_paths(list_of_images, new_csv_name, image_column_header):
     """
     Take in a list of image names, and create a new csv file where each
     image name is a new row.
 
     Parameters:
     ----------
-        list_of_image_paths: list of str
+        list_of_images: list of str
             Full paths to images in a directory
 
         new_csv_name : str
@@ -85,8 +85,20 @@ def _create_csv_with_image_paths(list_of_image_paths, new_csv_name, image_column
         image file, and saves it to the csv_name path
 
     """
-    df = pd.DataFrame(list_of_image_paths, columns=[image_column_header])
+    _create_csv_path(new_csv_name)
+    df = pd.DataFrame(list_of_images, columns=[image_column_header])
     df.to_csv(new_csv_name, index=False)
+    return df
+
+
+def _create_csv_path(new_csv_name):
+    """
+    Create the necessary csv along with the appropriate directories
+    """
+    # Create the filepath to the new csv
+    path_to_new_csv = os.path.dirname(new_csv_name)
+    if not os.path.isdir(path_to_new_csv) and path_to_new_csv != '':
+        os.makedirs(path_to_new_csv)
 
 
 def natural_key(string_):
@@ -112,24 +124,24 @@ def _find_directory_image_paths(image_directory):
 
     Returns:
     -------
-        list_of_image_paths : list of str
+        list_of_images : list of str
             A sorted list of full paths to each valid image contained in the directory
 
     """
     image_list = os.listdir(image_directory)
 
     valid = ['JPEG', 'BMP', 'PNG']
-    list_of_image_paths = []
+    list_of_images = []
 
     for fichier in image_list:
         try:
             if Image.open(image_directory + fichier).format in valid:
-                list_of_image_paths.append(fichier)
+                list_of_images.append(fichier)
                 Image.close()
-        except:
+        except Exception:
             pass
 
-    return sorted(list_of_image_paths, key=natural_key)
+    return sorted(list_of_images, key=natural_key)
 
 
 def _find_csv_image_paths(csv_path, image_column_header):
@@ -152,7 +164,7 @@ def _find_csv_image_paths(csv_path, image_column_header):
 
     Returns:
     -------
-        list_of_image_paths: list of str
+        list_of_images: list of str
             Full paths to each valid image contained in the csv
 
     """
@@ -168,9 +180,9 @@ def _find_csv_image_paths(csv_path, image_column_header):
     # -------------- #
 
     # Create the list of image paths from the column in the dataframe
-    list_of_image_paths = df[image_column_header].tolist()
+    list_of_images = df[image_column_header].tolist()
 
-    return list_of_image_paths
+    return list_of_images, df
 
 
 def _find_combined_image_paths(image_path, csv_path, image_column_header):
@@ -194,39 +206,39 @@ def _find_combined_image_paths(image_path, csv_path, image_column_header):
 
     Returns:
     -------
-        list_of_image_paths: list of str
+        list_of_images: list of str
             Full paths to each valid image contained in both the csv and directory
 
     """
     # Find the list of image paths in the csv
-    csv_list = _find_csv_image_paths(csv_path, image_column_header)
+    csv_list, df = _find_csv_image_paths(csv_path, image_column_header)
 
     # Find the list of image paths in the directory
     directory_list = _find_directory_image_paths(image_path)
 
-    list_of_image_paths = []
+    list_of_images = []
 
     # Create the list of image paths by finding the overlap between the two,
     # keeping the order in the csv
     for path in csv_list:
         if path in directory_list:
-            list_of_image_paths.append(path)
+            list_of_images.append(path)
 
         # If the image is in the csv but not the directory, input an empty string
         # as a placeholder. This image will eventually get vectorized to zeros.
         else:
-            list_of_image_paths.append('')
+            list_of_images.append('')
 
     # -------------- #
     # ERROR CHECKING #
 
     # Raise error if there are no shared images between the csv and the directory
-    if all(path == '' for path in list_of_image_paths):
+    if all(path == '' for path in list_of_images):
         raise ValueError('Something is wrong. There are no shared images in the'
                          ' csv and the image directory. Check formatting or files.')
     # -------------- #
 
-    return list_of_image_paths
+    return list_of_images, df
 
 
 def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name):
@@ -252,7 +264,7 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
 
     Returns:
     -------
-        list_of_image_paths : list of str
+        list_of_images : list of str
             a  list of the paths to all the images being featurized
 
     """
@@ -260,26 +272,26 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
     if csv_path == '':
 
         # Find list of images from the image directory
-        list_of_image_paths = _find_directory_image_paths(image_path)
+        list_of_images = _find_directory_image_paths(image_path)
 
         # Create the new csv in a folder called 'featurizer_csv/'
-        _create_csv_with_image_paths(list_of_image_paths, new_csv_name=new_csv_name,
-                                     image_column_header=image_column_header)
+        df = _create_csv_with_image_paths(list_of_images, new_csv_name=new_csv_name,
+                                          image_column_header=image_column_header)
 
         logging.warning('Created csv from directory. Stored at {}'.format(new_csv_name))
 
     # CASE 2: They only give a CSV with no directory
     elif image_path == '':
-        # Create the list_of_image_paths from the csv
-        list_of_image_paths = _find_csv_image_paths(csv_path, image_column_header)
+        # Create the list_of_images from the csv
+        list_of_images, df = _find_csv_image_paths(csv_path, image_column_header)
         logging.info('Found image paths from csv.')
 
     # CASE 3: They give both a CSV and a directory
     else:
-        list_of_image_paths = _find_combined_image_paths(image_path, csv_path, image_column_header)
+        list_of_images, df = _find_combined_image_paths(image_path, csv_path, image_column_header)
         logging.info('Found image paths that overlap between both the directory and the csv.')
 
-    return list_of_image_paths
+    return list_of_images, df
 
 
 #####################################
@@ -322,6 +334,7 @@ def _convert_single_image(image_source, model_str, image_path, target_size=(299,
             image_file = urlretrieve(image_path)[0]
         elif image_source == 'directory':
             image_file = image_path
+
     # If the image can't be retrieved, return a zeros vector of the appropriate size
     except (IOError, ValueError):
         # The channel dimension for a missing image is 3 if not grayscale, or 1 if grayscale
@@ -345,22 +358,38 @@ def _convert_single_image(image_source, model_str, image_path, target_size=(299,
 ################################################
 #  FUNCTION FOR END-TO-END DATA PREPROCESSING  #
 ################################################
+
+def _find_image_source(csv_path, image_path, new_csv_name):
+    if csv_path == '':
+        csv_path = new_csv_name
+
+    # IMAGE RETRIEVAL AND VECTORIZATION #
+    # Find image source: whether from url or directory
+    if image_path == '':
+        image_source = 'url'
+
+    else:
+        image_source = 'directory'
+
+    return image_source, csv_path
+
+
 @t.guard(image_column_header=t.String(allow_blank=False),
          model_str=t.String(allow_blank=False),
+         list_of_images=t.List(t.String(allow_blank=True)),
          image_path=t.String(allow_blank=True),
          csv_path=t.String(allow_blank=True),
          new_csv_name=t.String(allow_blank=True),
          target_size=t.Tuple(t.Int, t.Int),
-         grayscale=t.Bool,
-         batch_size=t.Int)
+         grayscale=t.Bool)
 def preprocess_data(image_column_header,
                     model_str,
+                    list_of_images,
                     image_path='',
                     csv_path='',
-                    new_csv_name='featurizer_csv/generated_images_csv',
+                    new_csv_name='featurizer_csv/generated_images.csv',
                     target_size=(299, 299),
-                    grayscale=False,
-                    batch_size=1000):
+                    grayscale=False):
     """
     Receive the data (some combination of image directory + csv), find
     the list of valid images, and then convert each to an array and adds
@@ -388,14 +417,14 @@ def preprocess_data(image_column_header,
 
     Returns:
     -------
-        full_image_data : np.ndarray
-            a 4D numpy tensor containing all of the vectorized images, ready
-            to be pushed through the featurizer
+        image_data : np.ndarray
+            a 4D numpy tensor containing the (full or batched) vectorized images,
+            ready to be pushed through the featurizer
 
         csv_path : str
             the path to the csv that represents the image data
 
-        list_of_image_paths : list of str
+        list_of_images : list of str
             the list of image paths in the same order as the batches
             of the numpy tensor. This will allow us to add the
             features to the correct row of the csv.
@@ -409,93 +438,74 @@ def preprocess_data(image_column_header,
     if image_path == '' and csv_path == '':
         raise ValueError('Need to load either an image directory or a CSV with'
                          ' URLs, if no image directory included.')
-
     # Raise an error if the image_path doesn't point to a directory
     if image_path and not os.path.isdir(image_path):
         raise TypeError('image_path must lead to a directory if '
                         'it is initialized. It is where the images are stored.')
-
     # Raise an error if the csv_path doesn't point to a file
     if csv_path and not os.path.isfile(csv_path):
         raise TypeError('csv_path must lead to a file if it is initialized.'
                         ' This is the csv containing pointers to the images.')
-
     if model_str not in preprocessing_dict.keys():
         raise ValueError('model_str must be one the following: {}'.format(preprocessing_dict.keys))
     # ------------------------------------------------------ #
 
     # BUILDING IMAGE PATH LIST #
-    list_of_image_paths = _image_paths_finder(image_path, csv_path,
-                                              image_column_header, new_csv_name)
+    num_images = len(list_of_images)
 
-    if csv_path == '':
-        csv_path = new_csv_name
+    image_source, csv_path = _find_image_source(csv_path, image_path, new_csv_name)
 
-    # IMAGE RETRIEVAL AND VECTORIZATION #
-    # Find image source: whether from url or directory
-    if image_path == '':
-        image_source = 'url'
-
-    else:
-        image_source = 'directory'
+    # Set number of grayscale channels (3 if color, 1 if grayscale)
+    channels = 3 - (2 * grayscale)
 
     # Initialize the full batch
-    num_images = len(list_of_image_paths)
-
-    if grayscale:
-        channels = 1
-    else:
-        channels = 3
-
-    full_image_data = np.zeros((num_images, target_size[0], target_size[1], channels))
+    image_data = np.ones((num_images, target_size[0], target_size[1], channels))
 
     # Create the full image tensor
-    i = 0
-
     logging.info('Converting images.')
 
     image_dict = {}
 
-    # Iterate through each image in the list of image names
-    for image in list_of_image_paths:
+    index = 0
 
+    # Iterate through each image in the list of image names
+    for image in list_of_images:
         # If the image is in the csv, but not in the directory, set it to all zeros
         # This allows the featurizer to correctly append features when there is
         # mismatch between the csv and the directory. Otherwise it would lose rows
         if image == '':
-            full_image_data[i, :, :, :] = 0
-            i += 1
+            image_data[index, :, :, :] = 0
+            index += 1
             continue
 
         # If the image has already been vectorized before, just copy that slice
         if image in image_dict:
-            full_image_data[i, :, :, :] = full_image_data[image_dict[image], :, :, :]
+            image_data[index, :, :, :] = image_data[image_dict[image], :, :, :]
 
         # Otherwise, vectorize the image
         else:
-            image_dict[image] = i
+            # Add the index to the dictionary to check in the future
+            image_dict[image] = index
 
-            # If an image directory exists, append its path to the image name
-            if image_path != '':
-                image = '{}{}'.format(image_path, image)
+            # Append the image path to the image name. If there's none, nothing will change
+            image = '{}{}'.format(image_path, image)
 
             # Place the vectorized image into the image data
-            full_image_data[i, :, :, :] = _convert_single_image(image_source, model_str, image,
-                                                                target_size=target_size,
-                                                                grayscale=grayscale)
+            image_data[index, :, :, :] = _convert_single_image(image_source, model_str, image,
+                                                               target_size=target_size,
+                                                               grayscale=grayscale)
 
-            # Add the index to the dictionary to check in the future
+        # Progress report at set intervals
+        if num_images < 1000:
+            report_step = 100
+        elif num_images < 5000:
+            report_step = 500
+        else:
+            report_step = 1000
+        if not index % report_step:
+            logging.info('Converted {} images in batch. Only {} images left to go.'.format(
+                index, num_images - index))
 
-            # Progress report at the set intervals
-            if len(list_of_image_paths) < 1000:
-                report_step = 100
-            elif len(list_of_image_paths) < 5000:
-                report_step = 500
-            else:
-                report_step = 1000
-            if not i % report_step:
-                logging.info('Converted {} images. Only {} images left to go.'
-                             .format(i, num_images - i))
-            i += 1
+        index += 1
 
-    return full_image_data, csv_path, list_of_image_paths
+    return image_data, csv_path, list_of_images
