@@ -69,7 +69,7 @@ def test_create_csv_with_image_paths():
     if os.path.isfile(new_csv_path):
         os.remove(new_csv_path)
 
-    _create_csv_with_image_paths(IMAGE_LIST, new_csv_path, IMG_COL_HEAD)
+    _create_csv_with_image_paths(IMAGE_LIST, new_csv_path, IMG_COL_HEAD, save_csv=True)
 
     try:
         assert filecmp.cmp(new_csv_path, '{}create_csv_check'.format(CSV_PATH))
@@ -184,7 +184,8 @@ def test_image_paths_finder(image_path, csv_path, image_column_header, new_csv, 
         os.remove(new_csv)
 
     # generated image lists
-    case, df = _image_paths_finder(image_path, csv_path, image_column_header, new_csv)
+    case, df = _image_paths_finder(image_path, csv_path, image_column_header, new_csv,
+                                   save_csv=True)
 
     if new_csv != '':
         assert os.path.isfile(new_csv)
