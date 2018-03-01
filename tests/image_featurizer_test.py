@@ -1,5 +1,4 @@
 """Test the full featurizer class"""
-import filecmp
 import os
 import pytest
 import shutil
@@ -16,7 +15,8 @@ IMAGE_LIST = ['arendt.bmp', 'borges.jpg', 'sappho.png']
 CHECK_ARRAY = 'tests/ImageFeaturizer_testing/array_tests/check_prediction_array_{}.npy'
 CHECK_CSV = 'tests/ImageFeaturizer_testing/csv_checking/{}_check_csv'
 
-CSV_NAME_MULT = 'tests/ImageFeaturizer_testing/csv_checking/mult_check_csv'
+CSV_NAME_MULT = 'tests/ImageFeaturizer_testing/csv_checking/mult_check_csv.csv'
+CHECK_CSV_MULT = 'tests/ImageFeaturizer_testing/csv_checking/{}_CHECK_CSV_MULT'
 IMAGE_LIST_MULT = [['arendt.bmp', 'sappho.png', ''], ['borges.jpg', '', '']]
 CHECK_ARRAY_MULT = 'tests/ImageFeaturizer_testing/array_tests/check_prediction_array_{}_mult.npy'
 
@@ -58,7 +58,7 @@ COMPARE_ARGS_MULT = {
     'automatic_downsample': True,
     'csv_path': CSV_NAME_MULT,
     'image_dict': {'images_1': IMAGE_LIST_MULT[0], 'images_2': IMAGE_LIST_MULT[1]},
-    'depth': 1
+    'depth': 1,
 }
 # Variable attributes to load the featurizer with
 LOAD_PARAMS = [
@@ -85,6 +85,23 @@ if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
     shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
 
 
+def remove_generated_paths(assert_not=True):
+    try:
+        if assert_not:
+            assert not os.path.isdir('tests/ImageFeaturizer_testing/csv_tests')
+            assert not os.path.isfile('{}_full'.format(CSV_NAME_MULT))
+            assert not os.path.isfile('{}_features_only'.format(CSV_NAME_MULT))
+    finally:
+        # Remove path to the generated csv at the end of the test
+        if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
+            shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
+
+        if os.path.isfile('{}_full'.format(CSV_NAME_MULT)):
+            os.remove('{}_full'.format(CSV_NAME_MULT))
+        if os.path.isfile('{}_features_only'.format(CSV_NAME_MULT)):
+            os.remove('{}_features_only'.format(CSV_NAME_MULT))
+
+
 def compare_featurizer_class(featurizer,
                              scaled_size,
                              featurized_data,
@@ -94,10 +111,12 @@ def compare_featurizer_class(featurizer,
                              csv_path,
                              image_dict,
                              depth,
-                             featurized=False):
+                             featurized=False,
+                             check_csv='',
+                             saved_data=True):
     """Check the necessary assertions for a featurizer image."""
     assert featurizer.scaled_size == scaled_size
-    assert np.allclose(featurizer.features.as_matrix(), featurized_data, atol=ATOL)
+    assert np.allclose(featurizer.features.astype(float).as_matrix(), featurized_data, atol=ATOL)
     assert featurizer.downsample_size == downsample_size
     assert featurizer.image_column_headers == image_column_headers
     assert featurizer.auto_sample == automatic_downsample
@@ -105,8 +124,9 @@ def compare_featurizer_class(featurizer,
     assert featurizer.image_dict == image_dict
     assert featurizer.depth == depth
     if featurized:
-        assert filecmp.cmp('{}_full'.format(csv_path), CHECK_CSV.format(featurizer.model_name))
-        assert featurizer.full_dataframe == pd.read_csv(CHECK_CSV.format(featurizer.model_name))
+        assert np.array_equal(pd.read_csv(check_csv).columns, featurizer.features.columns)
+        assert np.allclose(featurizer.features.astype(float), pd.read_csv(check_csv).astype(float),
+                           atol=ATOL)
 
 
 def compare_empty_input(featurizer):
@@ -140,8 +160,7 @@ def test_load_data_single_column():
     compare_featurizer_class(f, (227, 227), np.zeros((1)), **COMPARE_ARGS)
 
     # Remove path to the generated csv at end of test
-    if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
-        shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
+    remove_generated_paths()
 
 
 def test_load_data_multiple_columns_no_csv():
@@ -161,24 +180,22 @@ def test_load_data_multiple_columns():
 def test_load_and_featurize_save_csv():
     """Make sure the featurizer writes the name correctly to csv with robust naming config"""
     f = ImageFeaturizer()
+    name, ext = os.path.splitext(CSV_NAME_MULT)
+    check_array_path = "{}_{}".format(name, 'squeezenet_depth-1_output-512')
     f.load_and_featurize_data(save_csv=True, save_features=True, omit_time=True,
                               **LOAD_DATA_ARGS_MULT)
-    check_array_path = '{}_squeezenet_depth-1_output-512'.format(CSV_NAME_MULT)
-    full_check = '{}_full'.format(check_array_path)
-    feature_check = '{}_features_only'.format(check_array_path)
+    full_check = "{}{}{}".format(check_array_path, '_full', ext)
+    feature_check = "{}{}{}".format(check_array_path, '_features_only', ext)
     f.save_csv(save_features=True, omit_time=True)
     try:
         assert os.path.isfile(full_check)
         assert os.path.isfile(feature_check)
     finally:
-        if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
-            shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
-
-        if os.path.isfile('{}_full'.format(check_array_path)):
-            os.remove('{}_full'.format(check_array_path))
-            pass
-        if os.path.isfile('{}_features_only'.format(check_array_path)):
-            os.remove('{}_features_only'.format(check_array_path))
+        remove_generated_paths(assert_not=False)
+        if os.path.isfile("{}{}{}".format(check_array_path, '_features_only', ext)):
+            os.remove("{}{}{}".format(check_array_path, '_features_only', ext))
+        if os.path.isfile("{}{}{}".format(check_array_path, '_full', ext)):
+            os.remove("{}{}{}".format(check_array_path, '_full', ext))
 
 
 def test_clear_input():
@@ -195,52 +212,82 @@ def test_clear_input_no_confirm():
         f.clear_input()
 
 
-@pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
-def test_load_then_featurize_data_multiple_columns(model, size, array_path):
+def test_load_then_featurize_data_multiple_columns():
     """Test featurizations and attributes for each model are correct with multiple image columns"""
-    feat = ImageFeaturizer(model=model, auto_sample=True)
+    feat = ImageFeaturizer(auto_sample=True)
     feat.load_data(**LOAD_DATA_ARGS_MULT)
-    feat.featurize(save_features=True, omit_time=True, omit_model=True, omit_depth=True,
-                   omit_output=True, save_csv=True)
-    check_array = np.load(array_path)
+    feat.featurize(save_features=True)
+    check_array = np.load(CHECK_ARRAY_MULT.format('squeezenet'))
 
     try:
-        compare_featurizer_class(feat, size, check_array, **COMPARE_ARGS_MULT)
+        compare_featurizer_class(feat, (227, 227), check_array, featurized=True,
+                                 check_csv=CHECK_CSV_MULT.format('squeezenet'), **COMPARE_ARGS_MULT)
+
     finally:
         # Remove path to the generated csv at the end of the test
-        if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
-            shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
+        remove_generated_paths()
+        del feat
 
-        if os.path.isfile('{}_full'.format(CSV_NAME_MULT)):
-            os.remove('{}_full'.format(CSV_NAME_MULT))
-            pass
-        if os.path.isfile('{}_features_only'.format(CSV_NAME_MULT)):
-            os.remove('{}_features_only'.format(CSV_NAME_MULT))
+
+def test_load_then_featurize_data_single_column():
+    """Test featurizations and attributes for each model are correct with multiple image columns"""
+    feat = ImageFeaturizer()
+    feat.load_data(**LOAD_DATA_ARGS)
+    feat.featurize(save_features=True)
+    check_array = np.load(CHECK_ARRAY.format('squeezenet'))
+
+    try:
+        compare_featurizer_class(feat, (227, 227), check_array, featurized=True,
+                                 check_csv=CHECK_CSV.format('squeezenet'), **COMPARE_ARGS)
+
+    finally:
+        # Remove path to the generated csv at the end of the test
+        remove_generated_paths()
+        del feat
+
+
+def test_load_and_featurize_data_multiple_columns_batch_overflow():
+    """Test featurizations and attributes for each model are correct with multiple image columns"""
+    feat = ImageFeaturizer(auto_sample=True)
+    feat.load_and_featurize_data(save_features=True, **LOAD_DATA_ARGS_MULT)
+    check_array = np.load(CHECK_ARRAY_MULT.format('squeezenet'))
+
+    try:
+        compare_featurizer_class(feat, (227, 227), check_array, featurized=True,
+                                 check_csv=CHECK_CSV_MULT.format('squeezenet'), **COMPARE_ARGS_MULT)
+    finally:
+        # Remove path to the generated csv at the end of the test
+        remove_generated_paths()
+        del feat
+
+
+def test_load_and_featurize_data_single_column_batch_overflow():
+    """Test featurizations and attributes for each model are correct with multiple image columns"""
+    feat = ImageFeaturizer()
+    feat.load_and_featurize_data(save_features=True, **LOAD_DATA_ARGS)
+    check_array = np.load(CHECK_ARRAY.format('squeezenet'))
+    try:
+        compare_featurizer_class(feat, (227, 227), check_array, featurized=True,
+                                 check_csv=CHECK_CSV.format('squeezenet'), **COMPARE_ARGS)
+    finally:
+        # Remove path to the generated csv at the end of the test
+        remove_generated_paths()
         del feat
 
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
-def test_load_and_featurize_data_multiple_columns_batch_overlap(model, size, array_path):
+def test_load_and_featurize_data_multiple_columns_no_batch_processing(model, size, array_path):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
     feat = ImageFeaturizer(model=model, auto_sample=True)
-    feat.load_and_featurize_data(save_features=True, omit_time=True, omit_model=True,
-                                 omit_depth=True, omit_output=True, **LOAD_DATA_ARGS_MULT)
+    feat.load_and_featurize_data(batch_processing=False, save_features=True, **LOAD_DATA_ARGS_MULT)
     check_array = np.load(array_path)
 
     try:
-        print(check_array.shape)
-        print(feat.num_features)
-        compare_featurizer_class(feat, size, check_array, **COMPARE_ARGS_MULT)
+        compare_featurizer_class(feat, size, check_array, featurized=True,
+                                 check_csv=CHECK_CSV_MULT.format(model), **COMPARE_ARGS_MULT)
     finally:
         # Remove path to the generated csv at the end of the test
-        if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
-            shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
-
-        if os.path.isfile('{}_full'.format(CSV_NAME_MULT)):
-            os.remove('{}_full'.format(CSV_NAME_MULT))
-            pass
-        if os.path.isfile('{}_features_only'.format(CSV_NAME_MULT)):
-            os.remove('{}_features_only'.format(CSV_NAME_MULT))
+        remove_generated_paths()
         del feat
 
 
@@ -248,24 +295,15 @@ def test_load_and_featurize_data_multiple_columns_batch_overlap(model, size, arr
 def test_load_and_featurize_data_multiple_columns_with_batch_processing(model, size, array_path):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
     feat = ImageFeaturizer(model=model, auto_sample=True)
-    feat.load_and_featurize_data(batch_size=2, save_features=True, omit_time=True, omit_model=True,
-                                 omit_depth=True, omit_output=True, **LOAD_DATA_ARGS_MULT)
+    feat.load_and_featurize_data(batch_size=2, save_features=True, **LOAD_DATA_ARGS_MULT)
     check_array = np.load(array_path)
 
     try:
-        print(check_array.shape)
-        print(feat.num_features)
-        compare_featurizer_class(feat, size, check_array, **COMPARE_ARGS_MULT)
+        compare_featurizer_class(feat, size, check_array, featurized=True,
+                                 check_csv=CHECK_CSV_MULT.format(model), **COMPARE_ARGS_MULT)
     finally:
         # Remove path to the generated csv at the end of the test
-        if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
-            shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
-
-        if os.path.isfile('{}_full'.format(CSV_NAME_MULT)):
-            os.remove('{}_full'.format(CSV_NAME_MULT))
-            pass
-        if os.path.isfile('{}_features_only'.format(CSV_NAME_MULT)):
-            os.remove('{}_features_only'.format(CSV_NAME_MULT))
+        remove_generated_paths()
         del feat
 
 
@@ -273,17 +311,16 @@ def test_load_and_featurize_data_multiple_columns_with_batch_processing(model, s
 def test_load_and_featurize_single_column_no_batch_processing(model, size, array_path):
     """Test that all of the featurizations and attributes for each model are correct"""
     feat = ImageFeaturizer(model=model)
-    feat.load_and_featurize_data(batch_size=0, save_features=True, omit_time=True, omit_model=True,
-                                 omit_depth=True, omit_output=True, **LOAD_DATA_ARGS)
+    feat.load_and_featurize_data(batch_size=0, save_features=True, **LOAD_DATA_ARGS)
 
     check_array = np.load(array_path)
 
     try:
-        compare_featurizer_class(feat, size, check_array, **COMPARE_ARGS)
+        compare_featurizer_class(feat, size, check_array, featurized=True,
+                                 check_csv=CHECK_CSV.format(model), **COMPARE_ARGS)
     finally:
         # Remove path to the generated csv at the end of the test
-        if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
-            shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
+        remove_generated_paths()
         del feat
 
 
@@ -291,15 +328,14 @@ def test_load_and_featurize_single_column_no_batch_processing(model, size, array
 def test_load_and_featurize_single_column_with_batch_processing(model, size, array_path):
     """Test that all of the featurizations and attributes for each model are correct"""
     feat = ImageFeaturizer(model=model)
-    feat.load_and_featurize_data(batch_size=2, save_features=True, omit_time=True, omit_model=True,
-                                 omit_depth=True, omit_output=True, **LOAD_DATA_ARGS)
+    feat.load_and_featurize_data(batch_size=2, save_features=True, **LOAD_DATA_ARGS)
 
     check_array = np.load(array_path)
 
     try:
-        compare_featurizer_class(feat, size, check_array, **COMPARE_ARGS)
+        compare_featurizer_class(feat, size, check_array, featurized=True,
+                                 check_csv=CHECK_CSV.format(model), **COMPARE_ARGS)
     finally:
         # Remove path to the generated csv at the end of the test
-        if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
-            shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
+        remove_generated_paths()
         del feat

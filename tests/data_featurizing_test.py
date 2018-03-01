@@ -84,16 +84,8 @@ def test_create_features_bad_feature_array():
     # An error array with the wrong size
     error_feature_array = np.zeros((4, 3, 2))
     with pytest.raises(ValueError):
-        create_features(CHECK_DATA, error_feature_array, pd.read_csv(CHECK_CSV_IMAGES_PATH),
-                        'image', CHECK_IMAGE_LIST, continued_column=False,
-                        save_features=True)
-
-
-def test_features_to_csv_bad_column_header():
-    """Raise an error when the column header is not found in the csv"""
-    with pytest.raises(ValueError):
-        create_features(CHECK_DATA, CHECK_ARRAY, pd.read_csv(CHECK_CSV_IMAGES_PATH), 'derp',
-                        CHECK_IMAGE_LIST, continued_column=False,
+        create_features(CHECK_DATA, error_feature_array,
+                        'image',
                         save_features=True)
 
 
@@ -102,15 +94,13 @@ def test_features_to_csv_bad_data_array():
     # An error array with the wrong size
     error_array = np.zeros((4, 3, 2))
     with pytest.raises(ValueError):
-        create_features(error_array, CHECK_ARRAY, pd.read_csv(CHECK_CSV_IMAGES_PATH), 'image',
-                        CHECK_IMAGE_LIST, continued_column=False,
+        create_features(error_array, CHECK_ARRAY, 'image',
                         save_features=True)
 
 
 def test_create_features_df_helper():
     """Test that the correct full array is created to be passed to the create_features function"""
-    df = pd.read_csv(CHECK_CSV_IMAGES_PATH)
-    full_df_test = _create_features_df_helper(CHECK_DATA, CHECK_ARRAY, 'image', df)[0]
+    full_df_test = _create_features_df_helper(CHECK_DATA, CHECK_ARRAY, 'image')
     assert full_df_test.equals(pd.read_csv(CHECK_CSV_FULL_PATH))
 
 
@@ -118,11 +108,8 @@ def test_features_to_csv():
     """Test that the model creates the correct csvs from a toy array, csv, and image list"""
     # Create the test
     full_test_dataframe = create_features(CHECK_DATA, CHECK_ARRAY,
-                                          pd.read_csv(CHECK_CSV_IMAGES_PATH),
-                                          'image', CHECK_IMAGE_LIST, continued_column=False,
+                                          'image',
                                           save_features=True)
 
-    print(full_test_dataframe[1])
     # Assert that the dataframes returned are correct
-    assert full_test_dataframe[1].equals(pd.read_csv(CHECK_CSV_FEATURES_ONLY_PATH))
-    assert full_test_dataframe[0].equals(pd.read_csv(CHECK_CSV_FULL_PATH))
+    assert full_test_dataframe.equals(pd.read_csv(CHECK_CSV_FULL_PATH))

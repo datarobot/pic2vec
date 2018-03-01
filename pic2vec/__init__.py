@@ -11,7 +11,7 @@ from pic2vec.build_featurizer import (_decapitate_model, _find_pooling_constant,
                                                _initialize_model, _check_downsampling_mismatch,
                                                build_featurizer)
 
-from pic2vec.feature_preprocessing import (_create_csv_with_image_paths,  # NOQA
+from pic2vec.feature_preprocessing import (_create_df_with_image_paths,  # NOQA
                                                     _find_directory_image_paths,
                                                     _find_csv_image_paths,
                                                     _find_combined_image_paths,

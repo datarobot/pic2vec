@@ -1,5 +1,4 @@
 """Test feature_preprocessing module"""
-import filecmp
 import logging
 import os
 import random
@@ -8,7 +7,7 @@ import numpy as np
 import pytest
 
 from tests.build_featurizer_test import ATOL
-from pic2vec.feature_preprocessing import (_create_csv_with_image_paths,
+from pic2vec.feature_preprocessing import (_create_df_with_image_paths,
                                            _find_directory_image_paths,
                                            _find_csv_image_paths,
                                            _find_combined_image_paths,
@@ -62,21 +61,11 @@ BATCH_ARRAYS_DIR = [arendt_array, borges_array]
 # ---- TESTING ---- #
 
 
-def test_create_csv_with_image_paths():
+def test_create_df_with_image_paths():
     """Test method creates csv correctly from list of images"""
-    new_csv_path = 'tests/feature_preprocessing_testing/csv_testing/generated_create_csv_test'
+    df = _create_df_with_image_paths(IMAGE_LIST, IMG_COL_HEAD)
 
-    if os.path.isfile(new_csv_path):
-        os.remove(new_csv_path)
-
-    _create_csv_with_image_paths(IMAGE_LIST, new_csv_path, IMG_COL_HEAD, save_csv=True)
-
-    try:
-        assert filecmp.cmp(new_csv_path, '{}create_csv_check'.format(CSV_PATH))
-
-    finally:
-        if os.path.isfile(new_csv_path):
-            os.remove(new_csv_path)
+    assert pd.read_csv('{}create_csv_check'.format(CSV_PATH)).equals(df)
 
 
 def test_natural_sort():
@@ -180,17 +169,8 @@ def test_image_paths_finder(image_path, csv_path, image_column_header, new_csv, 
     csv only, and combined csv + directory
     """
     # check the new csv doesn't already exist
-    if os.path.isfile(new_csv) and new_csv != '':
-        os.remove(new_csv)
-
     # generated image lists
-    case, df = _image_paths_finder(image_path, csv_path, image_column_header, new_csv,
-                                   save_csv=True)
-
-    if new_csv != '':
-        assert os.path.isfile(new_csv)
-        # remove the generated csv
-        os.remove(new_csv)
+    case, df = _image_paths_finder(image_path, csv_path, image_column_header, new_csv)
 
     # Check the image lists match
     assert case == check_images

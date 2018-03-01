@@ -112,7 +112,7 @@ def _named_path_finder(csv_name, model_str, model_depth, model_output,
     return named_path
 
 
-def _create_features_df_helper(data_array, full_feature_array, image_column_header, df):
+def _create_features_df_helper(data_array, full_feature_array, image_column_header):
     # Log how many photos are missing or blank:
     zeros_index = [np.count_nonzero(array_slice) == 0 for array_slice in data_array[:]]
     logging.info('Number of missing photos: {}'.format(len(zeros_index)))
@@ -128,13 +128,12 @@ def _create_features_df_helper(data_array, full_feature_array, image_column_head
     df_missing = pd.DataFrame(data=zeros_index, columns=missing_column_header)
 
     # Create the full combined csv+features dataframe
-    df_full = pd.concat([df, df_missing, df_features], axis=1)
+    df_features_full = pd.concat([df_missing, df_features], axis=1)
 
-    return df_full, df_features
+    return df_features_full
 
 
-def create_features(data_array, new_feature_array, df_prev, image_column_header,
-                    image_list, continued_column=False, df_features_prev=pd.DataFrame(),
+def create_features(data_array, new_feature_array, image_column_header,
                     save_features=False):
     """
     Write the feature array to a new csv, and append the features to the appropriate
@@ -166,12 +165,6 @@ def create_features(data_array, new_feature_array, df_prev, image_column_header,
 
     # -------------- #
     # ERROR CHECKING #
-
-    # Raise error if the image_column_header is not in the csv
-    if image_column_header not in df_prev.columns:
-        raise ValueError('Must pass the name of the column where the images are '
-                         'stored in the csv. The column passed was not in the csv.')
-
     # Raise error if the data array has the wrong shape
     if len(data_array.shape) != 4:
         raise ValueError('Data array must be 4D array, with shape: [batch, height, width, channel].'
@@ -185,11 +178,8 @@ def create_features(data_array, new_feature_array, df_prev, image_column_header,
 
     logging.info('Adding image features to csv.')
 
-    df_full, df_features = _create_features_df_helper(data_array, new_feature_array,
-                                                      image_column_header, df_prev)
-
-    if continued_column and save_features:
-        df_features = pd.concat([df_features_prev, df_features], axis=1)
+    df_features = _create_features_df_helper(data_array, new_feature_array,
+                                             image_column_header)
 
     # Return the full combined dataframe
-    return df_full, df_features
+    return df_features
