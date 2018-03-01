@@ -134,7 +134,6 @@ def _create_features_df_helper(data_array, full_feature_array, image_column_head
 
 
 def create_features(data_array, new_feature_array, image_column_header,
-                    image_list,
                     save_features=False):
     """
     Write the feature array to a new csv, and append the features to the appropriate

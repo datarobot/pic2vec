@@ -169,17 +169,8 @@ def test_image_paths_finder(image_path, csv_path, image_column_header, new_csv, 
     csv only, and combined csv + directory
     """
     # check the new csv doesn't already exist
-    if os.path.isfile(new_csv) and new_csv != '':
-        os.remove(new_csv)
-
     # generated image lists
-    case, df = _image_paths_finder(image_path, csv_path, image_column_header, new_csv,
-                                   save_csv=True)
-
-    if new_csv != '':
-        assert os.path.isfile(new_csv)
-        # remove the generated csv
-        os.remove(new_csv)
+    case, df = _image_paths_finder(image_path, csv_path, image_column_header, new_csv)
 
     # Check the image lists match
     assert case == check_images

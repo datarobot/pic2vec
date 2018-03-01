@@ -124,15 +124,9 @@ def compare_featurizer_class(featurizer,
     assert featurizer.image_dict == image_dict
     assert featurizer.depth == depth
     if featurized:
-
         assert np.array_equal(pd.read_csv(check_csv).columns, featurizer.features.columns)
-
-        print(featurizer.features.astype(float))
-        print(pd.read_csv(check_csv))
-        pd.testing.assert_frame_equal(featurizer.features.astype(float),
-                                      pd.read_csv(check_csv).astype(float), check_less_precise=True)
         assert np.allclose(featurizer.features.astype(float), pd.read_csv(check_csv).astype(float),
-                           rtol=3e-04)
+                           atol=ATOL)
 
 
 def compare_empty_input(featurizer):

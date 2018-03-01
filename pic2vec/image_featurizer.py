@@ -535,7 +535,6 @@ class ImageFeaturizer:
                 create_features(batch_data[column],
                                 partial_features,
                                 image_column_headers[column],
-                                self.image_dict[image_column_headers[column]],
                                 save_features=save_features)
 
             features_list.append(df_features)

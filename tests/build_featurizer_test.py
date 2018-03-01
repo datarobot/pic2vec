@@ -21,7 +21,7 @@ from pic2vec.squeezenet import SqueezeNet
 random.seed(5102020)
 
 # Tolerance for prediction error
-ATOL = 0.0001
+ATOL = 0.00001
 
 # Building the checking model
 input_layer = Input(shape=(100, ))

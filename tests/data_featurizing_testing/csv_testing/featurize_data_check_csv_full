@@ -1,5 +1,5 @@
-image,image_missing,image_feat_0,image_feat_1,image_feat_2
-borges.jpg,False,1.0,2.0,3.0
-arendt.bmp,False,4.0,5.0,6.0
-heidegger.jpg,True,0.0,0.0,0.0
-sappho.png,False,7.0,8.0,9.0
+image_missing,image_feat_0,image_feat_1,image_feat_2
+False,1.0,2.0,3.0
+False,4.0,5.0,6.0
+True,0.0,0.0,0.0
+False,7.0,8.0,9.0
