@@ -63,7 +63,7 @@ preprocessing_dict = {
 }
 
 
-def _create_csv_with_image_paths(list_of_images, new_csv_name, image_column_header, save_csv):
+def _create_df_with_image_paths(list_of_images, image_column_header):
     """
     Take in a list of image names, and create a new csv file where each
     image name is a new row.
@@ -86,11 +86,6 @@ def _create_csv_with_image_paths(list_of_images, new_csv_name, image_column_head
 
     """
     df = pd.DataFrame(list_of_images, columns=[image_column_header])
-
-    if save_csv:
-        _create_csv_path(new_csv_name)
-        df.to_csv(new_csv_name, index=False)
-
     return df
 
 
@@ -244,7 +239,7 @@ def _find_combined_image_paths(image_path, csv_path, image_column_header):
     return list_of_images, df
 
 
-def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name, save_csv):
+def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name):
     """
     Given an image column header, and either a csv path or an image directory,
     find the list of image paths. If just a csv, it's pulled from the column.
@@ -278,9 +273,8 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name,
         list_of_images = _find_directory_image_paths(image_path)
 
         # Create the new csv in a folder called 'featurizer_csv/'
-        df = _create_csv_with_image_paths(list_of_images, new_csv_name=new_csv_name,
-                                          image_column_header=image_column_header,
-                                          save_csv=save_csv)
+        df = _create_df_with_image_paths(list_of_images,
+                                         image_column_header=image_column_header)
 
         logging.warning('Created csv from directory. Stored at {}'.format(new_csv_name))
 
