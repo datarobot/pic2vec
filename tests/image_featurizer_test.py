@@ -16,7 +16,7 @@ CHECK_ARRAY = 'tests/ImageFeaturizer_testing/array_tests/check_prediction_array_
 CHECK_CSV = 'tests/ImageFeaturizer_testing/csv_checking/{}_check_csv'
 
 CSV_NAME_MULT = 'tests/ImageFeaturizer_testing/csv_checking/mult_check_csv.csv'
-CHECK_CSV_MULT = 'tests/ImageFeaturizer_testing/csv_checking/{}_CHECK_CSV_MULT'
+CHECK_CSV_MULT = 'tests/ImageFeaturizer_testing/csv_checking/{}_check_csv_mult'
 IMAGE_LIST_MULT = [['arendt.bmp', 'sappho.png', ''], ['borges.jpg', '', '']]
 CHECK_ARRAY_MULT = 'tests/ImageFeaturizer_testing/array_tests/check_prediction_array_{}_mult.npy'
 
