@@ -239,11 +239,11 @@ class ImageFeaturizer:
         # Fix column headers and image path if they haven't been done, build path for new csv
         image_column_headers, image_path = self._input_fixer(image_column_headers, image_path)
 
-        # If there's no csv, build it!
+        # If there's no dataframe, build it!
         if csv_path == '':
             if len(image_column_headers) > 1:
-                raise ValueError('If building the csv from an image directory, the featurizer can '
-                                 'only create a single image column. If two image columns are '
+                raise ValueError('If building the dataframe from an image directory, the featurizer'
+                                 'can only create a single image column. If two image columns are '
                                  'needed, please create a csv to pass in.')
 
         # If the image_dict hasn't been passed in (which only happens in batch processing),
@@ -327,14 +327,16 @@ class ImageFeaturizer:
         full_dataframe, df_features = self._featurize_helper(
             features, image_column_headers, save_features, batch_data)
 
-        if save_features:
-            self.features = df_features
-
         if save_csv:
             self.save_csv(omit_model, omit_depth, omit_output, omit_time)
 
         self.full_dataframe = full_dataframe
-        return full_dataframe, df_features
+
+        if save_features:
+            self.features = df_features
+            return full_dataframe, df_features
+
+        return full_dataframe
 
     def load_and_featurize_data(self,
                                 image_column_headers,
@@ -453,17 +455,22 @@ class ImageFeaturizer:
         if save_csv:
             self.save_csv(omit_model, omit_depth, omit_output, omit_time)
 
-        return {'full_dataframe': full_df, 'features_dataframe': features_df}
+        # Return the results
+        if save_features:
+            return full_df, features_df
+        return full_df
 
-    def save_csv(self, omit_model=False, omit_depth=False, omit_output=False, omit_time=False,
-                 save_features=False):
+    def save_csv(self, csv_path=None, omit_model=False, omit_depth=False,
+                 omit_output=False, omit_time=False, save_features=False):
         # Save the name and extension separately, for robust naming
-        csv_name, ext = os.path.splitext(self.csv_path)
+        if csv_path is None:
+            csv_path = self.csv_path
+        csv_name, ext = os.path.splitext(csv_path)
 
         name_path = _named_path_finder(csv_name, self.model_name, self.depth, self.num_features,
                                        omit_model, omit_depth, omit_output, omit_time)
 
-        _create_csv_path(self.csv_path)
+        _create_csv_path(csv_path)
         logger.warning("Saving full dataframe to csv as {}_full{}".format(name_path, ext))
         self.full_dataframe.to_csv("{}_full{}".format(name_path, ext), index=False)
         if save_features:
