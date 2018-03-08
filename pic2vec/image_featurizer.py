@@ -60,7 +60,8 @@ Functionality:
 
 import logging
 import os
-
+import math
+import time
 import numpy as np
 import trafaret as t
 import pandas as pd
@@ -322,7 +323,6 @@ class ImageFeaturizer:
         # Initialize featurized data vector with appropriate size
         features = np.zeros((batch_data.shape[1],
                              self.num_features * len(image_column_headers)))
-        print(features.shape)
         # Save csv
         full_dataframe, df_features = self._featurize_helper(
             features, image_column_headers, save_features, batch_data)
@@ -350,7 +350,8 @@ class ImageFeaturizer:
                                 omit_time=False,
                                 omit_model=False,
                                 omit_depth=False,
-                                omit_output=False
+                                omit_output=False,
+                                verbose=True
                                 # crop_size = (299, 299),
                                 # number_crops = 0,
                                 # random_crop = False,
@@ -424,13 +425,16 @@ class ImageFeaturizer:
             full_df, features_df = self._batch_processing(full_image_dict, image_column_headers,
                                                           df_original, image_path, csv_path,
                                                           new_csv_name, batch_size, grayscale,
-                                                          save_features)
+                                                          save_features, verbose)
 
             # Save the full dataframe with the features
             self.full_dataframe = full_df
 
         # If batch processing is turned off, load the images in one big batch and features them all
         else:
+            if verbose:
+                logging.warning("Loading full data tensor without batch processing. If you "
+                                "experience a memory error, make sure batch processing is enabled.")
             full_data = self.load_data(image_column_headers, image_path, full_image_dict, csv_path,
                                        new_csv_name, grayscale, save_data)
 
@@ -553,7 +557,8 @@ class ImageFeaturizer:
                           new_csv_name='featurizer_csv/generated_images.csv',
                           batch_size=1000,
                           grayscale=False,
-                          save_features=False):
+                          save_features=False,
+                          verbose=True):
 
         full_features_df = pd.DataFrame()
         full_df = df_original
@@ -562,6 +567,7 @@ class ImageFeaturizer:
         for column_index in range(len(image_column_headers)):
             # Initialize the batch index and save the column name
             index = 0
+            batch_number = 0
             column = image_column_headers[column_index]
             batch_features_df = pd.DataFrame()
 
@@ -571,7 +577,11 @@ class ImageFeaturizer:
 
             batch_features_list = []
             # Loop through the images, featurizing each batch
+            if verbose and len(image_column_headers) > 1:
+                print("Featurizing column #{}".format(column_index + 1))
             while index < num_images:
+                if verbose:
+                    tic = time.clock()
                 # Cap the batch size against the total number of images left to prevent overflow
                 if index + batch_size > num_images:
                     batch_size = num_images - index
@@ -580,10 +590,13 @@ class ImageFeaturizer:
                 batch_image_dict = {column: full_image_dict[column][index:index + batch_size]}
 
                 # Load the images
+                if verbose:
+                    print("Loading image batch.")
                 batch_data = self.load_data(column, image_path,
                                             batch_image_dict, csv_path, new_csv_name,
                                             grayscale, save_data=False)
-
+                if verbose:
+                    print("Featurizing image batch.")
                 # If this is the first batch, the batch features will be saved alone.
                 # Otherwise, they are concatenated to the last batch
                 batch_features_list.append(self.featurize(batch_data, column,
@@ -591,11 +604,22 @@ class ImageFeaturizer:
 
                 # Increment index by batch size
                 index += batch_size
+                batch_number += 1
+
+                # Give update on time and number of images left in column
+                if verbose:
+                    remaining_batches = int(math.ceil(num_images - index) / batch_size)
+                    print("Featurized batch #{}. Number of images left: {}\nEstimated total time "
+                          "left: {} seconds".format(batch_number, num_images - index,
+                                                    int((time.clock() - tic) * remaining_batches)))
+
+            # After the full column's features are calculated, concatenate them all and append them
+            # to the full DataFrame list
             batch_features_df = pd.concat(batch_features_list, ignore_index=True)
             full_df_columns_list.append(batch_features_df)
-            # After the full column's features are calculated, concatenate them to the
-            # full dataframe and the features dataframe across the column axis
 
+        # Once all the features are created for each column, concatenate them together for both
+        # the features dataframe and the full dataframe
         full_features_df = pd.concat(full_df_columns_list, axis=1)
         full_df = pd.concat([full_df, full_features_df], axis=1)
 
