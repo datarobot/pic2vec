@@ -188,7 +188,7 @@ class ImageFeaturizer:
                   image_path='',
                   image_dict='',
                   csv_path='',
-                  new_csv_name='featurizer_csv/generated_images_csv',
+                  new_csv_name='~/Downloads/featurized_images.csv',
                   grayscale=False,
                   save_data=True
                   # crop_size = (299, 299),
@@ -340,7 +340,7 @@ class ImageFeaturizer:
                                 image_column_headers,
                                 image_path='',
                                 csv_path='',
-                                new_csv_name='featurizer_csv/generated_images.csv',
+                                new_csv_name='~/Downloads/featurized_images.csv',
                                 batch_processing=True,
                                 batch_size=1000,
                                 grayscale=False,
@@ -464,9 +464,10 @@ class ImageFeaturizer:
                                        omit_model, omit_depth, omit_output, omit_time)
 
         _create_csv_path(self.csv_path)
-
+        logger.warning("Saving full dataframe to csv as {}_full{}".format(name_path, ext))
         self.full_dataframe.to_csv("{}_full{}".format(name_path, ext), index=False)
         if save_features:
+            logger.warning("Saving features to csv as {}_features_only{}".format(name_path, ext))
             self.df_features.to_csv("{}_features_only{}".format(name_path, ext), index=False)
 
     @t.guard(confirm=t.Bool)
@@ -554,7 +555,7 @@ class ImageFeaturizer:
                           df_original,
                           image_path='',
                           csv_path='',
-                          new_csv_name='featurizer_csv/generated_images.csv',
+                          new_csv_name='~/Downloads/featurized_images.csv',
                           batch_size=1000,
                           grayscale=False,
                           save_features=False,
