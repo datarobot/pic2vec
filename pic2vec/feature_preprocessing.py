@@ -276,8 +276,6 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
         df = _create_df_with_image_paths(list_of_images,
                                          image_column_header=image_column_header)
 
-        logging.warning('Created csv from directory. Stored at {}'.format(new_csv_name))
-
     # CASE 2: They only give a CSV with no directory
     elif image_path == '':
         # Create the list_of_images from the csv
