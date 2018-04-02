@@ -1,6 +1,12 @@
 =======
 History
 =======
+0.99.0 (2018-04-02)
+------------------
+* Added batch processing
+* Made pic2vec more programmatic (removed automatic csv-writing, etc.)
+* Bound keras to <2.1.5 to remove resnet problem
+
 0.9.0 (2017-09-24)
 ------------------
 * Fixed Keras backwards compatibility issues (include_top deprecated, require_flatten added)

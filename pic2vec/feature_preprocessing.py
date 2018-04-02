@@ -383,7 +383,7 @@ def preprocess_data(image_column_header,
                     list_of_images,
                     image_path='',
                     csv_path='',
-                    new_csv_name='featurizer_csv/generated_images.csv',
+                    new_csv_name='~/Downloads/featurized_images.csv',
                     target_size=(299, 299),
                     grayscale=False):
     """
