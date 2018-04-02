@@ -608,7 +608,7 @@ class ImageFeaturizer:
                 # If this is the first batch, the batch features will be saved alone.
                 # Otherwise, they are concatenated to the last batch
                 batch_features_list.append(self.featurize(batch_data, column,
-                                                          save_features, batch_processing=True)[1])
+                                                          True, batch_processing=True)[1])
 
                 # Increment index by batch size
                 index += batch_size
@@ -629,6 +629,10 @@ class ImageFeaturizer:
         # Once all the features are created for each column, concatenate them together for both
         # the features dataframe and the full dataframe
         full_features_df = pd.concat(full_df_columns_list, axis=1)
+        if save_features:
+            self.features = full_features_df
+        else:
+            self.features = pd.DataFrame()
         full_df = pd.concat([full_df, full_features_df], axis=1)
 
         # Return the full dataframe and features dataframe
