@@ -47,13 +47,13 @@ Functionality:
                 Decides if image is grayscale or not. May get deprecated. Don't
                 think it works on the InceptionV3 model due to input size.
 
-    3. Featurize the data. The self.featurize() function takes no input, and featurizes
-       the loaded data, writing the new csvs to the same path as the loaded csv
+    3. Featurize the data. The self.featurize_preloaded_data() function takes no input, and
+       featurizes the loaded data, writing the new csvs to the same path as the loaded csv
        Also adds a binary "image_missing" column automatically, for any images that are missing
        from the image list.
 
     3a. Users can also load and featurize the data in one pass, with the
-        self.load_and_featurize_data function, which takes the same input as the
+        self.featurize_data function, which takes the same input as the
         load_data function and performs the featurization automatically.
 
 """
@@ -92,7 +92,7 @@ class ImageFeaturizer:
 
 
 
-        load_and_featurize_data(image_column_headers, image_path,
+        featurize_data(image_column_headers, image_path,
                                 csv_path, new_csv_name, scaled_size, grayscale):
             --------------------------------
             Loads image directory and/or csv into the model, and
@@ -108,7 +108,7 @@ class ImageFeaturizer:
 
 
 
-        featurize():
+        featurize_preloaded_data():
             --------------------------------
             Featurize the loaded data, append the features to the csv, and
             return the full dataframe
@@ -280,9 +280,10 @@ class ImageFeaturizer:
              omit_output=t.Bool,
              omit_time=t.Bool,
              )
-    def featurize(self, batch_data=np.zeros((1)), image_column_headers='',
-                  batch_processing=False, save_features=False, save_csv=False, omit_model=False,
-                  omit_depth=False, omit_output=False, omit_time=False):
+    def featurize_preloaded_data(self, batch_data=np.zeros((1)), image_column_headers='',
+                                 batch_processing=False, save_features=False, save_csv=False,
+                                 omit_model=False, omit_depth=False, omit_output=False,
+                                 omit_time=False):
         """
         Featurize the loaded data, returning the dataframe and writing the features
         and the full combined data to csv
@@ -338,27 +339,27 @@ class ImageFeaturizer:
 
         return full_dataframe
 
-    def load_and_featurize_data(self,
-                                image_column_headers,
-                                image_path='',
-                                csv_path='',
-                                new_csv_name='~/Downloads/featurized_images.csv',
-                                batch_processing=True,
-                                batch_size=1000,
-                                grayscale=False,
-                                save_data=False,
-                                save_features=False,
-                                save_csv=False,
-                                omit_time=False,
-                                omit_model=False,
-                                omit_depth=False,
-                                omit_output=False,
-                                verbose=True
-                                # crop_size = (299, 299),
-                                # number_crops = 0,
-                                # random_crop = False,
-                                # isotropic_scaling = True
-                                ):
+    def featurize(self,
+                  image_column_headers,
+                  image_path='',
+                  csv_path='',
+                  new_csv_name='~/Downloads/featurized_images.csv',
+                  batch_processing=True,
+                  batch_size=1000,
+                  grayscale=False,
+                  save_data=False,
+                  save_features=False,
+                  save_csv=False,
+                  omit_time=False,
+                  omit_model=False,
+                  omit_depth=False,
+                  omit_output=False,
+                  verbose=True
+                  # crop_size = (299, 299),
+                  # number_crops = 0,
+                  # random_crop = False,
+                  # isotropic_scaling = True
+                  ):
         """
         Load image directory and/or csv, and vectorize the images for input into the featurizer.
         Then, featurize the data.
@@ -441,10 +442,10 @@ class ImageFeaturizer:
                                        new_csv_name, grayscale, save_data)
 
             full_df, features_df = \
-                self.featurize(full_data, image_column_headers=image_column_headers,
-                               save_features=save_features,
-                               save_csv=save_csv, omit_time=omit_time, omit_model=omit_model,
-                               omit_depth=omit_depth, omit_output=omit_output)
+                self.featurize_preloaded_data(full_data, image_column_headers=image_column_headers,
+                                              save_features=save_features, save_csv=save_csv,
+                                              omit_time=omit_time, omit_model=omit_model,
+                                              omit_depth=omit_depth, omit_output=omit_output)
 
             # Save the full dataframe with the features
             self.full_dataframe = full_df
@@ -453,17 +454,18 @@ class ImageFeaturizer:
         if save_features:
             self.features = features_df
         if save_csv:
-            self.save_csv(omit_model, omit_depth, omit_output, omit_time)
+            self.save_csv(csv_path=csv_path, omit_model=omit_model, omit_depth=omit_depth,
+                          omit_output=omit_output, omit_time=omit_time, save_features=save_features)
 
         # Return the results
         if save_features:
             return full_df, features_df
         return full_df
 
-    def save_csv(self, csv_path=None, omit_model=False, omit_depth=False,
+    def save_csv(self, csv_path="", omit_model=False, omit_depth=False,
                  omit_output=False, omit_time=False, save_features=False):
         # Save the name and extension separately, for robust naming
-        if csv_path is None:
+        if not csv_path:
             csv_path = self.csv_path
         csv_name, ext = os.path.splitext(csv_path)
 
@@ -607,8 +609,9 @@ class ImageFeaturizer:
                     print("Featurizing image batch.")
                 # If this is the first batch, the batch features will be saved alone.
                 # Otherwise, they are concatenated to the last batch
-                batch_features_list.append(self.featurize(batch_data, column,
-                                                          True, batch_processing=True)[1])
+                batch_features_list.append(self.featurize_preloaded_data(batch_data, column,
+                                                                         save_features=True,
+                                                                         batch_processing=True)[1])
 
                 # Increment index by batch size
                 index += batch_size
