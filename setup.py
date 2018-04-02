@@ -14,7 +14,7 @@ requirements = [
     'scipy>=0.19.1,<1',
     'numpy>=1.13.0,<2',
     'tensorflow>=1.2.0,<2',
-    'keras>=2.0.8,<3',
+    'keras>=2.0.8,<2.1.5',
     'pandas>=0.20.2,<1',
     'Pillow>=4.1.1,<5',
     'trafaret>=0.10.2,<0.11'
@@ -33,7 +33,7 @@ test_requirements = [
 
 setup(
     name='pic2vec',
-    version='0.9.0',
+    version='0.99.0',
     description='Featurize images using a decapitated, pre-trained deep learning network',
     long_description=readme + '\n\n' + history,
     author='Jett Oristaglio',
