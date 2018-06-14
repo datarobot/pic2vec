@@ -191,8 +191,9 @@ def test_load_then_featurize_save_csv(featurizer):
 
     name, ext = os.path.splitext(CSV_NAME_MULT)
     check_array_path = "{}_{}".format(name, 'squeezenet_depth-1_output-512')
-    featurizer.featurize(save_csv=True, save_features=True, omit_time=True, batch_processing=False,
-                         **LOAD_DATA_ARGS_MULT)
+    featurizer.load_data(**LOAD_DATA_ARGS_MULT)
+    featurizer.featurize_preloaded_data(save_csv=True, save_features=True, omit_time=True,
+                                        batch_processing=False)
 
     full_check = "{}{}{}".format(check_array_path, '_full', ext)
     feature_check = "{}{}{}".format(check_array_path, '_features_only', ext)
@@ -208,7 +209,6 @@ def test_load_then_featurize_save_csv(featurizer):
             os.remove("{}{}{}".format(check_array_path, '_features_only', ext))
         if os.path.isfile("{}{}{}".format(check_array_path, '_full', ext)):
             os.remove("{}{}{}".format(check_array_path, '_full', ext))
-
 
 
 def test_clear_input(featurizer):
@@ -238,6 +238,16 @@ def test_load_then_featurize_data_single_column(featurizer):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
     featurizer.load_data(**LOAD_DATA_ARGS)
     featurizer.featurize_preloaded_data(save_features=True)
+    check_array = np.load(CHECK_ARRAY.format('squeezenet'))
+
+    compare_featurizer_class(featurizer, (227, 227), check_array, featurized=True,
+                             check_csv=CHECK_CSV.format('squeezenet'), **COMPARE_ARGS)
+
+
+def test_load_then_featurize_data_no_save_features(featurizer):
+    """Test featurizations and attributes for each model are correct with multiple image columns"""
+    featurizer.load_data(**LOAD_DATA_ARGS)
+    featurizer.featurize_preloaded_data()
     check_array = np.load(CHECK_ARRAY.format('squeezenet'))
 
     compare_featurizer_class(featurizer, (227, 227), check_array, featurized=True,

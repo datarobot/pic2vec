@@ -6,8 +6,6 @@
   "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns[vgg16]": true, 
   "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns[vgg19]": true, 
   "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns[xception]": true, 
-  "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns_no_batch_processing[inceptionv3]": true, 
-  "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns_no_batch_processing[resnet50]": true, 
   "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns_no_batch_processing[xception]": true, 
   "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns_with_batch_processing[inceptionv3]": true, 
   "tests/image_featurizer_test.py::test_load_and_featurize_data_multiple_columns_with_batch_processing[resnet50]": true, 
