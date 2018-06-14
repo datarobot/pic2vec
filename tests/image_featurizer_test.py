@@ -98,6 +98,7 @@ def compare_featurizer_class(featurizer,
                              check_csv='',
                              saved_data=True):
     """Check the necessary assertions for a featurizer image."""
+    print(featurizer.features)
     assert featurizer.scaled_size == scaled_size
     assert np.allclose(featurizer.features.astype(float).as_matrix(), featurized_data, atol=ATOL)
     assert featurizer.downsample_size == downsample_size
@@ -122,14 +123,16 @@ def compare_empty_input(featurizer):
     assert featurizer.image_path == ''
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def featurizer():
-    return ImageFeaturizer()
+    featurizer = ImageFeaturizer()
+    return featurizer
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def featurizer_autosample():
-    return ImageFeaturizer(autosample=True)
+    featurizer = ImageFeaturizer(autosample=True)
+    return featurizer
 
 
 def test_featurize_first(featurizer):
@@ -239,7 +242,6 @@ def test_load_then_featurize_data_single_column(featurizer):
     featurizer.load_data(**LOAD_DATA_ARGS)
     featurizer.featurize_preloaded_data(save_features=True)
     check_array = np.load(CHECK_ARRAY.format('squeezenet'))
-
     compare_featurizer_class(featurizer, (227, 227), check_array, featurized=True,
                              check_csv=CHECK_CSV.format('squeezenet'), **COMPARE_ARGS)
 
@@ -248,9 +250,9 @@ def test_load_then_featurize_data_no_save_features(featurizer):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
     featurizer.load_data(**LOAD_DATA_ARGS)
     featurizer.featurize_preloaded_data()
-    check_array = np.load(CHECK_ARRAY.format('squeezenet'))
+    check_array = np.array([])
 
-    compare_featurizer_class(featurizer, (227, 227), check_array, featurized=True,
+    compare_featurizer_class(featurizer, (227, 227), check_array,
                              check_csv=CHECK_CSV.format('squeezenet'), **COMPARE_ARGS)
 
 
