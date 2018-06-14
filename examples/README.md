@@ -158,7 +158,7 @@ Automatic downsampling means that this model will downsample the final layer fro
 
 
 ```python
-featurizer = ImageFeaturizer(depth=1, auto_sample = False, model='squeezenet')
+featurizer = ImageFeaturizer(depth=1, autosample = False, model='squeezenet')
 ```
 
     INFO - Building the featurizer.
@@ -242,7 +242,7 @@ featurizer.__dict__.keys()
 
     ['downsample_size',
      'visualize',
-     'auto_sample',
+     'autosample',
      'isotropic_scaling',
      'num_features',
      'number_crops',

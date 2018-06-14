@@ -17,7 +17,7 @@ CHECK_ARRAY_MULT = 'tests/ImageFeaturizer_testing/array_tests/check_prediction_a
 
 def create_numpy_arrays(model):
     """Create the prediction arrays"""
-    f = ImageFeaturizer(model=model, auto_sample=True)
+    f = ImageFeaturizer(model=model, autosample=True)
     f.load_and_featurize_data(**LOAD_DATA_ARGS_MULT)
     np.save(CHECK_ARRAY_MULT.format(model), f.featurized_data)
     return f

@@ -13,7 +13,7 @@ Functionality:
         depth : int
             1, 2, 3, or 4, depending on how far down you want to sample the featurizer layer
 
-        auto_sample : bool
+        autosample : bool
             a boolean flag signalling automatic downsampling
 
         downsample_size : int
@@ -84,7 +84,7 @@ class ImageFeaturizer:
 
           Methods
     ------------------
-        __init__(depth, auto_sample,
+        __init__(depth, autosample,
                  downsample_size):
             --------------------------------
             Initialize the ImageFeaturizer. Build the featurizer model with the
@@ -117,12 +117,12 @@ class ImageFeaturizer:
     """
 
     @t.guard(depth=t.Int(gte=1, lte=4),
-             auto_sample=t.Bool,
+             autosample=t.Bool,
              downsample_size=t.Int(gte=0),
              model=t.Enum(*supported_model_types.keys()))
     def __init__(self,
                  depth=1,
-                 auto_sample=False,
+                 autosample=False,
                  downsample_size=0,
                  model='squeezenet'
                  ):
@@ -138,7 +138,7 @@ class ImageFeaturizer:
                 How deep to decapitate the model. Deeper means less specific but
                 also less complex
 
-            auto_sample : bool
+            autosample : bool
                 If True, feature layer is automatically downsampled to the right size.
 
             downsample_size: int
@@ -152,12 +152,12 @@ class ImageFeaturizer:
         # BUILDING THE MODEL #
         logging.info("Building the featurizer.")
 
-        featurizer = build_featurizer(depth, auto_sample,
+        featurizer = build_featurizer(depth, autosample,
                                       downsample_size, model_str=model.lower())
 
         # Saving initializations of model
         self.depth = depth
-        self.auto_sample = auto_sample
+        self.autosample = autosample
         self.downsample_size = downsample_size
         self.num_features = featurizer.layers[-1].output_shape[-1]
 
