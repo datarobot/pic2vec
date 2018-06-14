@@ -15,6 +15,7 @@ LOAD_DATA_ARGS_SING = {
                         }
 CHECK_ARRAY_MULT = 'tests/ImageFeaturizer_testing/array_tests/check_prediction_array_{}_mult.npy'
 
+
 def create_numpy_arrays(model):
     """Create the prediction arrays"""
     f = ImageFeaturizer(model=model, autosample=True)

@@ -83,7 +83,7 @@ LOAD_PARAMS_MULT = [
 # Remove path to the generated csv if it currently exists
 if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
     shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
-    
+
 
 def compare_featurizer_class(featurizer,
                              scaled_size,
@@ -184,6 +184,31 @@ def test_load_and_featurize_save_csv(featurizer):
             os.remove("{}{}{}".format(check_array_path, '_features_only', ext))
         if os.path.isfile("{}{}{}".format(check_array_path, '_full', ext)):
             os.remove("{}{}{}".format(check_array_path, '_full', ext))
+
+
+def test_load_then_featurize_save_csv(featurizer):
+    """Make sure the featurizer writes the name correctly to csv with robust naming config"""
+
+    name, ext = os.path.splitext(CSV_NAME_MULT)
+    check_array_path = "{}_{}".format(name, 'squeezenet_depth-1_output-512')
+    featurizer.featurize(save_csv=True, save_features=True, omit_time=True, batch_processing=False,
+                         **LOAD_DATA_ARGS_MULT)
+
+    full_check = "{}{}{}".format(check_array_path, '_full', ext)
+    feature_check = "{}{}{}".format(check_array_path, '_features_only', ext)
+
+    featurizer.save_csv(save_features=True, omit_time=True)
+
+    try:
+        assert os.path.isfile(full_check)
+        assert os.path.isfile(feature_check)
+
+    finally:
+        if os.path.isfile("{}{}{}".format(check_array_path, '_features_only', ext)):
+            os.remove("{}{}{}".format(check_array_path, '_features_only', ext))
+        if os.path.isfile("{}{}{}".format(check_array_path, '_full', ext)):
+            os.remove("{}{}{}".format(check_array_path, '_full', ext))
+
 
 
 def test_clear_input(featurizer):

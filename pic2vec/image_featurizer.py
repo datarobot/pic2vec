@@ -329,7 +329,8 @@ class ImageFeaturizer:
             features, image_column_headers, save_features, batch_data)
 
         if save_csv:
-            self.save_csv(omit_model, omit_depth, omit_output, omit_time)
+            self.save_csv(omit_model=omit_model, omit_depth=omit_depth,
+                          omit_output=omit_output, omit_time=omit_time, save_features=save_features)
 
         self.full_dataframe = full_dataframe
 
