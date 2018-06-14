@@ -47,7 +47,6 @@ The featurizer can only process .png, .jpeg, or .bmp image files. Any other imag
 The following Python code shows a typical usage of `pic2vec`:
 
 ```python
-import pandas as pd
 from pic2vec import ImageFeaturizer
 
 image_column_name = 'images'
