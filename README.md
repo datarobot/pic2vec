@@ -56,9 +56,9 @@ my_image_directory = 'path/to/image/directory/'
 
 my_featurizer = ImageFeaturizer(model='xception', depth=2, auto_sample=True)
 
-my_featurizer.load_data(image_column_name, csv_path = my_csv, image_path = my_image_directory)
+featurized_df = my_featurizer.featurize(image_column_name, csv_path=my_csv,
+                                        image_path=my_image_directory)
 
-my_featurizer.featurize()
 ```
 
 ## Examples
