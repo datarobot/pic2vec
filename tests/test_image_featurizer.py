@@ -6,8 +6,8 @@ import shutil
 import numpy as np
 import pandas as pd
 
-from pic2vec import ImageFeaturizer
-from .build_featurizer_test import ATOL
+from pic2vec.image_featurizer import ImageFeaturizer, _create_csv_path
+from .test_build_featurizer import ATOL
 
 # Constant paths
 TEST_CSV_NAME = 'tests/ImageFeaturizer_testing/csv_tests/generated_images_csv_test'
@@ -157,6 +157,18 @@ def test_load_data_multiple_columns_no_csv(featurizer):
     """Test featurizer raises error if multiple columns passed with only a directory"""
     with pytest.raises(ValueError):
         featurizer.load_data(**LOAD_DATA_ARGS_MULT_ERROR)
+
+
+def test_create_csv_path():
+    test_csv = 'test.csv'
+    test_dir = 'tests/ImageFeaturizer_testing/create_csv_test/'
+    try:
+        assert not os.path.isdir(test_dir)
+        _create_csv_path('{}{}'.format(test_dir, test_csv))
+        assert os.path.isdir(test_dir)
+    finally:
+        shutil.rmtree(test_dir)
+        assert not os.path.isdir(test_dir)
 
 
 def test_load_data_multiple_columns(featurizer_autosample):

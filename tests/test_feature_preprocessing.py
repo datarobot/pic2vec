@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import pytest
 
-from tests.build_featurizer_test import ATOL
+from tests.test_build_featurizer import ATOL
 from pic2vec.feature_preprocessing import (_create_df_with_image_paths,
                                            _find_directory_image_paths,
                                            _find_csv_image_paths,

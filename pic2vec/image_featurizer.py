@@ -67,7 +67,7 @@ import trafaret as t
 import pandas as pd
 
 from .build_featurizer import build_featurizer, supported_model_types
-from .feature_preprocessing import preprocess_data, _image_paths_finder, _create_csv_path
+from .feature_preprocessing import preprocess_data, _image_paths_finder
 from .data_featurizing import featurize_data, create_features, _named_path_finder
 
 
@@ -237,7 +237,7 @@ class ImageFeaturizer:
 
         """
         # Fix column headers and image path if they haven't been done, build path for new csv
-        image_column_headers, image_path = self._input_fixer(image_column_headers, image_path)
+        image_column_headers, image_path = _input_fixer(image_column_headers, image_path)
 
         # If there's no dataframe, build it!
         if csv_path == '':
@@ -249,9 +249,9 @@ class ImageFeaturizer:
         # If the image_dict hasn't been passed in (which only happens in batch processing),
         # build the full image dict and save the original dataframe
         if not image_dict:
-            image_dict, df = self._build_image_dict(image_path, csv_path,
-                                                    image_column_headers,
-                                                    new_csv_name)
+            image_dict, df = _build_image_dict(image_path, csv_path,
+                                               image_column_headers,
+                                               new_csv_name)
             self.df_original = df
             self.full_dataframe = df
             self.image_column_headers = image_column_headers
@@ -417,13 +417,13 @@ class ImageFeaturizer:
             logger.setLevel(logging.INFO)
 
         # Fix column headers and image path if necessary
-        image_column_headers, image_path = self._input_fixer(image_column_headers, image_path)
+        image_column_headers, image_path = _input_fixer(image_column_headers, image_path)
 
         # Find the full image dict and save the original dataframe. This is required early to know
         # how many images exist in total, to control batch processing.
-        full_image_dict, df_original = self._build_image_dict(image_path, csv_path,
-                                                              image_column_headers,
-                                                              new_csv_name)
+        full_image_dict, df_original = _build_image_dict(image_path, csv_path,
+                                                         image_column_headers,
+                                                         new_csv_name)
         # Save the fixed inputs and full image dict
         self.df_original = df_original
         self.image_column_headers = image_column_headers
@@ -747,53 +747,65 @@ class ImageFeaturizer:
         # Return the full dataframe and features dataframe
         return full_df, full_features_df
 
-    def _build_image_dict(self, image_path, csv_path, image_column_headers, new_csv_name):
-        """
-        This function creates the image dictionary that maps each image column to the images
-        in that column
 
-        Parameters
-        ----------
-        image_path : str
-            Path to the image directory
+def _build_image_dict(image_path, csv_path, image_column_headers, new_csv_name):
+    """
+    This function creates the image dictionary that maps each image column to the images
+    in that column
 
-        csv_path : str
-            Path to the csv
+    Parameters
+    ----------
+    image_path : str
+        Path to the image directory
 
-        image_column_headers : list
-            A list of the image column headers
+    csv_path : str
+        Path to the csv
 
-        new_csv_name : bool
-            The name of the new csv, if a new csv is being saved
-        """
-        full_image_dict = {}
-        for column in image_column_headers:
-            list_of_image_paths, df = _image_paths_finder(image_path, csv_path,
-                                                          column, new_csv_name)
+    image_column_headers : list
+        A list of the image column headers
 
-            full_image_dict[column] = list_of_image_paths
-        return full_image_dict, df
+    new_csv_name : bool
+        The name of the new csv, if a new csv is being saved
+    """
+    full_image_dict = {}
+    for column in image_column_headers:
+        list_of_image_paths, df = _image_paths_finder(image_path, csv_path,
+                                                      column, new_csv_name)
 
-    def _input_fixer(self, image_column_headers, image_path):
-        """
-        This function turns image_column_headers into a list of a single element if there is only
-        one image column. It also fixes the image path to contain a trailing `/` if the path to the
-        directory is missing one.
+        full_image_dict[column] = list_of_image_paths
+    return full_image_dict, df
 
-        Parameters
-        ----------
-        image_column_headers : list
-            A list of the image column headers
 
-        image_path : str
-            Path to the image directory
-        """
-        # Convert column header to list if it's passed a single string
-        if isinstance(image_column_headers, str):
-            image_column_headers = [image_column_headers]
+def _input_fixer(image_column_headers, image_path):
+    """
+    This function turns image_column_headers into a list of a single element if there is only
+    one image column. It also fixes the image path to contain a trailing `/` if the path to the
+    directory is missing one.
 
-        # Add backslash to end of image path if it is not there
-        if image_path != '' and image_path[-1] != "/":
-            image_path = '{}/'.format(image_path)
+    Parameters
+    ----------
+    image_column_headers : list
+        A list of the image column headers
 
-        return image_column_headers, image_path
+    image_path : str
+        Path to the image directory
+    """
+    # Convert column header to list if it's passed a single string
+    if isinstance(image_column_headers, str):
+        image_column_headers = [image_column_headers]
+
+    # Add backslash to end of image path if it is not there
+    if image_path != '' and image_path[-1] != "/":
+        image_path = '{}/'.format(image_path)
+
+    return image_column_headers, image_path
+
+
+def _create_csv_path(new_csv_name):
+    """
+    Create the necessary csv along with the appropriate directories
+    """
+    # Create the filepath to the new csv
+    path_to_new_csv = os.path.dirname(new_csv_name)
+    if not os.path.isdir(path_to_new_csv) and path_to_new_csv != '':
+        os.makedirs(path_to_new_csv)

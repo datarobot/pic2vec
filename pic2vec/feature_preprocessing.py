@@ -65,7 +65,7 @@ preprocessing_dict = {
 
 def _create_df_with_image_paths(list_of_images, image_column_header):
     """
-    Take in a list of image names, and create a new csv file where each
+    Take in a list of image names, and return a DataFrame where each
     image name is a new row.
 
     Parameters:
@@ -73,30 +73,17 @@ def _create_df_with_image_paths(list_of_images, image_column_header):
         list_of_images: list of str
             Full paths to images in a directory
 
-        new_csv_name : str
-            Path where the new csv will be saved
-
         image_column_header : str
             The name of the header for the column of image paths
 
     Returns:
     -------
-        None. This simply builds a csv with each row holding the name of an
-        image file, and saves it to the csv_name path
+        df : pandas.DataFrame
+            The dataframe containing the full list of image names.
 
     """
     df = pd.DataFrame(list_of_images, columns=[image_column_header])
     return df
-
-
-def _create_csv_path(new_csv_name):
-    """
-    Create the necessary csv along with the appropriate directories
-    """
-    # Create the filepath to the new csv
-    path_to_new_csv = os.path.dirname(new_csv_name)
-    if not os.path.isdir(path_to_new_csv) and path_to_new_csv != '':
-        os.makedirs(path_to_new_csv)
 
 
 def natural_key(string_):

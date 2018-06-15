@@ -23,18 +23,24 @@ random.seed(5102020)
 # Tolerance for prediction error
 ATOL = 0.00001
 
-# Building the checking model
-input_layer = Input(shape=(100, ))
-layer = Dense(40)(input_layer)
-layer = Activation('relu')(layer)
-layer = Dense(20)(layer)
-layer = Activation('relu')(layer)
-layer = Dense(10)(layer)
-layer = Activation('relu')(layer)
-layer = Dense(5)(layer)
-output_layer = Activation('softmax')(layer)
 
-CHECK_MODEL = Model(inputs=input_layer, outputs=output_layer)
+@pytest.fixture(scope='module')
+def check_model():
+    # Building the checking model
+    input_layer = Input(shape=(100, ))
+    layer = Dense(40)(input_layer)
+    layer = Activation('relu')(layer)
+    layer = Dense(20)(layer)
+    layer = Activation('relu')(layer)
+    layer = Dense(10)(layer)
+    layer = Activation('relu')(layer)
+    layer = Dense(5)(layer)
+    output_layer = Activation('softmax')(layer)
+
+    check_model = Model(inputs=input_layer, outputs=output_layer)
+
+    return check_model
+
 
 # Create tensor for splicing
 SPLICING_TENSOR = K.constant(3, shape=(3, 12))
@@ -62,20 +68,20 @@ def test_decapitate_model_lazy_input():
         assert "depth issues" in str(warning_check[-1].message)
 
 
-def test_decapitate_model_too_deep():
+def test_decapitate_model_too_deep(check_model):
     """Test error raised when model is decapitated too deep"""
     # Check for Value Error when passed a depth >= (# of layers in network) - 1
     with pytest.raises(ValueError):
-        _decapitate_model(CHECK_MODEL, 8)
+        _decapitate_model(check_model, 8)
 
 
-def test_decapitate_model():
+def test_decapitate_model(check_model):
     """
     This test creates a toy network, and checks that it calls the right errors
     and checks that it decapitates the network correctly:
     """
     # Create test model
-    test_model = _decapitate_model(CHECK_MODEL, 5)
+    test_model = _decapitate_model(check_model, 5)
 
     # Make checks for all of the necessary features: the model outputs, the
     # last layer, the last layer's connections, and the last layer's shape
