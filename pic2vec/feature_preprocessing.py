@@ -226,7 +226,7 @@ def _find_combined_image_paths(image_path, csv_path, image_column_header):
     return list_of_images, df
 
 
-def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name):
+def _image_paths_finder(image_path, csv_path, image_column_header):
     """
     Given an image column header, and either a csv path or an image directory,
     find the list of image paths. If just a csv, it's pulled from the column.
@@ -243,9 +243,6 @@ def _image_paths_finder(image_path, csv_path, image_column_header, new_csv_name)
 
         image_column_header : str
             Name of column header holding image information
-
-        new_csv_name : str
-            Name for the csv that will be generated if one is not provided
 
     Returns:
     -------
@@ -342,9 +339,9 @@ def _convert_single_image(image_source, model_str, image_path, target_size=(299,
 #  FUNCTION FOR END-TO-END DATA PREPROCESSING  #
 ################################################
 
-def _find_image_source(csv_path, image_path, new_csv_name):
+def _find_image_source(csv_path, image_path, new_csv_path):
     if csv_path == '':
-        csv_path = new_csv_name
+        csv_path = new_csv_path
 
     # IMAGE RETRIEVAL AND VECTORIZATION #
     # Find image source: whether from url or directory
@@ -362,7 +359,7 @@ def _find_image_source(csv_path, image_path, new_csv_name):
          list_of_images=t.List(t.String(allow_blank=True)),
          image_path=t.String(allow_blank=True),
          csv_path=t.String(allow_blank=True),
-         new_csv_name=t.String(allow_blank=True),
+         new_csv_path=t.String(allow_blank=True),
          target_size=t.Tuple(t.Int, t.Int),
          grayscale=t.Bool)
 def preprocess_data(image_column_header,
@@ -370,7 +367,7 @@ def preprocess_data(image_column_header,
                     list_of_images,
                     image_path='',
                     csv_path='',
-                    new_csv_name='~/Downloads/featurized_images.csv',
+                    new_csv_path='~/Downloads/featurized_images.csv',
                     target_size=(299, 299),
                     grayscale=False):
     """
@@ -389,7 +386,7 @@ def preprocess_data(image_column_header,
         image_column_header : str
             The name of the column that contains the image paths in the csv
 
-        new_csv_name : str
+        new_csv_path : str
             If just passed an image directory, this is the path to save the generated csv
 
         target_size : tuple of ints
@@ -436,7 +433,7 @@ def preprocess_data(image_column_header,
     # BUILDING IMAGE PATH LIST #
     num_images = len(list_of_images)
 
-    image_source, csv_path = _find_image_source(csv_path, image_path, new_csv_name)
+    image_source, csv_path = _find_image_source(csv_path, image_path, new_csv_path)
 
     # Set number of grayscale channels (3 if color, 1 if grayscale)
     channels = 3 - (2 * grayscale)

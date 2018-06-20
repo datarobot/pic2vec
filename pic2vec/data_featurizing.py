@@ -56,62 +56,6 @@ def featurize_data(model, array):
     return full_feature_array
 
 
-def _named_path_finder(csv_name, model_str, model_depth, model_output,
-                       omit_model, omit_depth, omit_output, omit_time):
-    """
-    Create the named path from the robust naming configuration available.
-
-    Parameters:
-    -----------
-        omit_model : Bool
-            Boolean to omit the model name from the CSV name
-
-        omit_depth : Bool
-            Boolean to omit the model depth from the CSV name
-
-        omit_output : Bool
-            Boolean to omit the model output size from the CSV name
-
-        omit_time : Bool
-            Boolean to omit the time of creation from the CSV name
-
-        model_str : Str
-            The model name
-
-        model_depth : Str
-            The model depth
-
-        model_output : Str
-            The model output size
-
-    Returns:
-    --------
-        named_path : Str
-            The full name of the CSV file
-    """
-    # Naming switches! Can turn on or off to remove time, model, depth, or output size
-    # from output filename
-    if not omit_time:
-        saved_time = "_({})".format(time.strftime("%d-%b-%Y-%H.%M.%S", time.gmtime()))
-    else:
-        saved_time = ""
-    if not omit_model:
-        saved_model = "_{}".format(model_str)
-    else:
-        saved_model = ""
-    if not omit_depth:
-        saved_depth = "_depth-{}".format(model_depth)
-    else:
-        saved_depth = ""
-    if not omit_output:
-        saved_output = "_output-{}".format(model_output)
-    else:
-        saved_output = ""
-
-    named_path = "{}{}{}{}{}".format(csv_name, saved_model, saved_depth, saved_output, saved_time)
-    return named_path
-
-
 def _create_features_df_helper(data_array, full_feature_array, image_column_header):
     # Log how many photos are missing or blank:
     zeros_index = [np.count_nonzero(array_slice) == 0 for array_slice in data_array[:]]

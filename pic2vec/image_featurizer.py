@@ -31,11 +31,11 @@ Functionality:
 
             csv_path : str
                 the path to the csv. If just using a directory, leave blank, and
-                specify the path for the generated csv in new_csv_name.
+                specify the path for the generated csv in new_csv_path.
                 If csv exists, this is the path where the featurized csv will be
                 generated.
 
-            new_csv_name : str
+            new_csv_path : str
                 the path to the new csv, if one is being generated from a directory.
                 If no csv exists, this is the path where the featurized csv will
                 be generated
@@ -68,7 +68,7 @@ import pandas as pd
 
 from .build_featurizer import build_featurizer, supported_model_types
 from .feature_preprocessing import preprocess_data, _image_paths_finder
-from .data_featurizing import featurize_data, create_features, _named_path_finder
+from .data_featurizing import featurize_data, create_features
 
 
 logger = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ class ImageFeaturizer:
 
 
         featurize_data(image_column_headers, image_path,
-                                csv_path, new_csv_name, scaled_size, grayscale):
+                                csv_path, new_csv_path, scaled_size, grayscale):
             --------------------------------
             Loads image directory and/or csv into the model, and
             featurizes the images
@@ -101,7 +101,7 @@ class ImageFeaturizer:
 
 
         load_data(image_column_headers, image_path, csv_path,
-                  new_csv_name, scaled_size, grayscale):
+                  new_csv_path, scaled_size, grayscale):
             --------------------------------
             Loads image directory and/or csv into the model, and vectorize the
             images for input into the featurizer
@@ -188,7 +188,7 @@ class ImageFeaturizer:
                   image_path='',
                   image_dict='',
                   csv_path='',
-                  new_csv_name='~/Downloads/featurized_images.csv',
+                  new_csv_path='~/Downloads/featurized_images.csv',
                   grayscale=False,
                   save_data=True
                   # crop_size = (299, 299),
@@ -211,11 +211,11 @@ class ImageFeaturizer:
 
             csv_path : str
                 the path to the csv. If just using a directory, leave blank, and
-                specify the path for the generated csv in new_csv_name.
+                specify the path for the generated csv in new_csv_path.
                 If csv exists, this is the path where the featurized csv will be
                 generated.
 
-            new_csv_name : str
+            new_csv_path : str
                 the path to the new csv, if one is being generated from a directory.
                 If no csv exists, this is the path where the featurized csv will
                 be generated
@@ -250,8 +250,7 @@ class ImageFeaturizer:
         # build the full image dict and save the original dataframe
         if not image_dict:
             image_dict, df = _build_image_dict(image_path, csv_path,
-                                               image_column_headers,
-                                               new_csv_name)
+                                               image_column_headers)
             self.df_original = df
             self.full_dataframe = df
             self.image_column_headers = image_column_headers
@@ -260,7 +259,7 @@ class ImageFeaturizer:
         scaled_size, full_image_data, csv_path = \
             self._load_data_helper(self.model_name, image_column_headers,
                                    image_path, image_dict, csv_path,
-                                   new_csv_name, grayscale)
+                                   new_csv_path, grayscale)
 
         # Save all of the necessary data to the featurizer
         if save_data:
@@ -273,6 +272,7 @@ class ImageFeaturizer:
     @t.guard(batch_data=t.Type(np.ndarray),
              image_column_headers=t.List(t.String(allow_blank=True)) | t.String(allow_blank=True),
              batch_processing=t.Bool,
+             features_only=t.Bool,
              save_features=t.Bool,
              save_csv=t.Bool,
              omit_model=t.Bool,
@@ -281,7 +281,8 @@ class ImageFeaturizer:
              omit_time=t.Bool,
              )
     def featurize_preloaded_data(self, batch_data=np.zeros((1)), image_column_headers='',
-                                 batch_processing=False, save_features=False, save_csv=False,
+                                 batch_processing=False, features_only=False,
+                                 save_features=False, save_csv=False,
                                  omit_model=False, omit_depth=False, omit_output=False,
                                  omit_time=False):
         """
@@ -290,14 +291,15 @@ class ImageFeaturizer:
 
         Parameters
         ----------
-        None, just operates on the loaded data
+
 
         Returns
         -------
-            full_dataframe : pandas.DataFrame
-                Dataframe containing the features appended to the original csv.
-                Also writes csvs containing the features only and the full dataframe
-                to the same path as the csv containing the list of names
+            full_dataframe or df_features: pandas.DataFrame
+                If features_only, this returns a Dataframe containing the features.
+                Otherwise, it returns a DataFrame containing the features appended to the
+                original csv. If save_csv is set to True, it also writes csv's
+                to the same path as the csv containing the list of names.
 
         """
 
@@ -324,27 +326,39 @@ class ImageFeaturizer:
         # Initialize featurized data vector with appropriate size
         features = np.zeros((batch_data.shape[1],
                              self.num_features * len(image_column_headers)))
-        # Save csv
-        full_dataframe, df_features = self._featurize_helper(
+
+        # Get the image features
+        df_features = self._featurize_helper(
             features, image_column_headers, save_features, batch_data)
 
+        # Save features if boolean set to True
+        if save_features:
+            self.features = df_features
+
+        # If called with features_only, returns only the features
+        if features_only:
+            return df_features
+
+        # Save the image features with the original dataframe
+        full_dataframe = pd.concat([self.df_original, df_features], axis=1)
+
+        # If batch processing, this is only the batch dataframe. Otherwise, this is the actual
+        # full dataframe.
+        if not batch_processing:
+            self.full_dataframe = full_dataframe
+
+        # Save csv if called
         if save_csv:
             self.save_csv(omit_model=omit_model, omit_depth=omit_depth,
                           omit_output=omit_output, omit_time=omit_time, save_features=save_features)
 
-        self.full_dataframe = full_dataframe
-
-        if save_features:
-            self.features = df_features
-            return full_dataframe, df_features
-
-        return full_dataframe, None
+        return full_dataframe
 
     def featurize(self,
                   image_column_headers,
                   image_path='',
                   csv_path='',
-                  new_csv_name='~/Downloads/featurized_images.csv',
+                  new_csv_path='~/Downloads/featurized_images.csv',
                   batch_processing=True,
                   batch_size=1000,
                   grayscale=False,
@@ -377,11 +391,11 @@ class ImageFeaturizer:
 
             csv_path : str
                 the path to the csv. If just using a directory, leave blank, and
-                specify the path for the generated csv in new_csv_name.
+                specify the path for the generated csv in new_csv_path.
                 If csv exists, this is the path where the featurized csv will be
                 generated.
 
-            new_csv_name : str
+            new_csv_path : str
                 the path to the new csv, if one is being generated from a directory.
                 If no csv exists, this is the path where the featurized csv will
                 be generated
@@ -422,8 +436,7 @@ class ImageFeaturizer:
         # Find the full image dict and save the original dataframe. This is required early to know
         # how many images exist in total, to control batch processing.
         full_image_dict, df_original = _build_image_dict(image_path, csv_path,
-                                                         image_column_headers,
-                                                         new_csv_name)
+                                                         image_column_headers)
         # Save the fixed inputs and full image dict
         self.df_original = df_original
         self.image_column_headers = image_column_headers
@@ -433,13 +446,9 @@ class ImageFeaturizer:
         # setting batch_size to 0
         if batch_processing and batch_size:
             # Perform batch processing, and save the full dataframe and the full features dataframe
-            full_df, features_df = self._batch_processing(full_image_dict, image_column_headers,
-                                                          df_original, image_path, csv_path,
-                                                          new_csv_name, batch_size, grayscale,
-                                                          save_features)
-
-            # Save the full dataframe with the features
-            self.full_dataframe = full_df
+            features_df = self._batch_processing(full_image_dict, image_column_headers,
+                                                 image_path, csv_path, new_csv_path,
+                                                 batch_size, grayscale)
 
         # If batch processing is turned off, load the images in one big batch and features them all
         else:
@@ -447,16 +456,15 @@ class ImageFeaturizer:
                         "experience a memory error, make sure batch processing is enabled.")
 
             full_data = self.load_data(image_column_headers, image_path, full_image_dict, csv_path,
-                                       new_csv_name, grayscale, save_data)
+                                       new_csv_path, grayscale, save_data)
 
-            full_df, features_df = \
+            features_df = \
                 self.featurize_preloaded_data(full_data, image_column_headers=image_column_headers,
-                                              save_features=save_features, save_csv=save_csv,
-                                              omit_time=omit_time, omit_model=omit_model,
-                                              omit_depth=omit_depth, omit_output=omit_output)
+                                              features_only=True)
 
-            # Save the full dataframe with the features
-            self.full_dataframe = full_df
+        # Save the full dataframe with the features
+        full_df = pd.concat([df_original, features_df], axis=1)
+        self.full_dataframe = full_df
 
         # Save features and csv if flags are enabled
         if save_features:
@@ -465,9 +473,7 @@ class ImageFeaturizer:
             self.save_csv(csv_path=csv_path, omit_model=omit_model, omit_depth=omit_depth,
                           omit_output=omit_output, omit_time=omit_time, save_features=save_features)
 
-        # Return the results
-        if save_features:
-            return full_df, features_df
+        # Return the full featurized dataframe
         return full_df
 
     def save_csv(self, csv_path="", omit_model=False, omit_depth=False,
@@ -477,15 +483,15 @@ class ImageFeaturizer:
         # Save the name and extension separately, for robust naming
         if not csv_path:
             csv_path = self.csv_path
-        csv_name, ext = os.path.splitext(csv_path)
 
+        csv_name, ext = os.path.splitext(csv_path)
         name_path = _named_path_finder(csv_name, self.model_name, self.depth, self.num_features,
                                        omit_model, omit_depth, omit_output, omit_time)
 
-        _create_csv_path(csv_path)
+        _create_csv_path(name_path)
 
-        logger.warning("Saving full dataframe to csv as {}_full{}".format(name_path, ext))
-        self.full_dataframe.to_csv("{}_full{}".format(name_path, ext), index=False)
+        logger.warning("Saving full dataframe to csv as {}{}".format(name_path, ext))
+        self.full_dataframe.to_csv("{}{}".format(name_path, ext), index=False)
 
         if save_features:
             logger.warning("Saving features to csv as {}_features_only{}".format(name_path, ext))
@@ -526,7 +532,7 @@ class ImageFeaturizer:
                           image_path,
                           image_dict,
                           csv_path,
-                          new_csv_name,
+                          new_csv_path,
                           grayscale):
         """
         This function helps load the image data from the image directory and/or csv.
@@ -552,7 +558,7 @@ class ImageFeaturizer:
         csv_path : str
             Path to the csv
 
-        new_csv_name : bool
+        new_csv_path : bool
             The name of the new csv, if a new csv is being saved
 
         grayscale : bool
@@ -566,7 +572,7 @@ class ImageFeaturizer:
         (image_data, csv_path, list_of_image_paths) = \
             preprocess_data(image_column_headers[0], model_name,
                             image_dict[image_column_headers[0]],
-                            image_path, csv_path, new_csv_name, scaled_size, grayscale)
+                            image_path, csv_path, new_csv_path, scaled_size, grayscale)
 
         image_data_list = [np.expand_dims(image_data, axis=0)]
 
@@ -575,7 +581,7 @@ class ImageFeaturizer:
             for column in image_column_headers[1:]:
                 (image_data, csv_path, list_of_image_paths) = \
                     preprocess_data(column, model_name, image_dict[column], image_path,
-                                    csv_path, new_csv_name, scaled_size, grayscale)
+                                    csv_path, new_csv_path, scaled_size, grayscale)
 
                 image_data_list.append(np.expand_dims(image_data, axis=0))
 
@@ -624,20 +630,17 @@ class ImageFeaturizer:
             features_list.append(df_features)
 
         df_features = pd.concat(features_list, axis=1)
-        full_dataframe = pd.concat([self.df_original, df_features], axis=1)
 
-        return full_dataframe, df_features
+        return df_features
 
     def _batch_processing(self,
                           full_image_dict,
                           image_column_headers,
-                          df_original,
                           image_path='',
                           csv_path='',
-                          new_csv_name='~/Downloads/featurized_images.csv',
+                          new_csv_path='~/Downloads/featurized_images.csv',
                           batch_size=1000,
-                          grayscale=False,
-                          save_features=False):
+                          grayscale=False):
         """
         This function handles batch processing. It takes the full list of images that need
         to be processed and loads/featurizes the images in batches.
@@ -660,7 +663,7 @@ class ImageFeaturizer:
         csv_path : str
             Path to the csv
 
-        new_csv_name : bool
+        new_csv_path : bool
             The name of the new csv, if a new csv is being saved
 
         batch_size : int
@@ -673,9 +676,8 @@ class ImageFeaturizer:
             Whether to save the features as an attribute of the model
         """
 
-        full_features_df = pd.DataFrame()
-        full_df = df_original
-        full_df_columns_list = []
+        features_df = pd.DataFrame()
+        features_df_columns_list = []
         # Iterate through each image column
         for column_index in range(len(image_column_headers)):
             # Initialize the batch index and save the column name
@@ -707,15 +709,15 @@ class ImageFeaturizer:
                 logger.info("Loading image batch.")
 
                 batch_data = self.load_data(column, image_path,
-                                            batch_image_dict, csv_path, new_csv_name,
+                                            batch_image_dict, csv_path, new_csv_path,
                                             grayscale, save_data=False)
                 logger.info("Featurizing image batch.")
 
                 # If this is the first batch, the batch features will be saved alone.
                 # Otherwise, they are concatenated to the last batch
                 batch_features_list.append(self.featurize_preloaded_data(batch_data, column,
-                                                                         save_features=True,
-                                                                         batch_processing=True)[1])
+                                                                         features_only=True,
+                                                                         batch_processing=True))
 
                 # Increment index by batch size
                 index += batch_size
@@ -733,22 +735,17 @@ class ImageFeaturizer:
             # After the full column's features are calculated, concatenate them all and append them
             # to the full DataFrame list
             batch_features_df = pd.concat(batch_features_list, ignore_index=True)
-            full_df_columns_list.append(batch_features_df)
+            features_df_columns_list.append(batch_features_df)
 
         # Once all the features are created for each column, concatenate them together for both
         # the features dataframe and the full dataframe
-        full_features_df = pd.concat(full_df_columns_list, axis=1)
-        if save_features:
-            self.features = full_features_df
-        else:
-            self.features = pd.DataFrame()
-        full_df = pd.concat([full_df, full_features_df], axis=1)
+        features_df = pd.concat(features_df_columns_list, axis=1)
 
         # Return the full dataframe and features dataframe
-        return full_df, full_features_df
+        return features_df
 
 
-def _build_image_dict(image_path, csv_path, image_column_headers, new_csv_name):
+def _build_image_dict(image_path, csv_path, image_column_headers):
     """
     This function creates the image dictionary that maps each image column to the images
     in that column
@@ -763,14 +760,11 @@ def _build_image_dict(image_path, csv_path, image_column_headers, new_csv_name):
 
     image_column_headers : list
         A list of the image column headers
-
-    new_csv_name : bool
-        The name of the new csv, if a new csv is being saved
     """
     full_image_dict = {}
     for column in image_column_headers:
         list_of_image_paths, df = _image_paths_finder(image_path, csv_path,
-                                                      column, new_csv_name)
+                                                      column)
 
         full_image_dict[column] = list_of_image_paths
     return full_image_dict, df
@@ -801,11 +795,67 @@ def _input_fixer(image_column_headers, image_path):
     return image_column_headers, image_path
 
 
-def _create_csv_path(new_csv_name):
+def _create_csv_path(new_csv_path):
     """
     Create the necessary csv along with the appropriate directories
     """
     # Create the filepath to the new csv
-    path_to_new_csv = os.path.dirname(new_csv_name)
+    path_to_new_csv = os.path.dirname(new_csv_path)
     if not os.path.isdir(path_to_new_csv) and path_to_new_csv != '':
         os.makedirs(path_to_new_csv)
+
+
+def _named_path_finder(csv_name, model_str, model_depth, model_output,
+                       omit_model, omit_depth, omit_output, omit_time):
+    """
+    Create the named path from the robust naming configuration available.
+
+    Parameters:
+    -----------
+        omit_model : Bool
+            Boolean to omit the model name from the CSV name
+
+        omit_depth : Bool
+            Boolean to omit the model depth from the CSV name
+
+        omit_output : Bool
+            Boolean to omit the model output size from the CSV name
+
+        omit_time : Bool
+            Boolean to omit the time of creation from the CSV name
+
+        model_str : Str
+            The model name
+
+        model_depth : Str
+            The model depth
+
+        model_output : Str
+            The model output size
+
+    Returns:
+    --------
+        named_path : Str
+            The full name of the CSV file
+    """
+    # Naming switches! Can turn on or off to remove time, model, depth, or output size
+    # from output filename
+    if not omit_time:
+        saved_time = "_({})".format(time.strftime("%d-%b-%Y-%H.%M.%S", time.gmtime()))
+    else:
+        saved_time = ""
+    if not omit_model:
+        saved_model = "_{}".format(model_str)
+    else:
+        saved_model = ""
+    if not omit_depth:
+        saved_depth = "_depth-{}".format(model_depth)
+    else:
+        saved_depth = ""
+    if not omit_output:
+        saved_output = "_output-{}".format(model_output)
+    else:
+        saved_output = ""
+
+    named_path = "{}{}{}{}{}".format(csv_name, saved_model, saved_depth, saved_output, saved_time)
+    return named_path

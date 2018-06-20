@@ -7,7 +7,6 @@ from keras.models import Sequential
 
 from .test_build_featurizer import ATOL
 from pic2vec.data_featurizing import (featurize_data,
-                                      _named_path_finder,
                                       create_features,
                                       _create_features_df_helper)
 
@@ -65,24 +64,6 @@ def test_featurize_data():
     # Check the prediction vs. the saved array
     check_array = np.load('tests/data_featurizing_testing/array_testing/check_featurize.npy')
     assert np.allclose(featurize_data(MODEL, init_array), check_array, atol=ATOL)
-
-
-def test_named_path_finder_time_only_omitted():
-    """Check that named_path_finder produces the correct output (without time)"""
-    check_named_path = 'csv_name_modelstring_depth-n_output-x'
-    test_named_path = _named_path_finder('csv_name', 'modelstring', 'n', 'x',
-                                         omit_model=False, omit_depth=False, omit_output=False,
-                                         omit_time=True)
-    assert check_named_path == test_named_path
-
-
-def test_named_path_finder_all_omitted():
-    """Check that named_path_finder produces the correct output (without time)"""
-    check_named_path = 'csv_name'
-    test_named_path = _named_path_finder('csv_name', 'modelstring', 'n', 'x',
-                                         omit_model=True, omit_depth=True, omit_output=True,
-                                         omit_time=True)
-    assert check_named_path == test_named_path
 
 
 def test_create_features_bad_feature_array():
