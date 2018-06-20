@@ -1,6 +1,15 @@
 =======
 History
 =======
+0.99.1 (2018-06-20)
+------------------
+* Lots of code cleanup
+* Changed new_csv_name argument to new_csv_path everywhere for consistency
+* Removed '_full' from the saved csv_name for the full dataframe. Features-only csv still has
+  '_features_only' in csv name.
+* Added '_featurized_' to saved csv names
+* Removed new_csv_path as argument to functions that do not actually require it
+
 0.99.0 (2018-04-02)
 ------------------
 * Added batch processing

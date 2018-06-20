@@ -339,9 +339,7 @@ def _convert_single_image(image_source, model_str, image_path, target_size=(299,
 #  FUNCTION FOR END-TO-END DATA PREPROCESSING  #
 ################################################
 
-def _find_image_source(csv_path, image_path, new_csv_path):
-    if csv_path == '':
-        csv_path = new_csv_path
+def _find_image_source(image_path):
 
     # IMAGE RETRIEVAL AND VECTORIZATION #
     # Find image source: whether from url or directory
@@ -351,7 +349,7 @@ def _find_image_source(csv_path, image_path, new_csv_path):
     else:
         image_source = 'directory'
 
-    return image_source, csv_path
+    return image_source
 
 
 @t.guard(image_column_header=t.String(allow_blank=False),
@@ -359,7 +357,6 @@ def _find_image_source(csv_path, image_path, new_csv_path):
          list_of_images=t.List(t.String(allow_blank=True)),
          image_path=t.String(allow_blank=True),
          csv_path=t.String(allow_blank=True),
-         new_csv_path=t.String(allow_blank=True),
          target_size=t.Tuple(t.Int, t.Int),
          grayscale=t.Bool)
 def preprocess_data(image_column_header,
@@ -367,7 +364,6 @@ def preprocess_data(image_column_header,
                     list_of_images,
                     image_path='',
                     csv_path='',
-                    new_csv_path='~/Downloads/featurized_images.csv',
                     target_size=(299, 299),
                     grayscale=False):
     """
@@ -386,9 +382,6 @@ def preprocess_data(image_column_header,
         image_column_header : str
             The name of the column that contains the image paths in the csv
 
-        new_csv_path : str
-            If just passed an image directory, this is the path to save the generated csv
-
         target_size : tuple of ints
             The size that the images will be scaled to
 
@@ -400,9 +393,6 @@ def preprocess_data(image_column_header,
         image_data : np.ndarray
             a 4D numpy tensor containing the (full or batched) vectorized images,
             ready to be pushed through the featurizer
-
-        csv_path : str
-            the path to the csv that represents the image data
 
         list_of_images : list of str
             the list of image paths in the same order as the batches
@@ -422,10 +412,7 @@ def preprocess_data(image_column_header,
     if image_path and not os.path.isdir(image_path):
         raise TypeError('image_path must lead to a directory if '
                         'it is initialized. It is where the images are stored.')
-    # Raise an error if the csv_path doesn't point to a file
-    if csv_path and not os.path.isfile(csv_path):
-        raise TypeError('csv_path must lead to a file if it is initialized.'
-                        ' This is the csv containing pointers to the images.')
+
     if model_str not in preprocessing_dict.keys():
         raise ValueError('model_str must be one the following: {}'.format(preprocessing_dict.keys))
     # ------------------------------------------------------ #
@@ -433,7 +420,7 @@ def preprocess_data(image_column_header,
     # BUILDING IMAGE PATH LIST #
     num_images = len(list_of_images)
 
-    image_source, csv_path = _find_image_source(csv_path, image_path, new_csv_path)
+    image_source = _find_image_source(image_path)
 
     # Set number of grayscale channels (3 if color, 1 if grayscale)
     channels = 3 - (2 * grayscale)
@@ -488,4 +475,4 @@ def preprocess_data(image_column_header,
 
         index += 1
 
-    return image_data, csv_path, list_of_images
+    return image_data, list_of_images

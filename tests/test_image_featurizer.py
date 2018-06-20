@@ -27,7 +27,6 @@ MODELS = ['squeezenet', 'vgg16', 'vgg19', 'resnet50', 'inceptionv3', 'xception']
 LOAD_DATA_ARGS = {
     'image_column_headers': 'images',
     'image_path': 'tests/feature_preprocessing_testing/test_images',
-    'new_csv_path': TEST_CSV_NAME
 }
 
 # Static expected attributes to compare with the featurizer attributes
@@ -35,7 +34,7 @@ COMPARE_ARGS = {
     'downsample_size': 0,
     'image_column_headers': ['images'],
     'automatic_downsample': False,
-    'csv_path': TEST_CSV_NAME,
+    'csv_path': '',
     'image_dict': {'images': IMAGE_LIST},
     'depth': 1
 }
@@ -43,7 +42,6 @@ COMPARE_ARGS = {
 LOAD_DATA_ARGS_MULT_ERROR = {
     'image_column_headers': ['images_1', 'images_2'],
     'image_path': 'tests/feature_preprocessing_testing/test_images',
-    'new_csv_path': TEST_CSV_NAME
 }
 
 LOAD_DATA_ARGS_MULT = {
@@ -100,7 +98,7 @@ def compare_featurizer_class(featurizer,
     """Check the necessary assertions for a featurizer image."""
     print(featurizer.features)
     assert featurizer.scaled_size == scaled_size
-    assert np.allclose(featurizer.features.astype(float).as_matrix(), featurized_data, atol=ATOL)
+    assert np.allclose(featurizer.features.astype(float).values, featurized_data, atol=ATOL)
     assert featurizer.downsample_size == downsample_size
     assert featurizer.image_column_headers == image_column_headers
     assert featurizer.autosample == automatic_downsample
@@ -199,14 +197,12 @@ def test_load_and_featurize_save_csv_and_features(featurizer):
     """Make sure the featurizer writes the name correctly to csv with robust naming config"""
 
     name, ext = os.path.splitext(CSV_NAME_MULT)
-    check_array_path = "{}_{}".format(name, 'squeezenet_depth-1_output-512')
+    check_array_path = "{}_featurized_{}".format(name, 'squeezenet_depth-1_output-512')
     featurizer.featurize(save_csv=True, save_features=True, omit_time=True,
                          **LOAD_DATA_ARGS_MULT)
 
     full_check = "{}{}".format(check_array_path, ext)
     feature_check = "{}{}{}".format(check_array_path, '_features_only', ext)
-
-    featurizer.save_csv(save_features=True, omit_time=True)
 
     try:
         assert os.path.isfile(full_check)
@@ -223,7 +219,7 @@ def test_load_then_featurize_save_csv(featurizer):
     """Make sure the featurizer writes the name correctly to csv with robust naming config"""
 
     name, ext = os.path.splitext(CSV_NAME_MULT)
-    check_array_path = "{}_{}".format(name, 'squeezenet_depth-1_output-512')
+    check_array_path = "{}_featurized_{}".format(name, 'squeezenet_depth-1_output-512')
     featurizer.load_data(**LOAD_DATA_ARGS_MULT)
     featurizer.featurize_preloaded_data(save_csv=True, save_features=True, omit_time=True,
                                         batch_processing=False)
