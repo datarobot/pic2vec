@@ -33,7 +33,7 @@ test_requirements = [
 
 setup(
     name='pic2vec',
-    version='0.99.0',
+    version='0.99.1',
     description='Featurize images using a decapitated, pre-trained deep learning network',
     long_description=readme + '\n\n' + history,
     author='Jett Oristaglio',
@@ -42,8 +42,8 @@ setup(
     packages=find_packages(include=['pic2vec']),
     include_package_data=True,
     package_data={
-                  'pic2vec': ['saved_models/squeezenet_weights_tf_dim_ordering_tf_kernels.h5']
-                 },
+        'pic2vec': ['saved_models/squeezenet_weights_tf_dim_ordering_tf_kernels.h5']
+        },
     install_requires=requirements,
     license='BSD license',
     zip_safe=False,
