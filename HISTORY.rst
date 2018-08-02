@@ -1,6 +1,11 @@
 =======
 History
 =======
+0.99.2 (2018-08-01)
+------------------
+* Updated the notebook example
+* Some code cleanup
+
 0.99.1 (2018-06-20)
 ------------------
 * Lots of code cleanup
