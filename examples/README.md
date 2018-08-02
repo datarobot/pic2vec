@@ -3,7 +3,7 @@
 
 This notebook demonstrates the usage of ``image_featurizer`` using the Kaggle Cats vs. Dogs dataset.
 
-We will look at the usage of the ``ImageFeaturizer()`` class, which provides a convenient pipeline to quickly tackle image problems with DataRobot's platform. 
+We will look at the usage of the ``ImageFeaturizer()`` class, which provides a convenient pipeline to quickly tackle image problems with DataRobot's platform.
 
 It allows users to load image data into the featurizer, and then featurizes the images into a maximum of 2048 features. It appends these features to the CSV as extra columns in line with the image rows. If no CSV was passed in with an image directory, the featurizer generates a new CSV automatically and performs the same function.
 
@@ -43,8 +43,8 @@ from pic2vec import ImageFeaturizer
 
 'ImageFeaturizer' accepts as input either:
 1. An image directory
-2. A CSV with URL pointers to image downloads, or 
-3. A combined image directory + CSV with pointers to the included images. 
+2. A CSV with URL pointers to image downloads, or
+3. A combined image directory + CSV with pointers to the included images.
 
 For this example, we will load in the Kaggle Cats vs. Dogs dataset of 25,000 images, along with a CSV that includes each images class label.
 
@@ -177,15 +177,15 @@ featurizer = ImageFeaturizer(depth=1, auto_sample = False, model='squeezenet')
     INFO - No downsampling. Final layer feature space has size 512
 
 
-This featurizer was 'decapitated' to the first layer below the prediction layer, which will produce complex representations. Because it is so close to the final prediction layer, it will create more specialized feature representations, and therefore will be better suited for image datasets that are similar to classes within the original ImageNet dataset. Cats and dogs are present within ImageNet, so a depth of 1 should perform well. 
+This featurizer was 'decapitated' to the first layer below the prediction layer, which will produce complex representations. Because it is so close to the final prediction layer, it will create more specialized feature representations, and therefore will be better suited for image datasets that are similar to classes within the original ImageNet dataset. Cats and dogs are present within ImageNet, so a depth of 1 should perform well.
 
 ## Loading and Featurizing Images Simultaneously
 
-Now that the featurizer is built, we can actually load our data into the network and featurize the images all at the same time, using a single method:  
+Now that the featurizer is built, we can actually load our data into the network and featurize the images all at the same time, using a single method:
 
 
 ```python
-featurized_df = featurizer.featurize(image_column_headers='images', 
+featurized_df = featurizer.featurize(image_column_headers='images',
                                      image_path = image_path,
                                      csv_path = csv_path)
 ```
@@ -217,296 +217,9 @@ featurized_df = featurizer.featurize(image_column_headers='images',
     INFO - Number of missing photos: 1000
     Featurized batch #2. Number of images left: 23000
     Estimated total time left: 1138 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 16s 16ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #3. Number of images left: 22000
-    Estimated total time left: 1081 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 16s 16ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #4. Number of images left: 21000
-    Estimated total time left: 1055 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 16s 16ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #5. Number of images left: 20000
-    Estimated total time left: 983 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 15s 15ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #6. Number of images left: 19000
-    Estimated total time left: 929 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 15s 15ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #7. Number of images left: 18000
-    Estimated total time left: 878 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 15s 15ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #8. Number of images left: 17000
-    Estimated total time left: 826 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 15s 15ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #9. Number of images left: 16000
-    Estimated total time left: 773 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 15s 15ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #10. Number of images left: 15000
-    Estimated total time left: 726 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 19s 19ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #11. Number of images left: 14000
-    Estimated total time left: 704 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 17s 17ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #12. Number of images left: 13000
-    Estimated total time left: 639 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 17s 17ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #13. Number of images left: 12000
-    Estimated total time left: 582 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 21s 21ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #14. Number of images left: 11000
-    Estimated total time left: 550 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 16s 16ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #15. Number of images left: 10000
-    Estimated total time left: 498 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 16s 16ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #16. Number of images left: 9000
-    Estimated total time left: 440 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 16s 16ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #17. Number of images left: 8000
-    Estimated total time left: 392 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 16s 16ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #18. Number of images left: 7000
-    Estimated total time left: 349 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 16s 16ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #19. Number of images left: 6000
-    Estimated total time left: 300 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 16s 16ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #20. Number of images left: 5000
-    Estimated total time left: 246 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 16s 16ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #21. Number of images left: 4000
-    Estimated total time left: 194 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 16s 16ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #22. Number of images left: 3000
-    Estimated total time left: 146 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 17s 17ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #23. Number of images left: 2000
-    Estimated total time left: 98 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
-    Featurizing image batch.
-    INFO - Trying to featurize data.
-    INFO - Creating feature array.
-    1000/1000 [==============================] - 16s 16ms/step
-    INFO - Feature array created successfully.
-    INFO - Adding image features to csv.
-    INFO - Number of missing photos: 1000
-    Featurized batch #24. Number of images left: 1000
-    Estimated total time left: 48 seconds
-    Loading image batch.
-    INFO - Converting images.
-    INFO - Converted 0 images in batch. Only 1000 images left to go.
-    INFO - Converted 500 images in batch. Only 500 images left to go.
+
+    ...
+
     Featurizing image batch.
     INFO - Trying to featurize data.
     INFO - Creating feature array.
@@ -530,22 +243,6 @@ featurized_df
 ```
 
 
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -849,8 +546,8 @@ As you can see, the `featurize()` function loads the images as tensors, featuriz
 
 This can be used with both an image directory and a csv with a column containing the image filepaths (as it is in this case). However, it can also be used with just an image directory, in which case it will construct a brand new DataFrame with the image column header specified. Finally, it can be used with just a csv, as long as the image column header contains URLs of each image.
 
-This is the simplest way to use pic2vec, but it is also possible to perform the function in multiple steps. There are actually two processes happening behind the scenes in the above code block: 
-1. The images are loaded into the network, and then 
+This is the simplest way to use pic2vec, but it is also possible to perform the function in multiple steps. There are actually two processes happening behind the scenes in the above code block:
+1. The images are loaded into the network, and then
 2. The images are featurized and these features are appended to the csv.
 
 
@@ -861,17 +558,17 @@ In the next sections, I will demonstrate loading and featurizing the images in s
 
 First, we have to load the images into the network. This will parse through the images in the order given by the csv, rescale them to a target size depending on the network (e.g. SqueezeNet is (227, 227))– and build a 5D tensor containing the vectorized representations of the images. This tensor will later be fed into the network in order to be featurized.
 
-The tensor has the following dimensions: `[number_of_image_columns, number_of_images_per_image_column, height, width, color_channels]`. In this case, the image tensor will have size `[1, 25000, 227, 227, 3]`. 
+The tensor has the following dimensions: `[number_of_image_columns, number_of_images_per_image_column, height, width, color_channels]`. In this case, the image tensor will have size `[1, 25000, 227, 227, 3]`.
 
 If one were to add a second photo of each animal taken from a new angle, the new tensor might have the dimensions `[2, 25000, 227, 227, 3]`, as there would be a second image column being featurized in each row.
 
 
-To load the images, we have to pass in the name of the column(s) in the CSV containing the image paths, as well as the path to the image directory and the path to the CSV. 
+To load the images, we have to pass in the name of the column(s) in the CSV containing the image paths, as well as the path to the image directory and the path to the CSV.
 
 
-**Be aware**: 
+**Be aware**:
 
-When both steps are performed at once, the ImageFeaturizer can use batch processing prevent any memory errors. By default, it will featurize batches of 1000 images at once, but this number can be changed to whatever batch size your machine can handle when loading the images into memory. 
+When both steps are performed at once, the ImageFeaturizer can use batch processing prevent any memory errors. By default, it will featurize batches of 1000 images at once, but this number can be changed to whatever batch size your machine can handle when loading the images into memory.
 
 If you intend to load and featurize your data in separate steps, make sure your machine is capable of storing every image in memory.
 
@@ -907,319 +604,6 @@ featurizer.load_data('images', image_path=image_path, csv_path=csv_path)
     INFO - Converted 22000 images in batch. Only 3000 images left to go.
     INFO - Converted 23000 images in batch. Only 2000 images left to go.
     INFO - Converted 24000 images in batch. Only 1000 images left to go.
-
-
-
-
-
-    array([[[[[ -16.93900299,   47.22100067,   79.31999969],
-              [ -13.93900299,   50.22100067,   82.31999969],
-              [ -10.93900299,   53.22100067,   85.31999969],
-              ...,
-              [  15.06099701,   86.22100067,  121.31999969],
-              [  19.06099701,   85.22100067,  117.31999969],
-              [  17.06099701,   83.22100067,  115.31999969]],
-    
-             [[ -16.93900299,   47.22100067,   79.31999969],
-              [ -13.93900299,   50.22100067,   82.31999969],
-              [ -10.93900299,   53.22100067,   85.31999969],
-              ...,
-              [  16.06099701,   88.22100067,  121.31999969],
-              [  20.06099701,   86.22100067,  118.31999969],
-              [  18.06099701,   84.22100067,  116.31999969]],
-    
-             [[ -16.93900299,   47.22100067,   79.31999969],
-              [ -13.93900299,   50.22100067,   82.31999969],
-              [ -10.93900299,   53.22100067,   85.31999969],
-              ...,
-              [  18.06099701,   87.22100067,  121.31999969],
-              [  21.06099701,   87.22100067,  119.31999969],
-              [  19.06099701,   85.22100067,  117.31999969]],
-    
-             ...,
-    
-             [[ -47.93900299,    6.22100067,   30.31999969],
-              [ -46.93900299,    7.22100067,   31.31999969],
-              [ -45.93900299,    8.22100067,   32.31999969],
-              ...,
-              [-102.93900299, -113.77899933, -120.68000031],
-              [-102.93900299, -113.77899933, -120.68000031],
-              [-102.93900299, -113.77899933, -120.68000031]],
-    
-             [[ -48.93900299,    5.22100067,   29.31999969],
-              [ -48.93900299,    5.22100067,   29.31999969],
-              [ -47.93900299,    6.22100067,   30.31999969],
-              ...,
-              [-103.93900299, -114.77899933, -121.68000031],
-              [-103.93900299, -114.77899933, -121.68000031],
-              [-103.93900299, -114.77899933, -121.68000031]],
-    
-             [[ -50.93900299,    3.22100067,   27.31999969],
-              [ -49.93900299,    4.22100067,   28.31999969],
-              [ -48.93900299,    5.22100067,   29.31999969],
-              ...,
-              [-103.93900299, -115.77899933, -122.68000031],
-              [-103.93900299, -115.77899933, -122.68000031],
-              [-103.93900299, -115.77899933, -122.68000031]]],
-    
-    
-            [[[ -63.93900299,  -72.77899933,  -84.68000031],
-              [ -63.93900299,  -72.77899933,  -84.68000031],
-              [ -57.93900299,  -71.77899933,  -82.68000031],
-              ...,
-              [  77.06099701,   92.22100067,   86.31999969],
-              [  60.06099701,   82.22100067,   78.31999969],
-              [  57.06099701,   82.22100067,   77.31999969]],
-    
-             [[ -62.93900299,  -71.77899933,  -83.68000031],
-              [ -62.93900299,  -71.77899933,  -83.68000031],
-              [ -57.93900299,  -71.77899933,  -82.68000031],
-              ...,
-              [  72.06099701,   86.22100067,   83.31999969],
-              [  57.06099701,   79.22100067,   75.31999969],
-              [  53.06099701,   78.22100067,   73.31999969]],
-    
-             [[ -63.93900299,  -72.77899933,  -84.68000031],
-              [ -64.93900299,  -73.77899933,  -85.68000031],
-              [ -61.93900299,  -75.77899933,  -86.68000031],
-              ...,
-              [  62.06099701,   74.22100067,   71.31999969],
-              [  60.06099701,   79.22100067,   77.31999969],
-              [  64.06099701,   83.22100067,   81.31999969]],
-    
-             ...,
-    
-             [[ -75.93900299,  -89.77899933,  -94.68000031],
-              [ -77.93900299,  -91.77899933,  -96.68000031],
-              [ -82.93900299,  -96.77899933, -101.68000031],
-              ...,
-              [ -72.93900299,  -79.77899933,  -73.68000031],
-              [ -82.93900299,  -89.77899933,  -83.68000031],
-              [ -71.93900299,  -78.77899933,  -74.68000031]],
-    
-             [[ -72.93900299,  -86.77899933,  -91.68000031],
-              [ -74.93900299,  -88.77899933,  -93.68000031],
-              [ -82.93900299,  -96.77899933, -101.68000031],
-              ...,
-              [ -80.93900299,  -85.77899933,  -79.68000031],
-              [ -78.93900299,  -83.77899933,  -77.68000031],
-              [ -67.93900299,  -71.77899933,  -68.68000031]],
-    
-             [[ -72.93900299,  -86.77899933,  -91.68000031],
-              [ -75.93900299,  -89.77899933,  -94.68000031],
-              [ -83.93900299,  -97.77899933, -102.68000031],
-              ...,
-              [ -65.93900299,  -70.77899933,  -64.68000031],
-              [ -80.93900299,  -85.77899933,  -79.68000031],
-              [ -82.93900299,  -86.77899933,  -83.68000031]]],
-    
-    
-            [[[ -51.93900299,  -62.77899933,  -58.68000031],
-              [ -67.93900299,  -80.77899933,  -75.68000031],
-              [ -61.93900299,  -73.77899933,  -70.68000031],
-              ...,
-              [  32.06099701,   38.22100067,   36.31999969],
-              [  19.06099701,   25.22100067,   23.31999969],
-              [ -18.93900299,  -13.77899933,  -13.68000031]],
-    
-             [[ -25.93900299,  -44.77899933,  -34.68000031],
-              [ -58.93900299,  -79.77899933,  -69.68000031],
-              [ -59.93900299,  -80.77899933,  -70.68000031],
-              ...,
-              [  47.06099701,   52.22100067,   52.31999969],
-              [  38.06099701,   43.22100067,   43.31999969],
-              [ -19.93900299,  -15.77899933,  -13.68000031]],
-    
-             [[  -0.93900299,  -32.77899933,  -18.68000031],
-              [   4.06099701,  -27.77899933,  -13.68000031],
-              [ -10.93900299,  -42.77899933,  -28.68000031],
-              ...,
-              [  22.06099701,   25.22100067,   30.31999969],
-              [  12.06099701,   15.22100067,   20.31999969],
-              [ -13.93900299,  -10.77899933,   -4.68000031]],
-    
-             ...,
-    
-             [[  37.06099701,   16.22100067,   16.31999969],
-              [ -41.93900299,  -63.77899933,  -60.68000031],
-              [ -45.93900299,  -68.77899933,  -63.68000031],
-              ...,
-              [ -49.93900299,  -74.77899933,  -69.68000031],
-              [ -69.93900299,  -90.77899933,  -86.68000031],
-              [  64.06099701,   50.22100067,   53.31999969]],
-    
-             [[  46.06099701,   25.22100067,   25.31999969],
-              [ -37.93900299,  -58.77899933,  -55.68000031],
-              [ -38.93900299,  -59.77899933,  -55.68000031],
-              ...,
-              [ -76.93900299,  -98.77899933,  -92.68000031],
-              [ -38.93900299,  -55.77899933,  -50.68000031],
-              [  95.06099701,   84.22100067,   88.31999969]],
-    
-             [[  39.06099701,   19.22100067,   19.31999969],
-              [ -33.93900299,  -54.77899933,  -51.68000031],
-              [ -43.93900299,  -64.77899933,  -60.68000031],
-              ...,
-              [ -56.93900299,  -76.77899933,  -70.68000031],
-              [  59.06099701,   44.22100067,   49.31999969],
-              [  94.06099701,   87.22100067,   91.31999969]]],
-    
-    
-            ...,
-    
-    
-            [[[  87.06099701,  117.22100067,  113.31999969],
-              [  67.06099701,  114.22100067,  107.31999969],
-              [  56.06099701,  109.22100067,  100.31999969],
-              ...,
-              [  74.06099701,  102.22100067,   90.31999969],
-              [  76.06099701,  105.22100067,   91.31999969],
-              [  75.06099701,  101.22100067,  102.31999969]],
-    
-             [[  87.06099701,  117.22100067,  113.31999969],
-              [  68.06099701,  112.22100067,  106.31999969],
-              [  58.06099701,  109.22100067,   97.31999969],
-              ...,
-              [  74.06099701,  102.22100067,   90.31999969],
-              [  77.06099701,  105.22100067,   93.31999969],
-              [  75.06099701,  102.22100067,  100.31999969]],
-    
-             [[  87.06099701,  117.22100067,  113.31999969],
-              [  69.06099701,  113.22100067,  105.31999969],
-              [  60.06099701,  107.22100067,   94.31999969],
-              ...,
-              [  74.06099701,  101.22100067,   92.31999969],
-              [  77.06099701,  105.22100067,   93.31999969],
-              [  75.06099701,  103.22100067,   99.31999969]],
-    
-             ...,
-    
-             [[ -39.93900299,   -4.77899933,   -5.68000031],
-              [ -35.93900299,   -2.77899933,    1.31999969],
-              [ -33.93900299,   -1.77899933,    4.31999969],
-              ...,
-              [  24.06099701,   61.22100067,   54.31999969],
-              [  19.06099701,   56.22100067,   49.31999969],
-              [  17.06099701,   54.22100067,   47.31999969]],
-    
-             [[ -42.93900299,   -7.77899933,   -8.68000031],
-              [ -38.93900299,   -5.77899933,   -1.68000031],
-              [ -36.93900299,   -4.77899933,    1.31999969],
-              ...,
-              [  23.06099701,   60.22100067,   53.31999969],
-              [  16.06099701,   53.22100067,   46.31999969],
-              [  11.06099701,   48.22100067,   41.31999969]],
-    
-             [[ -44.93900299,   -9.77899933,  -10.68000031],
-              [ -41.93900299,   -8.77899933,   -4.68000031],
-              [ -38.93900299,   -6.77899933,   -0.68000031],
-              ...,
-              [  22.06099701,   59.22100067,   52.31999969],
-              [  13.06099701,   50.22100067,   43.31999969],
-              [   9.06099701,   46.22100067,   39.31999969]]],
-    
-    
-            [[[  85.06099701,   85.22100067,   76.31999969],
-              [  88.06099701,   88.22100067,   79.31999969],
-              [  92.06099701,   92.22100067,   83.31999969],
-              ...,
-              [  17.06099701,   -2.77899933,  -26.68000031],
-              [   6.06099701,  -11.77899933,  -33.68000031],
-              [ -11.93900299,  -12.77899933,  -37.68000031]],
-    
-             [[  86.06099701,   86.22100067,   77.31999969],
-              [  89.06099701,   89.22100067,   80.31999969],
-              [  93.06099701,   93.22100067,   84.31999969],
-              ...,
-              [   6.06099701,  -13.77899933,  -17.68000031],
-              [ -12.93900299,  -32.77899933,  -32.68000031],
-              [   9.06099701,   -8.77899933,  -16.68000031]],
-    
-             [[  89.06099701,   89.22100067,   80.31999969],
-              [  92.06099701,   92.22100067,   83.31999969],
-              [  94.06099701,   94.22100067,   85.31999969],
-              ...,
-              [ -13.93900299,  -23.77899933,  -32.68000031],
-              [ -25.93900299,  -34.77899933,  -40.68000031],
-              [  43.06099701,   14.22100067,    8.31999969]],
-    
-             ...,
-    
-             [[  68.06099701,   74.22100067,   72.31999969],
-              [  70.06099701,   76.22100067,   74.31999969],
-              [  72.06099701,   78.22100067,   76.31999969],
-              ...,
-              [ -76.93900299,  -88.77899933,  -14.68000031],
-              [ -97.93900299,  -83.77899933,   37.31999969],
-              [ -93.93900299,  -90.77899933,   68.31999969]],
-    
-             [[  67.06099701,   73.22100067,   71.31999969],
-              [  68.06099701,   74.22100067,   72.31999969],
-              [  70.06099701,   76.22100067,   74.31999969],
-              ...,
-              [ -39.93900299,  -56.77899933,  -14.68000031],
-              [-100.93900299,  -91.77899933,   -2.68000031],
-              [ -96.93900299,  -91.77899933,   62.31999969]],
-    
-             [[  65.06099701,   71.22100067,   69.31999969],
-              [  68.06099701,   74.22100067,   72.31999969],
-              [  69.06099701,   75.22100067,   73.31999969],
-              ...,
-              [ -12.93900299,  -35.77899933,   -6.68000031],
-              [ -98.93900299,  -99.77899933,  -18.68000031],
-              [ -94.93900299,  -91.77899933,   61.31999969]]],
-    
-    
-            [[[  87.06099701,   86.22100067,   91.31999969],
-              [  78.06099701,   77.22100067,   82.31999969],
-              [  89.06099701,   88.22100067,   93.31999969],
-              ...,
-              [  82.06099701,   74.22100067,   76.31999969],
-              [  83.06099701,   75.22100067,   77.31999969],
-              [  83.06099701,   75.22100067,   77.31999969]],
-    
-             [[  84.06099701,   84.22100067,   91.31999969],
-              [  78.06099701,   78.22100067,   85.31999969],
-              [  86.06099701,   86.22100067,   93.31999969],
-              ...,
-              [  81.06099701,   73.22100067,   75.31999969],
-              [  84.06099701,   76.22100067,   78.31999969],
-              [  86.06099701,   78.22100067,   80.31999969]],
-    
-             [[  75.06099701,   78.22100067,   84.31999969],
-              [  75.06099701,   78.22100067,   84.31999969],
-              [  79.06099701,   82.22100067,   88.31999969],
-              ...,
-              [  87.06099701,   79.22100067,   81.31999969],
-              [  88.06099701,   80.22100067,   82.31999969],
-              [  89.06099701,   81.22100067,   83.31999969]],
-    
-             ...,
-    
-             [[-103.93900299,  -54.77899933,  -80.68000031],
-              [ -44.93900299,    8.22100067,  -17.68000031],
-              [ -94.93900299,  -43.77899933,  -69.68000031],
-              ...,
-              [ -52.93900299,    6.22100067,  -30.68000031],
-              [   5.06099701,   58.22100067,   32.31999969],
-              [ -47.93900299,    4.22100067,  -17.68000031]],
-    
-             [[ -91.93900299,  -42.77899933,  -67.68000031],
-              [ -36.93900299,   10.22100067,  -14.68000031],
-              [ -32.93900299,   14.22100067,  -10.68000031],
-              ...,
-              [ -74.93900299,  -21.77899933,  -47.68000031],
-              [ -12.93900299,   31.22100067,   16.31999969],
-              [ -71.93900299,  -30.77899933,  -42.68000031]],
-    
-             [[ -71.93900299,  -26.77899933,  -51.68000031],
-              [ -55.93900299,  -10.77899933,  -35.68000031],
-              [ -44.93900299,   -0.77899933,  -22.68000031],
-              ...,
-              [  19.06099701,   66.22100067,   51.31999969],
-              [ -67.93900299,  -31.77899933,  -36.68000031],
-              [ -51.93900299,  -18.77899933,  -18.68000031]]]]])
-
 
 
 The image data is now loaded into the featurizer in one single batch. Like before, the tensor has the following dimensions: `[number_of_image_columns, number_of_images_per_image_column, height, width, color_channels]`.
@@ -2220,11 +1604,11 @@ pd.read_csv(WORKING_DIRECTORY + 'cats_vs_dogs_squeezenet_depth-1_output-512_(02-
 
 
 
-The `save_csv()` function can be called with no arguments in order to create an automatic csv name, like above. It can also be called with the `new_csv_path='{insert_new_csv_path_here}'` argument. 
+The `save_csv()` function can be called with no arguments in order to create an automatic csv name, like above. It can also be called with the `new_csv_path='{insert_new_csv_path_here}'` argument.
 
-Alternatively, you can omit certain parts of the automatic name generation with `omit_model=True`, `omit_depth=True`, `omit_output=True`, or `omit_time=True` arguments. 
+Alternatively, you can omit certain parts of the automatic name generation with `omit_model=True`, `omit_depth=True`, `omit_output=True`, or `omit_time=True` arguments.
 
-But, for the purposes of this demo, we can simply test the performance of a linear SVM classifier over the featurized data. First, we'll build the training and test sets. 
+But, for the purposes of this demo, we can simply test the performance of a linear SVM classifier over the featurized data. First, we'll build the training and test sets.
 
 
 ```python
@@ -2293,6 +1677,6 @@ Unless you would like to examine the loaded data before featurizing it, it is re
 
 ## Next Steps
 
-We have not covered using only a CSV with URL pointers, or a more complex dataset. That will be the subject of another Notebook. 
+We have not covered using only a CSV with URL pointers, or a more complex dataset. That will be the subject of another Notebook.
 
 To have more control over the options in the featurizer, or to understand its internal functioning more fully, check out the full package documentation.
