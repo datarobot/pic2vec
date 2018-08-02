@@ -56,6 +56,101 @@ csv_path = WORKING_DIRECTORY + 'cats_vs_dogs.csv'
 image_path = WORKING_DIRECTORY + 'cats_vs_dogs_images/'
 ```
 
+Let's take a look at the csv before featurizing the images:
+
+
+```python
+pd.read_csv(csv_path)
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>images</th>
+      <th>label</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>cat.0.jpg</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>cat.1.jpg</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>cat.2.jpg</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>cat.3.jpg</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>cat.4.jpg</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>24995</th>
+      <td>dog.12495.jpg</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>24996</th>
+      <td>dog.12496.jpg</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>24997</th>
+      <td>dog.12497.jpg</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>24998</th>
+      <td>dog.12498.jpg</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>24999</th>
+      <td>dog.12499.jpg</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+<p>25000 rows × 2 columns</p>
+</div>
+
+
+
 The image directory contains 12,500 images of cats and 12,500 images of dogs. The CSV contains pointers to each image in the directory, along with a class label (0 for cats, 1 for dogs).
 
 ## Initializing the Featurizer
