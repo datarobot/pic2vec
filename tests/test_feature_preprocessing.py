@@ -190,12 +190,12 @@ def test_preprocess_data_fake_dir():
         logging.error('Whoops, that labyrinth exists. '
                       'Change error_dir to a directory path that does not exist.')
     with pytest.raises(TypeError):
-        preprocess_data(IMG_COL_HEAD, 'xception', list_of_images=IMAGE_LIST, image_path=error_dir,
-                        new_csv_path=ERROR_NEW_CSV_PATH_PREPROCESS)
+        preprocess_data(IMG_COL_HEAD, 'xception', list_of_images=IMAGE_LIST, image_path=error_dir)
 
     assert not os.path.isfile(ERROR_NEW_CSV_PATH_PREPROCESS)
 
 
+@pytest.mark.xfail
 def test_preprocess_data_fake_csv():
     """Raise an error if the csv_path doesn't point to a file"""
     error_file = 'rehtonaybtmaerdecnaraeppaeremasawootehtahtdootsrednueh'
@@ -205,8 +205,7 @@ def test_preprocess_data_fake_csv():
         logging.error(
             'Whoops, that dreamer exists. change to error_file to a file path that does not exist.')
     with pytest.raises(TypeError):
-        preprocess_data(IMG_COL_HEAD, 'xception', csv_path=error_file, list_of_images=IMAGE_LIST,
-                        new_csv_path=ERROR_NEW_CSV_PATH_PREPROCESS)
+        preprocess_data(IMG_COL_HEAD, 'xception', csv_path=error_file, list_of_images=IMAGE_LIST)
 
     assert not os.path.isfile(ERROR_NEW_CSV_PATH_PREPROCESS)
 
@@ -219,11 +218,10 @@ def test_preprocess_data_invalid_url_or_dir():
 def test_preprocess_data_invalid_model_str():
     """Raise an error if the model_str is not a valid model"""
     with pytest.raises(ValueError):
-        preprocess_data(IMG_COL_HEAD, 'derp', [''], csv_path=DIRECTORY_CSV_PATH_PREPROCESS,
-                        new_csv_path=ERROR_NEW_CSV_PATH_PREPROCESS)
+        preprocess_data(IMG_COL_HEAD, 'derp', [''], csv_path=DIRECTORY_CSV_PATH_PREPROCESS)
 
 
-def compare_preprocessing(case, csv_name, check_arrays, image_list):
+def compare_preprocessing(case, csv_path, check_arrays, image_list):
     """Compare a case from a full preprocessing step with the expected values of that case"""
     # Check correct number of images vectorized
     assert len(case[0]) == len(check_arrays)
@@ -233,8 +231,7 @@ def compare_preprocessing(case, csv_name, check_arrays, image_list):
         assert np.allclose(case[0][image], check_arrays[image], atol=ATOL)
 
     # csv path correctly returned as non-existent, and correct image list returned
-    assert case[1] == csv_name
-    assert case[2] == image_list
+    assert case[1] == image_list
 
 
 @pytest.mark.xfail
@@ -246,8 +243,7 @@ def test_preprocess_data_grayscale():
     # Create the full (data, csv_path, image_list) for each of the three cases
     preprocessed_case = preprocess_data(IMG_COL_HEAD, 'xception', grayscale=True,
                                         image_path=IMAGE_PATH,
-                                        csv_path=DIRECTORY_CSV_PATH_PREPROCESS,
-                                        new_csv_path=ERROR_NEW_CSV_PATH_PREPROCESS)
+                                        csv_path=DIRECTORY_CSV_PATH_PREPROCESS)
 
     # Ensure a new csv wasn't created when they weren't needed
     assert not os.path.isfile(ERROR_NEW_CSV_PATH_PREPROCESS)
@@ -258,46 +254,30 @@ def test_preprocess_data_grayscale():
 
 PREPROCESS_DATA_CASES = [
     # Tests an image directory-only preprocessing step
-    (IMAGE_PATH, '', NEW_CSV_PATH_PREPROCESS,
+    (IMAGE_PATH, '',
      DIRECTORY_ARRAYS, IMAGE_LIST),
 
     # Tests a CSV-only URL-based preprocessing step
-    ('', URL_PATH, ERROR_NEW_CSV_PATH_PREPROCESS,
+    ('', URL_PATH,
      CSV_ARRAYS, URL_LIST),
 
     # Tests a combined directory+csv preprocessing step
     (IMAGE_PATH, DIRECTORY_CSV_PATH_PREPROCESS,
-     ERROR_NEW_CSV_PATH_PREPROCESS, COMBINED_ARRAYS,
-     COMBINED_LIST_PREPROCESS),
+     COMBINED_ARRAYS, COMBINED_LIST_PREPROCESS),
 ]
 
 
-@pytest.mark.parametrize('image_path, csv_path, new_csv_path, check_arrays, image_list',
+@pytest.mark.parametrize('image_path, csv_path, check_arrays, image_list',
                          PREPROCESS_DATA_CASES, ids=['dir_only', 'csv_only', 'combined'])
-def test_preprocess_data(image_path, csv_path, new_csv_path, check_arrays, image_list):
+def test_preprocess_data(image_path, csv_path, check_arrays, image_list):
     """
     Full integration test: check for Type and Value errors for badly passed variables,
     and make sure that the network preprocesses data correctly for all three cases.
     """
-    # Ensure the new csv doesn't already exist
-    if os.path.isfile(new_csv_path):
-        os.remove(new_csv_path)
 
     # Create the full (data, csv_path, image_list) for each of the three cases
     preprocessed_case = preprocess_data(IMG_COL_HEAD, 'xception', list_of_images=image_list,
                                         grayscale=False,
-                                        image_path=image_path, csv_path=csv_path,
-                                        new_csv_path=new_csv_path)
+                                        image_path=image_path, csv_path=csv_path)
 
-    # Ensure a new csv wasn't created when they weren't needed, and that the preprocessing steps
-    # All ran correctly.
-    if new_csv_path == NEW_CSV_PATH_PREPROCESS:
-        csv_path = new_csv_path
     compare_preprocessing(preprocessed_case, csv_path, check_arrays, image_list)
-
-    try:
-        assert not os.path.isfile(ERROR_NEW_CSV_PATH_PREPROCESS)
-
-    finally:
-        if os.path.isfile(ERROR_NEW_CSV_PATH_PREPROCESS):
-            os.remove(ERROR_NEW_CSV_PATH_PREPROCESS)

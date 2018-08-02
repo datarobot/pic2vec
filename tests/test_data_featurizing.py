@@ -75,8 +75,7 @@ def test_create_features_bad_feature_array():
     error_feature_array = np.zeros((4, 3, 2))
     with pytest.raises(ValueError):
         create_features(CHECK_DATA, error_feature_array,
-                        'image',
-                        save_features=True)
+                        'image')
 
 
 def test_features_to_csv_bad_data_array():
@@ -84,8 +83,7 @@ def test_features_to_csv_bad_data_array():
     # An error array with the wrong size
     error_array = np.zeros((4, 3, 2))
     with pytest.raises(ValueError):
-        create_features(error_array, CHECK_ARRAY, 'image',
-                        save_features=True)
+        create_features(error_array, CHECK_ARRAY, 'image')
 
 
 def test_create_features_df_helper():
@@ -98,8 +96,7 @@ def test_features_to_csv():
     """Test that the model creates the correct csvs from a toy array, csv, and image list"""
     # Create the test
     full_test_dataframe = create_features(CHECK_DATA, CHECK_ARRAY,
-                                          'image',
-                                          save_features=True)
+                                          'image')
 
     # Assert that the dataframes returned are correct
     assert full_test_dataframe.equals(pd.read_csv(CHECK_CSV_FULL_PATH))

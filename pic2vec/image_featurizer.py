@@ -319,7 +319,7 @@ class ImageFeaturizer:
 
         # Get the image features
         df_features = self._featurize_helper(
-            features, image_column_headers, save_features, batch_data)
+            features, image_column_headers, batch_data)
 
         # Save features if boolean set to True
         if save_features:
@@ -344,6 +344,22 @@ class ImageFeaturizer:
 
         return full_dataframe
 
+    @t.guard(image_column_headers=t.List(t.String(allow_blank=True)) | t.String(allow_blank=True),
+             image_path=t.String(allow_blank=True),
+             csv_path=t.String(allow_blank=True),
+             new_csv_path=t.String(allow_blank=True),
+             batch_processing=t.Bool,
+             batch_size=t.Int,
+             save_data=t.Bool,
+             save_features=t.Bool,
+             save_csv=t.Bool,
+             omit_time=t.Bool,
+             omit_model=t.Bool,
+             omit_depth=t.Bool,
+             omit_output=t.Bool,
+             verbose=t.Bool,
+             grayscale=t.Bool
+             )
     def featurize(self,
                   image_column_headers,
                   image_path='',
@@ -351,7 +367,6 @@ class ImageFeaturizer:
                   new_csv_path='',
                   batch_processing=True,
                   batch_size=1000,
-                  grayscale=False,
                   save_data=False,
                   save_features=False,
                   save_csv=False,
@@ -359,7 +374,8 @@ class ImageFeaturizer:
                   omit_model=False,
                   omit_depth=False,
                   omit_output=False,
-                  verbose=True
+                  verbose=True,
+                  grayscale=False
                   # crop_size = (299, 299),
                   # number_crops = 0,
                   # random_crop = False,
@@ -579,8 +595,7 @@ class ImageFeaturizer:
 
         return scaled_size, full_image_data
 
-    def _featurize_helper(self, features, image_column_headers,
-                          save_features, batch_data):
+    def _featurize_helper(self, features, image_column_headers, batch_data):
         """
         This function featurizes the data for each image column, and creates the features array
         from all of the featurized columns
@@ -592,9 +607,6 @@ class ImageFeaturizer:
 
         image_column_headers : list
             A list of the image column headers
-
-        save_features : bool
-            Bool to determine if features are saved to the model as an attribute
 
         batch_data : array
             The batch loaded image data (which may be the full array if not running with batches)
@@ -614,8 +626,7 @@ class ImageFeaturizer:
             df_features = \
                 create_features(batch_data[column],
                                 partial_features,
-                                image_column_headers[column],
-                                save_features=save_features)
+                                image_column_headers[column])
 
             features_list.append(df_features)
 
@@ -658,8 +669,6 @@ class ImageFeaturizer:
         grayscale : bool
             Whether the images are grayscale or not
 
-        save_features : bool
-            Whether to save the features as an attribute of the model
         """
 
         features_df = pd.DataFrame()
