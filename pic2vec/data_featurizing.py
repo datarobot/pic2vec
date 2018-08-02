@@ -77,34 +77,26 @@ def _create_features_df_helper(data_array, full_feature_array, image_column_head
     return df_features_full
 
 
-def create_features(data_array, new_feature_array, image_column_header,
-                    save_features=False):
+def create_features(data_array, new_feature_array, image_column_header):
     """
-    Write the feature array to a new csv, and append the features to the appropriate
-    rows of the given csv.
+    Create features dataframe, and append the features to the appropriate
+    rows of the original dataframe.
 
     Parameters:
     -----------
-        full_feature_array : np.ndarray
-            The featurized images contained in a single 2D array
+        data_array : np.ndarray
+            The images contained in a single 2D array. Used to track missing images.
 
-        csv_path : str
-            The path to the given (or generated) csv with the image names
+        new_feature_array : np.ndarray
+            The array of generated features
 
         image_column_header : str
-            The name of the column holding the image list
-
-        image_list : list
-            List of strings containing either URLs, or pointers to images in a directory
+            String containing the name of the image column
 
     Returns:
     --------
-        df_full : pandas.DataFrame
-            The full dataframe containing the features appended to the csv of the images
-
-        Method also writes new csvs at the path of the original csv, one containing
-        just the features, and another containing the full combined csv and features
-
+        df_features : pandas.DataFrame
+            The full dataframe containing the features appended to the dataframe of the images
     """
 
     # -------------- #
@@ -120,7 +112,7 @@ def create_features(data_array, new_feature_array, image_column_header,
                          'Gave feature array of shape: {}'.format(new_feature_array.shape))
     # --------------------------------------- #
 
-    logging.info('Adding image features to csv.')
+    logging.info('Combining image features with original dataframe.')
 
     df_features = _create_features_df_helper(data_array, new_feature_array,
                                              image_column_header)

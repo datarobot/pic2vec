@@ -697,7 +697,7 @@ class ImageFeaturizer:
                 batch_data = self.load_data(column, image_path,
                                             batch_image_dict, csv_path,
                                             grayscale, save_data=False)
-                logger.info("Featurizing image batch.")
+                logger.info("\nFeaturizing image batch.")
 
                 # If this is the first batch, the batch features will be saved alone.
                 # Otherwise, they are concatenated to the last batch
@@ -713,7 +713,7 @@ class ImageFeaturizer:
                 remaining_batches = int(math.ceil(num_images - index) / batch_size)
 
                 logger.info("Featurized batch #{}. Number of images left: {}\n"
-                            "Estimated total time left: {} seconds".format(
+                            "Estimated total time left: {} seconds\n".format(
                                 batch_number, num_images - index,
                                 int((time.clock() - tic) * remaining_batches))
                             )

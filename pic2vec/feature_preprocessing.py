@@ -269,7 +269,7 @@ def _image_paths_finder(image_path, csv_path, image_column_header):
     # CASE 3: They give both a CSV and a directory
     else:
         list_of_images, df = _find_combined_image_paths(image_path, csv_path, image_column_header)
-        logging.info('Found image paths that overlap between both the directory and the csv.')
+        logging.info('Found image paths that overlap between both the directory and the csv.\n')
 
     return list_of_images, df
 
