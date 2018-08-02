@@ -10,18 +10,20 @@ It allows users to load image data into the featurizer, and then featurizes the 
 
 
 ```python
-# Setting up stdout logging for the example case
+# Setting up stdout logging
 import logging
 import sys
 
 root = logging.getLogger()
-root.setLevel(logging.DEBUG)
+root.setLevel(logging.INFO)
 
 ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(levelname)s - %(message)s')
-ch.setFormatter(formatter)
+ch.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
 root.addHandler(ch)
+
+# Setting pandas display options
+pd.options.display.max_rows = 10
+
 ```
 
 
@@ -37,7 +39,7 @@ from pic2vec import ImageFeaturizer
     Using TensorFlow backend.
 
 
-## Formatting the Data
+### Formatting the Data
 
 'ImageFeaturizer' accepts as input either:
 1. An image directory
@@ -48,101 +50,11 @@ For this example, we will load in the Kaggle Cats vs. Dogs dataset of 25,000 ima
 
 
 ```python
-pd.options.display.max_rows = 10
+WORKING_DIRECTORY = os.path.expanduser('~') + '/workspace/'
 
-image_path = 'cats_v_dogs_train/'
-csv_path = 'cats_v_dogs_train.csv'
-
-pd.read_csv(csv_path)
+csv_path = WORKING_DIRECTORY + 'cats_vs_dogs.csv'
+image_path = WORKING_DIRECTORY + 'cats_vs_dogs_images/'
 ```
-
-
-
-
-<div>
-<style>
-    .dataframe thead tr:only-child th {
-        text-align: right;
-    }
-
-    .dataframe thead th {
-        text-align: left;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>images</th>
-      <th>label</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>cat.0.jpg</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>cat.1.jpg</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>cat.2.jpg</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>cat.3.jpg</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>cat.4.jpg</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>24995</th>
-      <td>dog.12495.jpg</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <th>24996</th>
-      <td>dog.12496.jpg</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <th>24997</th>
-      <td>dog.12497.jpg</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <th>24998</th>
-      <td>dog.12498.jpg</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <th>24999</th>
-      <td>dog.12499.jpg</td>
-      <td>1</td>
-    </tr>
-  </tbody>
-</table>
-<p>25000 rows × 2 columns</p>
-</div>
-
-
 
 The image directory contains 12,500 images of cats and 12,500 images of dogs. The CSV contains pointers to each image in the directory, along with a class label (0 for cats, 1 for dogs).
 
@@ -158,7 +70,7 @@ Automatic downsampling means that this model will downsample the final layer fro
 
 
 ```python
-featurizer = ImageFeaturizer(depth=1, autosample = False, model='squeezenet')
+featurizer = ImageFeaturizer(depth=1, auto_sample = False, model='squeezenet')
 ```
 
     INFO - Building the featurizer.
@@ -172,130 +84,1090 @@ featurizer = ImageFeaturizer(depth=1, autosample = False, model='squeezenet')
 
 This featurizer was 'decapitated' to the first layer below the prediction layer, which will produce complex representations. Because it is so close to the final prediction layer, it will create more specialized feature representations, and therefore will be better suited for image datasets that are similar to classes within the original ImageNet dataset. Cats and dogs are present within ImageNet, so a depth of 1 should perform well. 
 
-## Loading the Data
+## Loading and Featurizing Images Simultaneously
 
-Now that the featurizer is built, we can load our data into the network. This will parse through the images in the order given by the csv, rescale them to a target size depending on the network– SqueezeNet is (227, 227)– and build a 4D tensor containing the vectorized representations of the images. This tensor will later be fed into the network in order to be featurized.
-
-The tensor will have the dimensions: [number of image columns, number of images, height, width, color channels]. In this case, the image tensor will have size [1, 25000, 227, 227, 3].
-
-We have to pass in the name of the column in the CSV that contains pointers to the images, as well as the path to the image directory and the path to the CSV itself, which are both saved from earlier. 
-
-If there are images in the directory that aren't in the CSV, or image names in the CSV that aren't in the directory, or even files that aren't valid image files in the directory, don't fear– the featurizer will only try to vectorize valid images that are present in both the CSV and the directory. Any images present in the CSV but not the directory will be given zero vectors, and the order of the CSV is considered the canonical order for the images.
+Now that the featurizer is built, we can actually load our data into the network and featurize the images all at the same time, using a single method:  
 
 
 ```python
-featurizer.load_data('images', image_path = image_path, csv_path = csv_path)
+featurized_df = featurizer.featurize(image_column_headers='images', 
+                                     image_path = image_path,
+                                     csv_path = csv_path)
+```
+
+    INFO - Found image paths that overlap between both the directory and the csv.
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #1. Number of images left: 24000
+    Estimated total time left: 1149 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #2. Number of images left: 23000
+    Estimated total time left: 1138 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #3. Number of images left: 22000
+    Estimated total time left: 1081 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #4. Number of images left: 21000
+    Estimated total time left: 1055 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #5. Number of images left: 20000
+    Estimated total time left: 983 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 15s 15ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #6. Number of images left: 19000
+    Estimated total time left: 929 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 15s 15ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #7. Number of images left: 18000
+    Estimated total time left: 878 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 15s 15ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #8. Number of images left: 17000
+    Estimated total time left: 826 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 15s 15ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #9. Number of images left: 16000
+    Estimated total time left: 773 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 15s 15ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #10. Number of images left: 15000
+    Estimated total time left: 726 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 19s 19ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #11. Number of images left: 14000
+    Estimated total time left: 704 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 17s 17ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #12. Number of images left: 13000
+    Estimated total time left: 639 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 17s 17ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #13. Number of images left: 12000
+    Estimated total time left: 582 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 21s 21ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #14. Number of images left: 11000
+    Estimated total time left: 550 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #15. Number of images left: 10000
+    Estimated total time left: 498 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #16. Number of images left: 9000
+    Estimated total time left: 440 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #17. Number of images left: 8000
+    Estimated total time left: 392 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #18. Number of images left: 7000
+    Estimated total time left: 349 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #19. Number of images left: 6000
+    Estimated total time left: 300 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #20. Number of images left: 5000
+    Estimated total time left: 246 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #21. Number of images left: 4000
+    Estimated total time left: 194 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #22. Number of images left: 3000
+    Estimated total time left: 146 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 17s 17ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #23. Number of images left: 2000
+    Estimated total time left: 98 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #24. Number of images left: 1000
+    Estimated total time left: 48 seconds
+    Loading image batch.
+    INFO - Converting images.
+    INFO - Converted 0 images in batch. Only 1000 images left to go.
+    INFO - Converted 500 images in batch. Only 500 images left to go.
+    Featurizing image batch.
+    INFO - Trying to featurize data.
+    INFO - Creating feature array.
+    1000/1000 [==============================] - 16s 16ms/step
+    INFO - Feature array created successfully.
+    INFO - Adding image features to csv.
+    INFO - Number of missing photos: 1000
+    Featurized batch #25. Number of images left: 0
+    Estimated total time left: 0 seconds
+
+
+The images have now been featurized. The featurized dataframe contains the original csv, along with the generated features appended to the appropriate row, corresponding to each image.
+
+There is also an `images_missing` column, to track which images were missing. Missing image features are generated on a matrix of zeros.
+
+If there are images in the directory that aren't contained in the CSV, or image names in the CSV that aren't in the directory, or even files that aren't valid image files in the directory, have no fear– the featurizer will only try to vectorize valid images that are present in both the CSV and the directory. Any images present in the CSV but not the directory will be given zero vectors, and the order of the image column from the CSV is considered the canonical order for the images.
+
+
+```python
+featurized_df
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>images</th>
+      <th>label</th>
+      <th>images_missing</th>
+      <th>images_feat_0</th>
+      <th>images_feat_1</th>
+      <th>images_feat_2</th>
+      <th>images_feat_3</th>
+      <th>images_feat_4</th>
+      <th>images_feat_5</th>
+      <th>images_feat_6</th>
+      <th>...</th>
+      <th>images_feat_502</th>
+      <th>images_feat_503</th>
+      <th>images_feat_504</th>
+      <th>images_feat_505</th>
+      <th>images_feat_506</th>
+      <th>images_feat_507</th>
+      <th>images_feat_508</th>
+      <th>images_feat_509</th>
+      <th>images_feat_510</th>
+      <th>images_feat_511</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>cat.0.jpg</td>
+      <td>0</td>
+      <td>False</td>
+      <td>0.422239</td>
+      <td>4.080936</td>
+      <td>14.894337</td>
+      <td>2.842498</td>
+      <td>0.967452</td>
+      <td>10.851055</td>
+      <td>0.164090</td>
+      <td>...</td>
+      <td>5.716428</td>
+      <td>0.227580</td>
+      <td>1.512349</td>
+      <td>1.838279</td>
+      <td>6.923377</td>
+      <td>2.754216</td>
+      <td>1.599615</td>
+      <td>0.942032</td>
+      <td>8.596214</td>
+      <td>0.195745</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>cat.1.jpg</td>
+      <td>0</td>
+      <td>False</td>
+      <td>2.235883</td>
+      <td>1.766027</td>
+      <td>0.489503</td>
+      <td>1.077848</td>
+      <td>3.744066</td>
+      <td>3.900755</td>
+      <td>0.678774</td>
+      <td>...</td>
+      <td>0.466049</td>
+      <td>0.456763</td>
+      <td>0.000000</td>
+      <td>8.796008</td>
+      <td>8.920897</td>
+      <td>2.318893</td>
+      <td>3.206552</td>
+      <td>5.324099</td>
+      <td>25.885130</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>cat.2.jpg</td>
+      <td>0</td>
+      <td>False</td>
+      <td>0.804545</td>
+      <td>0.685238</td>
+      <td>0.411905</td>
+      <td>3.651519</td>
+      <td>7.440580</td>
+      <td>1.365789</td>
+      <td>1.759454</td>
+      <td>...</td>
+      <td>0.991104</td>
+      <td>0.015178</td>
+      <td>0.018916</td>
+      <td>7.745066</td>
+      <td>0.000000</td>
+      <td>0.187744</td>
+      <td>0.248889</td>
+      <td>7.293088</td>
+      <td>8.606462</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>cat.3.jpg</td>
+      <td>0</td>
+      <td>False</td>
+      <td>0.481214</td>
+      <td>0.229483</td>
+      <td>5.039218</td>
+      <td>0.669226</td>
+      <td>3.988109</td>
+      <td>2.878755</td>
+      <td>0.642729</td>
+      <td>...</td>
+      <td>0.000000</td>
+      <td>0.469958</td>
+      <td>0.532943</td>
+      <td>3.121966</td>
+      <td>0.095707</td>
+      <td>3.489891</td>
+      <td>0.262518</td>
+      <td>1.729952</td>
+      <td>5.988695</td>
+      <td>0.080222</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>cat.4.jpg</td>
+      <td>0</td>
+      <td>False</td>
+      <td>0.000000</td>
+      <td>3.258759</td>
+      <td>9.666997</td>
+      <td>6.237058</td>
+      <td>1.160069</td>
+      <td>0.055264</td>
+      <td>0.394765</td>
+      <td>...</td>
+      <td>0.670079</td>
+      <td>0.755777</td>
+      <td>0.076195</td>
+      <td>7.925221</td>
+      <td>0.149376</td>
+      <td>5.640311</td>
+      <td>0.217993</td>
+      <td>1.215899</td>
+      <td>12.723279</td>
+      <td>0.856007</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>24995</th>
+      <td>dog.12495.jpg</td>
+      <td>1</td>
+      <td>False</td>
+      <td>0.319323</td>
+      <td>10.394070</td>
+      <td>2.253926</td>
+      <td>17.211163</td>
+      <td>10.175515</td>
+      <td>0.754048</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>6.547691</td>
+      <td>0.542316</td>
+      <td>0.000000</td>
+      <td>2.855716</td>
+      <td>0.984909</td>
+      <td>0.789532</td>
+      <td>1.463116</td>
+      <td>7.819314</td>
+      <td>0.194761</td>
+      <td>2.515571</td>
+    </tr>
+    <tr>
+      <th>24996</th>
+      <td>dog.12496.jpg</td>
+      <td>1</td>
+      <td>False</td>
+      <td>4.812177</td>
+      <td>2.173984</td>
+      <td>3.127878</td>
+      <td>7.731273</td>
+      <td>2.563596</td>
+      <td>0.855450</td>
+      <td>1.506930</td>
+      <td>...</td>
+      <td>0.805109</td>
+      <td>0.897770</td>
+      <td>0.067206</td>
+      <td>1.332061</td>
+      <td>1.023679</td>
+      <td>2.697655</td>
+      <td>2.661853</td>
+      <td>0.294248</td>
+      <td>11.114500</td>
+      <td>0.605132</td>
+    </tr>
+    <tr>
+      <th>24997</th>
+      <td>dog.12497.jpg</td>
+      <td>1</td>
+      <td>False</td>
+      <td>0.603782</td>
+      <td>10.804434</td>
+      <td>5.988084</td>
+      <td>11.258055</td>
+      <td>1.711970</td>
+      <td>0.172748</td>
+      <td>0.839580</td>
+      <td>...</td>
+      <td>9.690125</td>
+      <td>0.000000</td>
+      <td>0.681894</td>
+      <td>4.975673</td>
+      <td>0.593460</td>
+      <td>12.891261</td>
+      <td>3.147193</td>
+      <td>2.841281</td>
+      <td>2.273726</td>
+      <td>0.726203</td>
+    </tr>
+    <tr>
+      <th>24998</th>
+      <td>dog.12498.jpg</td>
+      <td>1</td>
+      <td>False</td>
+      <td>0.012421</td>
+      <td>0.779886</td>
+      <td>3.646794</td>
+      <td>1.577259</td>
+      <td>0.314669</td>
+      <td>1.035333</td>
+      <td>0.140289</td>
+      <td>...</td>
+      <td>6.654152</td>
+      <td>3.092728</td>
+      <td>1.509475</td>
+      <td>2.738165</td>
+      <td>0.000000</td>
+      <td>3.335813</td>
+      <td>2.847281</td>
+      <td>1.110609</td>
+      <td>3.183074</td>
+      <td>1.643685</td>
+    </tr>
+    <tr>
+      <th>24999</th>
+      <td>dog.12499.jpg</td>
+      <td>1</td>
+      <td>False</td>
+      <td>2.025731</td>
+      <td>2.882919</td>
+      <td>7.076093</td>
+      <td>3.225270</td>
+      <td>0.053434</td>
+      <td>0.481757</td>
+      <td>0.222437</td>
+      <td>...</td>
+      <td>5.783323</td>
+      <td>0.401531</td>
+      <td>0.397468</td>
+      <td>3.518530</td>
+      <td>0.342225</td>
+      <td>0.887652</td>
+      <td>2.742420</td>
+      <td>7.574071</td>
+      <td>13.408817</td>
+      <td>0.622023</td>
+    </tr>
+  </tbody>
+</table>
+<p>25000 rows × 515 columns</p>
+</div>
+
+
+
+As you can see, the `featurize()` function loads the images as tensors, featurizes them using deep learning, and then appends these features to the dataframe in the same row as the corresponding image.
+
+This can be used with both an image directory and a csv with a column containing the image filepaths (as it is in this case). However, it can also be used with just an image directory, in which case it will construct a brand new DataFrame with the image column header specified. Finally, it can be used with just a csv, as long as the image column header contains URLs of each image.
+
+This is the simplest way to use pic2vec, but it is also possible to perform the function in multiple steps. There are actually two processes happening behind the scenes in the above code block: 
+1. The images are loaded into the network, and then 
+2. The images are featurized and these features are appended to the csv.
+
+
+
+## Loading the Data
+
+In the next sections, I will demonstrate loading and featurizing the images in separate steps, and explain in more depth what happens during each process.
+
+First, we have to load the images into the network. This will parse through the images in the order given by the csv, rescale them to a target size depending on the network (e.g. SqueezeNet is (227, 227))– and build a 5D tensor containing the vectorized representations of the images. This tensor will later be fed into the network in order to be featurized.
+
+The tensor has the following dimensions: `[number_of_image_columns, number_of_images_per_image_column, height, width, color_channels]`. In this case, the image tensor will have size `[1, 25000, 227, 227, 3]`. 
+
+If one were to add a second photo of each animal taken from a new angle, the new tensor might have the dimensions `[2, 25000, 227, 227, 3]`, as there would be a second image column being featurized in each row.
+
+
+To load the images, we have to pass in the name of the column(s) in the CSV containing the image paths, as well as the path to the image directory and the path to the CSV. 
+
+
+**Be aware**: 
+
+When both steps are performed at once, the ImageFeaturizer can use batch processing prevent any memory errors. By default, it will featurize batches of 1000 images at once, but this number can be changed to whatever batch size your machine can handle when loading the images into memory. 
+
+If you intend to load and featurize your data in separate steps, make sure your machine is capable of storing every image in memory.
+
+
+```python
+featurizer.load_data('images', image_path=image_path, csv_path=csv_path)
 ```
 
     INFO - Found image paths that overlap between both the directory and the csv.
     INFO - Converting images.
-    INFO - Converted 0 images. Only 25000 images left to go.
-    INFO - Converted 1000 images. Only 24000 images left to go.
-    INFO - Converted 2000 images. Only 23000 images left to go.
-    INFO - Converted 3000 images. Only 22000 images left to go.
-    INFO - Converted 4000 images. Only 21000 images left to go.
-    INFO - Converted 5000 images. Only 20000 images left to go.
-    INFO - Converted 6000 images. Only 19000 images left to go.
-    INFO - Converted 7000 images. Only 18000 images left to go.
-    INFO - Converted 8000 images. Only 17000 images left to go.
-    INFO - Converted 9000 images. Only 16000 images left to go.
-    INFO - Converted 10000 images. Only 15000 images left to go.
-    INFO - Converted 11000 images. Only 14000 images left to go.
-    INFO - Converted 12000 images. Only 13000 images left to go.
-    INFO - Converted 13000 images. Only 12000 images left to go.
-    INFO - Converted 14000 images. Only 11000 images left to go.
-    INFO - Converted 15000 images. Only 10000 images left to go.
-    INFO - Converted 16000 images. Only 9000 images left to go.
-    INFO - Converted 17000 images. Only 8000 images left to go.
-    INFO - Converted 18000 images. Only 7000 images left to go.
-    INFO - Converted 19000 images. Only 6000 images left to go.
-    INFO - Converted 20000 images. Only 5000 images left to go.
-    INFO - Converted 21000 images. Only 4000 images left to go.
-    INFO - Converted 22000 images. Only 3000 images left to go.
-    INFO - Converted 23000 images. Only 2000 images left to go.
-    INFO - Converted 24000 images. Only 1000 images left to go.
-
-
-
-```python
-print('Vectorized data shape: {}'.format(featurizer.data.shape))
-
-print('CSV path: \'{}\''.format(featurizer.csv_path))
-
-print('Image directory path: \'{}\''.format(featurizer.image_path))
-```
-
-    Vectorized data shape: (1, 25000, 227, 227, 3)
-    CSV path: 'cats_v_dogs_train.csv'
-    Image directory path: 'cats_v_dogs_train/'
-
-
-For a full list of attributes, call:
-
-
-```python
-featurizer.__dict__.keys()
-```
+    INFO - Converted 0 images in batch. Only 25000 images left to go.
+    INFO - Converted 1000 images in batch. Only 24000 images left to go.
+    INFO - Converted 2000 images in batch. Only 23000 images left to go.
+    INFO - Converted 3000 images in batch. Only 22000 images left to go.
+    INFO - Converted 4000 images in batch. Only 21000 images left to go.
+    INFO - Converted 5000 images in batch. Only 20000 images left to go.
+    INFO - Converted 6000 images in batch. Only 19000 images left to go.
+    INFO - Converted 7000 images in batch. Only 18000 images left to go.
+    INFO - Converted 8000 images in batch. Only 17000 images left to go.
+    INFO - Converted 9000 images in batch. Only 16000 images left to go.
+    INFO - Converted 10000 images in batch. Only 15000 images left to go.
+    INFO - Converted 11000 images in batch. Only 14000 images left to go.
+    INFO - Converted 12000 images in batch. Only 13000 images left to go.
+    INFO - Converted 13000 images in batch. Only 12000 images left to go.
+    INFO - Converted 14000 images in batch. Only 11000 images left to go.
+    INFO - Converted 15000 images in batch. Only 10000 images left to go.
+    INFO - Converted 16000 images in batch. Only 9000 images left to go.
+    INFO - Converted 17000 images in batch. Only 8000 images left to go.
+    INFO - Converted 18000 images in batch. Only 7000 images left to go.
+    INFO - Converted 19000 images in batch. Only 6000 images left to go.
+    INFO - Converted 20000 images in batch. Only 5000 images left to go.
+    INFO - Converted 21000 images in batch. Only 4000 images left to go.
+    INFO - Converted 22000 images in batch. Only 3000 images left to go.
+    INFO - Converted 23000 images in batch. Only 2000 images left to go.
+    INFO - Converted 24000 images in batch. Only 1000 images left to go.
 
 
 
 
-    ['downsample_size',
-     'visualize',
-     'autosample',
-     'isotropic_scaling',
-     'num_features',
-     'number_crops',
-     'image_list',
-     'featurizer',
-     'scaled_size',
-     'depth',
-     'csv_path',
-     'crop_size',
-     'featurized_data',
-     'image_column_headers',
-     'data',
-     'model_name',
-     'image_path']
+
+    array([[[[[ -16.93900299,   47.22100067,   79.31999969],
+              [ -13.93900299,   50.22100067,   82.31999969],
+              [ -10.93900299,   53.22100067,   85.31999969],
+              ...,
+              [  15.06099701,   86.22100067,  121.31999969],
+              [  19.06099701,   85.22100067,  117.31999969],
+              [  17.06099701,   83.22100067,  115.31999969]],
+    
+             [[ -16.93900299,   47.22100067,   79.31999969],
+              [ -13.93900299,   50.22100067,   82.31999969],
+              [ -10.93900299,   53.22100067,   85.31999969],
+              ...,
+              [  16.06099701,   88.22100067,  121.31999969],
+              [  20.06099701,   86.22100067,  118.31999969],
+              [  18.06099701,   84.22100067,  116.31999969]],
+    
+             [[ -16.93900299,   47.22100067,   79.31999969],
+              [ -13.93900299,   50.22100067,   82.31999969],
+              [ -10.93900299,   53.22100067,   85.31999969],
+              ...,
+              [  18.06099701,   87.22100067,  121.31999969],
+              [  21.06099701,   87.22100067,  119.31999969],
+              [  19.06099701,   85.22100067,  117.31999969]],
+    
+             ...,
+    
+             [[ -47.93900299,    6.22100067,   30.31999969],
+              [ -46.93900299,    7.22100067,   31.31999969],
+              [ -45.93900299,    8.22100067,   32.31999969],
+              ...,
+              [-102.93900299, -113.77899933, -120.68000031],
+              [-102.93900299, -113.77899933, -120.68000031],
+              [-102.93900299, -113.77899933, -120.68000031]],
+    
+             [[ -48.93900299,    5.22100067,   29.31999969],
+              [ -48.93900299,    5.22100067,   29.31999969],
+              [ -47.93900299,    6.22100067,   30.31999969],
+              ...,
+              [-103.93900299, -114.77899933, -121.68000031],
+              [-103.93900299, -114.77899933, -121.68000031],
+              [-103.93900299, -114.77899933, -121.68000031]],
+    
+             [[ -50.93900299,    3.22100067,   27.31999969],
+              [ -49.93900299,    4.22100067,   28.31999969],
+              [ -48.93900299,    5.22100067,   29.31999969],
+              ...,
+              [-103.93900299, -115.77899933, -122.68000031],
+              [-103.93900299, -115.77899933, -122.68000031],
+              [-103.93900299, -115.77899933, -122.68000031]]],
+    
+    
+            [[[ -63.93900299,  -72.77899933,  -84.68000031],
+              [ -63.93900299,  -72.77899933,  -84.68000031],
+              [ -57.93900299,  -71.77899933,  -82.68000031],
+              ...,
+              [  77.06099701,   92.22100067,   86.31999969],
+              [  60.06099701,   82.22100067,   78.31999969],
+              [  57.06099701,   82.22100067,   77.31999969]],
+    
+             [[ -62.93900299,  -71.77899933,  -83.68000031],
+              [ -62.93900299,  -71.77899933,  -83.68000031],
+              [ -57.93900299,  -71.77899933,  -82.68000031],
+              ...,
+              [  72.06099701,   86.22100067,   83.31999969],
+              [  57.06099701,   79.22100067,   75.31999969],
+              [  53.06099701,   78.22100067,   73.31999969]],
+    
+             [[ -63.93900299,  -72.77899933,  -84.68000031],
+              [ -64.93900299,  -73.77899933,  -85.68000031],
+              [ -61.93900299,  -75.77899933,  -86.68000031],
+              ...,
+              [  62.06099701,   74.22100067,   71.31999969],
+              [  60.06099701,   79.22100067,   77.31999969],
+              [  64.06099701,   83.22100067,   81.31999969]],
+    
+             ...,
+    
+             [[ -75.93900299,  -89.77899933,  -94.68000031],
+              [ -77.93900299,  -91.77899933,  -96.68000031],
+              [ -82.93900299,  -96.77899933, -101.68000031],
+              ...,
+              [ -72.93900299,  -79.77899933,  -73.68000031],
+              [ -82.93900299,  -89.77899933,  -83.68000031],
+              [ -71.93900299,  -78.77899933,  -74.68000031]],
+    
+             [[ -72.93900299,  -86.77899933,  -91.68000031],
+              [ -74.93900299,  -88.77899933,  -93.68000031],
+              [ -82.93900299,  -96.77899933, -101.68000031],
+              ...,
+              [ -80.93900299,  -85.77899933,  -79.68000031],
+              [ -78.93900299,  -83.77899933,  -77.68000031],
+              [ -67.93900299,  -71.77899933,  -68.68000031]],
+    
+             [[ -72.93900299,  -86.77899933,  -91.68000031],
+              [ -75.93900299,  -89.77899933,  -94.68000031],
+              [ -83.93900299,  -97.77899933, -102.68000031],
+              ...,
+              [ -65.93900299,  -70.77899933,  -64.68000031],
+              [ -80.93900299,  -85.77899933,  -79.68000031],
+              [ -82.93900299,  -86.77899933,  -83.68000031]]],
+    
+    
+            [[[ -51.93900299,  -62.77899933,  -58.68000031],
+              [ -67.93900299,  -80.77899933,  -75.68000031],
+              [ -61.93900299,  -73.77899933,  -70.68000031],
+              ...,
+              [  32.06099701,   38.22100067,   36.31999969],
+              [  19.06099701,   25.22100067,   23.31999969],
+              [ -18.93900299,  -13.77899933,  -13.68000031]],
+    
+             [[ -25.93900299,  -44.77899933,  -34.68000031],
+              [ -58.93900299,  -79.77899933,  -69.68000031],
+              [ -59.93900299,  -80.77899933,  -70.68000031],
+              ...,
+              [  47.06099701,   52.22100067,   52.31999969],
+              [  38.06099701,   43.22100067,   43.31999969],
+              [ -19.93900299,  -15.77899933,  -13.68000031]],
+    
+             [[  -0.93900299,  -32.77899933,  -18.68000031],
+              [   4.06099701,  -27.77899933,  -13.68000031],
+              [ -10.93900299,  -42.77899933,  -28.68000031],
+              ...,
+              [  22.06099701,   25.22100067,   30.31999969],
+              [  12.06099701,   15.22100067,   20.31999969],
+              [ -13.93900299,  -10.77899933,   -4.68000031]],
+    
+             ...,
+    
+             [[  37.06099701,   16.22100067,   16.31999969],
+              [ -41.93900299,  -63.77899933,  -60.68000031],
+              [ -45.93900299,  -68.77899933,  -63.68000031],
+              ...,
+              [ -49.93900299,  -74.77899933,  -69.68000031],
+              [ -69.93900299,  -90.77899933,  -86.68000031],
+              [  64.06099701,   50.22100067,   53.31999969]],
+    
+             [[  46.06099701,   25.22100067,   25.31999969],
+              [ -37.93900299,  -58.77899933,  -55.68000031],
+              [ -38.93900299,  -59.77899933,  -55.68000031],
+              ...,
+              [ -76.93900299,  -98.77899933,  -92.68000031],
+              [ -38.93900299,  -55.77899933,  -50.68000031],
+              [  95.06099701,   84.22100067,   88.31999969]],
+    
+             [[  39.06099701,   19.22100067,   19.31999969],
+              [ -33.93900299,  -54.77899933,  -51.68000031],
+              [ -43.93900299,  -64.77899933,  -60.68000031],
+              ...,
+              [ -56.93900299,  -76.77899933,  -70.68000031],
+              [  59.06099701,   44.22100067,   49.31999969],
+              [  94.06099701,   87.22100067,   91.31999969]]],
+    
+    
+            ...,
+    
+    
+            [[[  87.06099701,  117.22100067,  113.31999969],
+              [  67.06099701,  114.22100067,  107.31999969],
+              [  56.06099701,  109.22100067,  100.31999969],
+              ...,
+              [  74.06099701,  102.22100067,   90.31999969],
+              [  76.06099701,  105.22100067,   91.31999969],
+              [  75.06099701,  101.22100067,  102.31999969]],
+    
+             [[  87.06099701,  117.22100067,  113.31999969],
+              [  68.06099701,  112.22100067,  106.31999969],
+              [  58.06099701,  109.22100067,   97.31999969],
+              ...,
+              [  74.06099701,  102.22100067,   90.31999969],
+              [  77.06099701,  105.22100067,   93.31999969],
+              [  75.06099701,  102.22100067,  100.31999969]],
+    
+             [[  87.06099701,  117.22100067,  113.31999969],
+              [  69.06099701,  113.22100067,  105.31999969],
+              [  60.06099701,  107.22100067,   94.31999969],
+              ...,
+              [  74.06099701,  101.22100067,   92.31999969],
+              [  77.06099701,  105.22100067,   93.31999969],
+              [  75.06099701,  103.22100067,   99.31999969]],
+    
+             ...,
+    
+             [[ -39.93900299,   -4.77899933,   -5.68000031],
+              [ -35.93900299,   -2.77899933,    1.31999969],
+              [ -33.93900299,   -1.77899933,    4.31999969],
+              ...,
+              [  24.06099701,   61.22100067,   54.31999969],
+              [  19.06099701,   56.22100067,   49.31999969],
+              [  17.06099701,   54.22100067,   47.31999969]],
+    
+             [[ -42.93900299,   -7.77899933,   -8.68000031],
+              [ -38.93900299,   -5.77899933,   -1.68000031],
+              [ -36.93900299,   -4.77899933,    1.31999969],
+              ...,
+              [  23.06099701,   60.22100067,   53.31999969],
+              [  16.06099701,   53.22100067,   46.31999969],
+              [  11.06099701,   48.22100067,   41.31999969]],
+    
+             [[ -44.93900299,   -9.77899933,  -10.68000031],
+              [ -41.93900299,   -8.77899933,   -4.68000031],
+              [ -38.93900299,   -6.77899933,   -0.68000031],
+              ...,
+              [  22.06099701,   59.22100067,   52.31999969],
+              [  13.06099701,   50.22100067,   43.31999969],
+              [   9.06099701,   46.22100067,   39.31999969]]],
+    
+    
+            [[[  85.06099701,   85.22100067,   76.31999969],
+              [  88.06099701,   88.22100067,   79.31999969],
+              [  92.06099701,   92.22100067,   83.31999969],
+              ...,
+              [  17.06099701,   -2.77899933,  -26.68000031],
+              [   6.06099701,  -11.77899933,  -33.68000031],
+              [ -11.93900299,  -12.77899933,  -37.68000031]],
+    
+             [[  86.06099701,   86.22100067,   77.31999969],
+              [  89.06099701,   89.22100067,   80.31999969],
+              [  93.06099701,   93.22100067,   84.31999969],
+              ...,
+              [   6.06099701,  -13.77899933,  -17.68000031],
+              [ -12.93900299,  -32.77899933,  -32.68000031],
+              [   9.06099701,   -8.77899933,  -16.68000031]],
+    
+             [[  89.06099701,   89.22100067,   80.31999969],
+              [  92.06099701,   92.22100067,   83.31999969],
+              [  94.06099701,   94.22100067,   85.31999969],
+              ...,
+              [ -13.93900299,  -23.77899933,  -32.68000031],
+              [ -25.93900299,  -34.77899933,  -40.68000031],
+              [  43.06099701,   14.22100067,    8.31999969]],
+    
+             ...,
+    
+             [[  68.06099701,   74.22100067,   72.31999969],
+              [  70.06099701,   76.22100067,   74.31999969],
+              [  72.06099701,   78.22100067,   76.31999969],
+              ...,
+              [ -76.93900299,  -88.77899933,  -14.68000031],
+              [ -97.93900299,  -83.77899933,   37.31999969],
+              [ -93.93900299,  -90.77899933,   68.31999969]],
+    
+             [[  67.06099701,   73.22100067,   71.31999969],
+              [  68.06099701,   74.22100067,   72.31999969],
+              [  70.06099701,   76.22100067,   74.31999969],
+              ...,
+              [ -39.93900299,  -56.77899933,  -14.68000031],
+              [-100.93900299,  -91.77899933,   -2.68000031],
+              [ -96.93900299,  -91.77899933,   62.31999969]],
+    
+             [[  65.06099701,   71.22100067,   69.31999969],
+              [  68.06099701,   74.22100067,   72.31999969],
+              [  69.06099701,   75.22100067,   73.31999969],
+              ...,
+              [ -12.93900299,  -35.77899933,   -6.68000031],
+              [ -98.93900299,  -99.77899933,  -18.68000031],
+              [ -94.93900299,  -91.77899933,   61.31999969]]],
+    
+    
+            [[[  87.06099701,   86.22100067,   91.31999969],
+              [  78.06099701,   77.22100067,   82.31999969],
+              [  89.06099701,   88.22100067,   93.31999969],
+              ...,
+              [  82.06099701,   74.22100067,   76.31999969],
+              [  83.06099701,   75.22100067,   77.31999969],
+              [  83.06099701,   75.22100067,   77.31999969]],
+    
+             [[  84.06099701,   84.22100067,   91.31999969],
+              [  78.06099701,   78.22100067,   85.31999969],
+              [  86.06099701,   86.22100067,   93.31999969],
+              ...,
+              [  81.06099701,   73.22100067,   75.31999969],
+              [  84.06099701,   76.22100067,   78.31999969],
+              [  86.06099701,   78.22100067,   80.31999969]],
+    
+             [[  75.06099701,   78.22100067,   84.31999969],
+              [  75.06099701,   78.22100067,   84.31999969],
+              [  79.06099701,   82.22100067,   88.31999969],
+              ...,
+              [  87.06099701,   79.22100067,   81.31999969],
+              [  88.06099701,   80.22100067,   82.31999969],
+              [  89.06099701,   81.22100067,   83.31999969]],
+    
+             ...,
+    
+             [[-103.93900299,  -54.77899933,  -80.68000031],
+              [ -44.93900299,    8.22100067,  -17.68000031],
+              [ -94.93900299,  -43.77899933,  -69.68000031],
+              ...,
+              [ -52.93900299,    6.22100067,  -30.68000031],
+              [   5.06099701,   58.22100067,   32.31999969],
+              [ -47.93900299,    4.22100067,  -17.68000031]],
+    
+             [[ -91.93900299,  -42.77899933,  -67.68000031],
+              [ -36.93900299,   10.22100067,  -14.68000031],
+              [ -32.93900299,   14.22100067,  -10.68000031],
+              ...,
+              [ -74.93900299,  -21.77899933,  -47.68000031],
+              [ -12.93900299,   31.22100067,   16.31999969],
+              [ -71.93900299,  -30.77899933,  -42.68000031]],
+    
+             [[ -71.93900299,  -26.77899933,  -51.68000031],
+              [ -55.93900299,  -10.77899933,  -35.68000031],
+              [ -44.93900299,   -0.77899933,  -22.68000031],
+              ...,
+              [  19.06099701,   66.22100067,   51.31999969],
+              [ -67.93900299,  -31.77899933,  -36.68000031],
+              [ -51.93900299,  -18.77899933,  -18.68000031]]]]])
 
 
+
+The image data is now loaded into the featurizer in one single batch. Like before, the tensor has the following dimensions: `[number_of_image_columns, number_of_images_per_image_column, height, width, color_channels]`.
 
 ## Featurizing the Data
 
-Now that the data is loaded, we're ready to featurize the data. This will push the vectorized images through the network and save the 2D matrix output– each row representing a single image, and each column storing a different feature.
+Now that the data is loaded, we're ready to featurize the preloaded data. Like in the `featurize()` method, this will push the vectorized images through the network and save the 2D matrix output– each row representing a single image, and each column storing a different feature.
 
-It will then create and save a new CSV by appending these features to the end of the given CSV in line with each image's row. The features themselves will also be saved in a separate CSV file without the image names or other data. Both generated CSVs will be saved to the same path as the original CSV, with the features-only CSV appending '_features_only' and the combined CSV appending '_full' to the end of their respective filenames.
-
-The featurize( ) method requires no parameters, as it uses the data we just loaded into the network. This requires pushing images through the deep network, and so if you choose to use a slower, more powerful model like InceptionV3, relatively large datasets will require a GPU to perform in a reasonable amount of time. Using a mid-range GPU, it can take about 30 minutes to process the full 25,000 photos in the Dogs vs. Cats through InceptionV3. On the other hand, if you would like a fast model, lightweight model without top-of-the-line accuracy, SqueezeNet works well enough and can perform inference on CPUs quickly.
+This requires pushing images through the deep network, and so if you choose to use a slower, more powerful model like InceptionV3, large datasets will require a GPU to perform in a reasonable amount of time. Using a low-range GPU, it can take about 30 minutes to process the full 25,000 photos in the Dogs vs. Cats through InceptionV3. On the other hand, if you would like a fast, lightweight model without top-of-the-line accuracy, SqueezeNet works well enough and can perform inference on CPUs quickly.
 
 
 ```python
-featurizer.featurize()
+featurize_preloaded_df = featurizer.featurize_preloaded_data(save_features=True)[0]
 ```
 
     INFO - Trying to featurize data.
     INFO - Creating feature array.
-    25000/25000 [==============================] - 825s   
+    25000/25000 [==============================] - 674s 27ms/step
     INFO - Feature array created successfully.
     INFO - Adding image features to csv.
     INFO - Number of missing photos: 25000
 
 
 
+```python
+featurize_preloaded_df
+```
+
+
 
 
 <div>
-<style>
-    .dataframe thead tr:only-child th {
-        text-align: right;
-    }
-
-    .dataframe thead th {
-        text-align: left;
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
     }
 
     .dataframe tbody tr th {
         vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
     }
 </style>
 <table border="1" class="dataframe">
@@ -599,54 +1471,359 @@ featurizer.featurize()
 
 ## Results
 
-The dataset has now been fully featurized! The features are saved under the featurized_data attribute:
+The dataset has now been fully featurized! The features are saved under the featurized_data attribute if the `save_features` argument was set to True in either the `featurize()` or `featurize_preloaded_data()` functions:
 
 
 ```python
-featurizer.featurized_data
-```
-
-
-
-
-    array([[  4.22239482e-01,   4.08093643e+00,   1.48943367e+01, ...,
-              9.42031682e-01,   8.59621429e+00,   1.95744559e-01],
-           [  2.23588324e+00,   1.76602709e+00,   4.89503175e-01, ...,
-              5.32409906e+00,   2.58851299e+01,   0.00000000e+00],
-           [  8.04544866e-01,   6.85238183e-01,   4.11904931e-01, ...,
-              7.29308796e+00,   8.60646152e+00,   0.00000000e+00],
-           ..., 
-           [  6.03782475e-01,   1.08044338e+01,   5.98808432e+00, ...,
-              2.84128141e+00,   2.27372599e+00,   7.26202726e-01],
-           [  1.24208946e-02,   7.79886365e-01,   3.64679360e+00, ...,
-              1.11060941e+00,   3.18307400e+00,   1.64368451e+00],
-           [  2.02573061e+00,   2.88291931e+00,   7.07609320e+00, ...,
-              7.57407141e+00,   1.34088173e+01,   6.22022569e-01]])
-
-
-
-The full data has also been successfully saved in CSV form, which allows it to be dropped directly into the DataRobot app:
-
-
-```python
-pd.read_csv('cats_v_dogs_train_squeezenet_depth-1_output-512_(14-Aug-2017-13.30.46)_full.csv')
+featurizer.features
 ```
 
 
 
 
 <div>
-<style>
-    .dataframe thead tr:only-child th {
-        text-align: right;
-    }
-
-    .dataframe thead th {
-        text-align: left;
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
     }
 
     .dataframe tbody tr th {
         vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>images_missing</th>
+      <th>images_feat_0</th>
+      <th>images_feat_1</th>
+      <th>images_feat_2</th>
+      <th>images_feat_3</th>
+      <th>images_feat_4</th>
+      <th>images_feat_5</th>
+      <th>images_feat_6</th>
+      <th>images_feat_7</th>
+      <th>images_feat_8</th>
+      <th>...</th>
+      <th>images_feat_502</th>
+      <th>images_feat_503</th>
+      <th>images_feat_504</th>
+      <th>images_feat_505</th>
+      <th>images_feat_506</th>
+      <th>images_feat_507</th>
+      <th>images_feat_508</th>
+      <th>images_feat_509</th>
+      <th>images_feat_510</th>
+      <th>images_feat_511</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>False</td>
+      <td>0.422239</td>
+      <td>4.080936</td>
+      <td>14.894337</td>
+      <td>2.842498</td>
+      <td>0.967452</td>
+      <td>10.851055</td>
+      <td>0.164090</td>
+      <td>3.244710</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>5.716428</td>
+      <td>0.227580</td>
+      <td>1.512349</td>
+      <td>1.838279</td>
+      <td>6.923377</td>
+      <td>2.754216</td>
+      <td>1.599615</td>
+      <td>0.942032</td>
+      <td>8.596214</td>
+      <td>0.195745</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>False</td>
+      <td>2.235883</td>
+      <td>1.766027</td>
+      <td>0.489503</td>
+      <td>1.077848</td>
+      <td>3.744066</td>
+      <td>3.900755</td>
+      <td>0.678774</td>
+      <td>0.039899</td>
+      <td>2.031924</td>
+      <td>...</td>
+      <td>0.466049</td>
+      <td>0.456763</td>
+      <td>0.000000</td>
+      <td>8.796008</td>
+      <td>8.920897</td>
+      <td>2.318893</td>
+      <td>3.206552</td>
+      <td>5.324099</td>
+      <td>25.885130</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>False</td>
+      <td>0.804545</td>
+      <td>0.685238</td>
+      <td>0.411905</td>
+      <td>3.651519</td>
+      <td>7.440580</td>
+      <td>1.365789</td>
+      <td>1.759454</td>
+      <td>0.458921</td>
+      <td>1.410855</td>
+      <td>...</td>
+      <td>0.991104</td>
+      <td>0.015178</td>
+      <td>0.018916</td>
+      <td>7.745066</td>
+      <td>0.000000</td>
+      <td>0.187744</td>
+      <td>0.248889</td>
+      <td>7.293088</td>
+      <td>8.606462</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>False</td>
+      <td>0.481214</td>
+      <td>0.229483</td>
+      <td>5.039218</td>
+      <td>0.669226</td>
+      <td>3.988109</td>
+      <td>2.878755</td>
+      <td>0.642729</td>
+      <td>0.366843</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>0.000000</td>
+      <td>0.469958</td>
+      <td>0.532943</td>
+      <td>3.121966</td>
+      <td>0.095707</td>
+      <td>3.489891</td>
+      <td>0.262518</td>
+      <td>1.729952</td>
+      <td>5.988695</td>
+      <td>0.080222</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>False</td>
+      <td>0.000000</td>
+      <td>3.258759</td>
+      <td>9.666997</td>
+      <td>6.237058</td>
+      <td>1.160069</td>
+      <td>0.055264</td>
+      <td>0.394765</td>
+      <td>0.476731</td>
+      <td>0.611324</td>
+      <td>...</td>
+      <td>0.670079</td>
+      <td>0.755777</td>
+      <td>0.076195</td>
+      <td>7.925221</td>
+      <td>0.149376</td>
+      <td>5.640311</td>
+      <td>0.217993</td>
+      <td>1.215899</td>
+      <td>12.723279</td>
+      <td>0.856007</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>24995</th>
+      <td>False</td>
+      <td>0.319323</td>
+      <td>10.394070</td>
+      <td>2.253926</td>
+      <td>17.211163</td>
+      <td>10.175515</td>
+      <td>0.754048</td>
+      <td>0.000000</td>
+      <td>1.031596</td>
+      <td>1.111096</td>
+      <td>...</td>
+      <td>6.547691</td>
+      <td>0.542316</td>
+      <td>0.000000</td>
+      <td>2.855716</td>
+      <td>0.984909</td>
+      <td>0.789532</td>
+      <td>1.463116</td>
+      <td>7.819314</td>
+      <td>0.194761</td>
+      <td>2.515571</td>
+    </tr>
+    <tr>
+      <th>24996</th>
+      <td>False</td>
+      <td>4.812177</td>
+      <td>2.173984</td>
+      <td>3.127878</td>
+      <td>7.731273</td>
+      <td>2.563596</td>
+      <td>0.855450</td>
+      <td>1.506930</td>
+      <td>2.816796</td>
+      <td>0.108556</td>
+      <td>...</td>
+      <td>0.805109</td>
+      <td>0.897770</td>
+      <td>0.067206</td>
+      <td>1.332061</td>
+      <td>1.023679</td>
+      <td>2.697655</td>
+      <td>2.661853</td>
+      <td>0.294248</td>
+      <td>11.114500</td>
+      <td>0.605132</td>
+    </tr>
+    <tr>
+      <th>24997</th>
+      <td>False</td>
+      <td>0.603782</td>
+      <td>10.804434</td>
+      <td>5.988084</td>
+      <td>11.258055</td>
+      <td>1.711970</td>
+      <td>0.172748</td>
+      <td>0.839580</td>
+      <td>1.017261</td>
+      <td>0.428469</td>
+      <td>...</td>
+      <td>9.690125</td>
+      <td>0.000000</td>
+      <td>0.681894</td>
+      <td>4.975673</td>
+      <td>0.593460</td>
+      <td>12.891261</td>
+      <td>3.147193</td>
+      <td>2.841281</td>
+      <td>2.273726</td>
+      <td>0.726203</td>
+    </tr>
+    <tr>
+      <th>24998</th>
+      <td>False</td>
+      <td>0.012421</td>
+      <td>0.779886</td>
+      <td>3.646794</td>
+      <td>1.577259</td>
+      <td>0.314669</td>
+      <td>1.035333</td>
+      <td>0.140289</td>
+      <td>0.526032</td>
+      <td>1.808931</td>
+      <td>...</td>
+      <td>6.654152</td>
+      <td>3.092728</td>
+      <td>1.509475</td>
+      <td>2.738165</td>
+      <td>0.000000</td>
+      <td>3.335813</td>
+      <td>2.847281</td>
+      <td>1.110609</td>
+      <td>3.183074</td>
+      <td>1.643685</td>
+    </tr>
+    <tr>
+      <th>24999</th>
+      <td>False</td>
+      <td>2.025731</td>
+      <td>2.882919</td>
+      <td>7.076093</td>
+      <td>3.225270</td>
+      <td>0.053434</td>
+      <td>0.481757</td>
+      <td>0.222437</td>
+      <td>0.000000</td>
+      <td>2.238212</td>
+      <td>...</td>
+      <td>5.783323</td>
+      <td>0.401531</td>
+      <td>0.397468</td>
+      <td>3.518530</td>
+      <td>0.342225</td>
+      <td>0.887652</td>
+      <td>2.742420</td>
+      <td>7.574071</td>
+      <td>13.408817</td>
+      <td>0.622023</td>
+    </tr>
+  </tbody>
+</table>
+<p>25000 rows × 513 columns</p>
+</div>
+
+
+
+The dataframe can be saved in CSV form either by calling the pandas `DataFrame.to_csv()` method, or by using the `ImageFeaturizer.save_csv()` method on the featurizer itself. This will allow the features to be used directly in the DataRobot app:
+
+
+```python
+featurizer.save_csv()
+```
+
+    WARNING - Saving full dataframe to csv as /Users/jett.oristaglio/workspace/cats_vs_dogs_squeezenet_depth-1_output-512_(02-Aug-2018-03.03.49)_full.csv
+
+
+
+```python
+pd.read_csv(WORKING_DIRECTORY + 'cats_vs_dogs_squeezenet_depth-1_output-512_(02-Aug-2018-03.03.49)_full.csv')
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
     }
 </style>
 <table border="1" class="dataframe">
@@ -710,7 +1887,7 @@ pd.read_csv('cats_v_dogs_train_squeezenet_depth-1_output-512_(14-Aug-2017-13.30.
       <td>1.766027</td>
       <td>0.489503</td>
       <td>1.077848</td>
-      <td>3.744066</td>
+      <td>3.744067</td>
       <td>3.900755</td>
       <td>0.678774</td>
       <td>...</td>
@@ -738,7 +1915,7 @@ pd.read_csv('cats_v_dogs_train_squeezenet_depth-1_output-512_(14-Aug-2017-13.30.
       <td>1.365789</td>
       <td>1.759454</td>
       <td>...</td>
-      <td>0.991104</td>
+      <td>0.991105</td>
       <td>0.015178</td>
       <td>0.018916</td>
       <td>7.745066</td>
@@ -754,7 +1931,7 @@ pd.read_csv('cats_v_dogs_train_squeezenet_depth-1_output-512_(14-Aug-2017-13.30.
       <td>cat.3.jpg</td>
       <td>0</td>
       <td>False</td>
-      <td>0.481214</td>
+      <td>0.481215</td>
       <td>0.229483</td>
       <td>5.039218</td>
       <td>0.669226</td>
@@ -793,7 +1970,7 @@ pd.read_csv('cats_v_dogs_train_squeezenet_depth-1_output-512_(14-Aug-2017-13.30.
       <td>0.149376</td>
       <td>5.640311</td>
       <td>0.217993</td>
-      <td>1.215899</td>
+      <td>1.215900</td>
       <td>12.723279</td>
       <td>0.856007</td>
     </tr>
@@ -841,7 +2018,7 @@ pd.read_csv('cats_v_dogs_train_squeezenet_depth-1_output-512_(14-Aug-2017-13.30.
       <td>0.984909</td>
       <td>0.789532</td>
       <td>1.463116</td>
-      <td>7.819314</td>
+      <td>7.819313</td>
       <td>0.194761</td>
       <td>2.515571</td>
     </tr>
@@ -862,10 +2039,10 @@ pd.read_csv('cats_v_dogs_train_squeezenet_depth-1_output-512_(14-Aug-2017-13.30.
       <td>0.897770</td>
       <td>0.067206</td>
       <td>1.332061</td>
-      <td>1.023679</td>
+      <td>1.023680</td>
       <td>2.697655</td>
       <td>2.661853</td>
-      <td>0.294248</td>
+      <td>0.294249</td>
       <td>11.114500</td>
       <td>0.605132</td>
     </tr>
@@ -948,28 +2125,40 @@ pd.read_csv('cats_v_dogs_train_squeezenet_depth-1_output-512_(14-Aug-2017-13.30.
 
 
 
-But, for the purposes of this demo, we can simply test the performance of a linear classifier over the featurized data. First, we'll build the training and test sets. 
+The `save_csv()` function can be called with no arguments in order to create an automatic csv name, like above. It can also be called with the `new_csv_path='{insert_new_csv_path_here}'` argument. 
+
+Alternatively, you can omit certain parts of the automatic name generation with `omit_model=True`, `omit_depth=True`, `omit_output=True`, or `omit_time=True` arguments. 
+
+But, for the purposes of this demo, we can simply test the performance of a linear SVM classifier over the featurized data. First, we'll build the training and test sets. 
 
 
 ```python
 # Creating a training set of 10,000 for each class
-train_cats = featurizer.featurized_data[:10000, :]
-train_dogs = featurizer.featurized_data[12500:22500, :]
+train_cats = featurized_df.iloc[:10000, :]
+train_dogs = featurized_df.iloc[12500:22500, :]
+
+# building training set from 12,500 images of each class
+train_cats, labels_cats = train_cats.drop(['label', 'images'], axis=1), train_cats['label']
+train_dogs, labels_dogs = train_dogs.drop(['label', 'images'], axis=1), train_dogs['label']
+
+# Combining the train data and the class labels to train on
+train_combined = pd.concat((train_cats, train_dogs), axis=0)
+labels_train = pd.concat((labels_cats, labels_dogs), axis=0)
 
 # Creating a test set from the remaining 2,500 of each class
-test_cats = featurizer.featurized_data[10000:12500, :]
-test_dogs = featurizer.featurized_data[22500:, :]
+test_cats = featurized_df.iloc[10000:12500, :]
+test_dogs = featurized_df.iloc[22500:, :]
 
-# Combining the training data, and creating the class labels
-train_combined = np.concatenate((train_cats, train_dogs))
-labels_train = np.concatenate((np.zeros((10000,)), np.ones((10000,))))
+test_cats, test_labels_cats = test_cats.drop(['label', 'images'], axis=1), test_cats['label']
+test_dogs, test_labels_dogs = test_dogs.drop(['label', 'images'], axis=1), test_dogs['label']
 
-# Combining the test data, and creating the class labels to check predictions
-test_combined = np.concatenate((test_cats, test_dogs))
-labels_test = np.concatenate((np.zeros((2500,)), np.ones((2500,))))
+# Combining the test data and the class labels to check predictions
+labels_test = pd.concat((test_labels_cats, test_labels_dogs), axis=0)
+test_combined = pd.concat((test_cats, test_dogs), axis=0)
+
 ```
 
-Then, we'll train the linear classifier:
+Then, we'll train the linear SVM:
 
 
 ```python
@@ -986,11 +2175,11 @@ clf.score(test_combined, labels_test)
 
 
 
-    0.96140000000000003
+    0.9632
 
 
 
-After running the Cats vs. Dogs dataset through the lightest-weight pic2vec model, we find that a simple linear classifier trained over the featurized data achieves over 96% accuracy on distinguishing dogs vs. cats out of the box.
+After running the Cats vs. Dogs dataset through the lightest-weight pic2vec model, we find that a simple linear SVM trained over the featurized data achieves over 96% accuracy on distinguishing dogs vs. cats out of the box.
 
 ## Summary
 
@@ -998,12 +2187,14 @@ That's it! We've looked at the following:
 
 1. What data formats can be passed into the featurizer
 2. How to initialize a simple featurizer
-3. How to load data into the featurizer
-4. How to featurize the loaded data
+3. How to load and featurize the data simultaneously (preferred method)
+3. How to load data into the featurizer independently
+4. How to featurize the loaded data independently
+5. How to save the featurized dataframe as a csv
 
 And as a bonus, we looked at how we might use the featurized data to perform predictions without dropping the CSV into the DataRobot app.
 
-Unless you would like to examine the loaded data before featurizing it, steps 3 and 4 can actually be combined into a single step with the load_and_featurize_data( ) method.
+Unless you would like to examine the loaded data before featurizing it, it is recommend to use the `ImageFeaturizer.featurize()` method to perform both functions at once and allow batch processing.
 
 ## Next Steps
 
