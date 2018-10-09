@@ -1,7 +1,7 @@
 from pic2vec import ImageFeaturizer
 import numpy as np
 
-MULT_CSV_NAME = 'tests/ImageFeaturizer_testing/csv_checking/mult_check_csv'
+MULT_CSV_NAME = 'tests/image_featurizer_testing/csv_checking/mult_check_csv'
 MODELS = ['squeezenet', 'vgg16', 'vgg19', 'resnet50', 'inceptionv3', 'xception']
 LOAD_DATA_ARGS_MULT = {
     'image_column_headers': ['images_1', 'images_2'],
@@ -13,7 +13,7 @@ LOAD_DATA_ARGS_SINGLE = {
     'image_path': 'tests/feature_preprocessing_testing/test_images',
     'csv_path': MULT_CSV_NAME
 }
-CHECK_ARRAY_MULT = 'tests/ImageFeaturizer_testing/array_tests/check_prediction_array_{}_mult.npy'
+CHECK_ARRAY_MULT = 'tests/image_featurizer_testing/array_tests/check_prediction_array_{}_mult.npy'
 
 
 def create_numpy_arrays(model):

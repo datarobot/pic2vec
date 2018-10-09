@@ -10,15 +10,15 @@ from pic2vec.image_featurizer import ImageFeaturizer, _create_csv_path, _named_p
 from .test_build_featurizer import ATOL
 
 # Constant paths
-TEST_CSV_NAME = 'tests/ImageFeaturizer_testing/csv_tests/generated_images_csv_test'
+TEST_CSV_NAME = 'tests/image_featurizer_testing/csv_tests/generated_images_csv_test'
 IMAGE_LIST = ['arendt.bmp', 'borges.jpg', 'sappho.png']
-CHECK_ARRAY = 'tests/ImageFeaturizer_testing/array_tests/check_prediction_array_{}.npy'
-CHECK_CSV = 'tests/ImageFeaturizer_testing/csv_checking/{}_check_csv'
+CHECK_ARRAY = 'tests/image_featurizer_testing/array_tests/check_prediction_array_{}.npy'
+CHECK_CSV = 'tests/image_featurizer_testing/csv_checking/{}_check_csv'
 
-CSV_NAME_MULT = 'tests/ImageFeaturizer_testing/csv_checking/mult_check_csv.csv'
-CHECK_CSV_MULT = 'tests/ImageFeaturizer_testing/csv_checking/{}_check_csv_mult'
+CSV_NAME_MULT = 'tests/image_featurizer_testing/csv_checking/mult_check_csv.csv'
+CHECK_CSV_MULT = 'tests/image_featurizer_testing/csv_checking/{}_check_csv_mult'
 IMAGE_LIST_MULT = [['arendt.bmp', 'sappho.png', ''], ['borges.jpg', '', '']]
-CHECK_ARRAY_MULT = 'tests/ImageFeaturizer_testing/array_tests/check_prediction_array_{}_mult.npy'
+CHECK_ARRAY_MULT = 'tests/image_featurizer_testing/array_tests/check_prediction_array_{}_mult.npy'
 
 # Supported models
 MODELS = ['squeezenet', 'vgg16', 'vgg19', 'resnet50', 'inceptionv3', 'xception']
@@ -79,8 +79,8 @@ LOAD_PARAMS_MULT = [
 
 
 # Remove path to the generated csv if it currently exists
-if os.path.isdir('tests/ImageFeaturizer_testing/csv_tests'):
-    shutil.rmtree('tests/ImageFeaturizer_testing/csv_tests')
+if os.path.isdir('tests/image_featurizer_testing/csv_tests'):
+    shutil.rmtree('tests/image_featurizer_testing/csv_tests')
 
 
 def compare_featurizer_class(featurizer,
@@ -159,7 +159,7 @@ def test_load_data_multiple_columns_no_csv(featurizer):
 
 def test_create_csv_path():
     test_csv = 'test.csv'
-    test_dir = 'tests/ImageFeaturizer_testing/create_csv_test/'
+    test_dir = 'tests/image_featurizer_testing/create_csv_test/'
     try:
         assert not os.path.isdir(test_dir)
         _create_csv_path('{}{}'.format(test_dir, test_csv))
