@@ -1,6 +1,11 @@
 =======
 History
 =======
+0.99.3 (2018-10-9)
+------------------
+* Added test coverage and increased error checking
+* Changed default csv name
+
 0.99.2 (2018-08-01)
 ------------------
 * Updated the notebook example

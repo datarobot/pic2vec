@@ -2,6 +2,7 @@
 import os
 import pytest
 import shutil
+from mock import patch
 
 import numpy as np
 import pandas as pd
@@ -128,6 +129,13 @@ def featurizer():
 
 
 @pytest.fixture()
+def featurizer_with_data():
+    featurizer_with_data = ImageFeaturizer()
+    featurizer_with_data.featurize(save_features=True, **LOAD_DATA_ARGS)
+    return featurizer_with_data
+
+
+@pytest.fixture()
 def featurizer_autosample():
     featurizer = ImageFeaturizer(autosample=True)
     return featurizer
@@ -138,6 +146,11 @@ def test_featurize_first(featurizer):
     # Raise error if attempting to featurize before loading data
     with pytest.raises(IOError):
         featurizer.featurize_preloaded_data()
+
+
+def test_featurize_without_image_or_csv(featurizer):
+    with pytest.raises(ValueError, match='Must specify either image_path or csv_path as input'):
+        return featurizer.featurize(image_column_headers=['images_1', 'images_2'])
 
 
 def test_featurizer_build(featurizer):
@@ -169,6 +182,16 @@ def test_create_csv_path():
         assert not os.path.isdir(test_dir)
 
 
+def test_named_path_finder():
+    """Check that named_path_finder produces the correct output"""
+    check_named_path = 'csv_name_modelstring_depth-n_output-x_(now)'
+    with patch('time.strftime', return_value='now'):
+        test_named_path = _named_path_finder('csv_name', 'modelstring', 'n', 'x',
+                                             omit_model=False, omit_depth=False, omit_output=False,
+                                             omit_time=False)
+        assert check_named_path == test_named_path
+
+
 def test_named_path_finder_time_only_omitted():
     """Check that named_path_finder produces the correct output (without time)"""
     check_named_path = 'csv_name_modelstring_depth-n_output-x'
@@ -187,6 +210,23 @@ def test_named_path_finder_all_omitted():
     assert check_named_path == test_named_path
 
 
+def test_save_csv(featurizer_with_data):
+    with patch('pandas.DataFrame.to_csv') as mock:
+        featurizer_with_data.save_csv()
+    assert 'images_featurized_squeezenet_depth-1_output-512_(' in mock.call_args[0][0]
+
+
+def test_save_csv_with_named_path(featurizer_with_data):
+    with patch('pandas.DataFrame.to_csv') as mock:
+        featurizer_with_data.save_csv(new_csv_path='foo/bar.csv')
+    assert mock.call_args[0][0] == 'foo/bar.csv'
+
+
+def test_save_csv_no_df(featurizer):
+    with pytest.raises(AttributeError, match='No dataframe has been featurized.'):
+        featurizer.save_csv()
+
+
 def test_load_data_multiple_columns(featurizer_autosample):
     """Test featurizer loads data correctly with multiple image columns"""
     featurizer_autosample.load_data(**LOAD_DATA_ARGS_MULT)
@@ -197,12 +237,12 @@ def test_load_and_featurize_save_csv_and_features(featurizer):
     """Make sure the featurizer writes the name correctly to csv with robust naming config"""
 
     name, ext = os.path.splitext(CSV_NAME_MULT)
-    check_array_path = "{}_featurized_{}".format(name, 'squeezenet_depth-1_output-512')
+    check_array_path = '{}_featurized_squeezenet_depth-1_output-512'.format(name)
     featurizer.featurize(save_csv=True, save_features=True, omit_time=True,
                          **LOAD_DATA_ARGS_MULT)
 
-    full_check = "{}{}".format(check_array_path, ext)
-    feature_check = "{}{}{}".format(check_array_path, '_features_only', ext)
+    full_check = '{}{}'.format(check_array_path, ext)
+    feature_check = '{}{}{}'.format(check_array_path, '_features_only', ext)
 
     try:
         assert os.path.isfile(full_check)
@@ -219,13 +259,13 @@ def test_load_then_featurize_save_csv(featurizer):
     """Make sure the featurizer writes the name correctly to csv with robust naming config"""
 
     name, ext = os.path.splitext(CSV_NAME_MULT)
-    check_array_path = "{}_featurized_{}".format(name, 'squeezenet_depth-1_output-512')
+    check_array_path = '{}_featurized_squeezenet_depth-1_output-512'.format(name)
     featurizer.load_data(**LOAD_DATA_ARGS_MULT)
     featurizer.featurize_preloaded_data(save_csv=True, save_features=True, omit_time=True,
                                         batch_processing=False)
 
-    full_check = "{}{}".format(check_array_path, ext)
-    feature_check = "{}{}{}".format(check_array_path, '_features_only', ext)
+    full_check = '{}{}'.format(check_array_path, ext)
+    feature_check = '{}{}{}'.format(check_array_path, '_features_only', ext)
 
     try:
         assert os.path.isfile(full_check)
@@ -236,6 +276,7 @@ def test_load_then_featurize_save_csv(featurizer):
             os.remove(feature_check)
         if os.path.isfile(full_check):
             os.remove(full_check)
+
 
 
 def test_clear_input(featurizer):

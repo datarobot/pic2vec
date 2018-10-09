@@ -70,7 +70,7 @@ logger = logging.getLogger(__name__)
 SIZE_DICT = {'squeezenet': (227, 227), 'vgg16': (224, 224), 'vgg19': (224, 224),
              'resnet50': (224, 224), 'inceptionv3': (299, 299), 'xception': (299, 299)}
 
-DEFAULT_NEW_CSV_PATH = '{}{}'.format(os.path.expanduser('~'), '/Downloads/featurized_images.csv')
+DEFAULT_NEW_CSV_PATH = '{}{}'.format(os.path.expanduser('~'), '/Downloads/images.csv')
 
 
 class ImageFeaturizer:
@@ -486,6 +486,9 @@ class ImageFeaturizer:
                  omit_output=False, omit_time=False, save_features=False):
         """
         """
+        if self.full_dataframe.empty:
+            raise AttributeError('No dataframe has been featurized.')
+
         # Save the name and extension separately, for robust naming
         if not new_csv_path:
             new_csv_path = self.csv_path or DEFAULT_NEW_CSV_PATH
@@ -498,7 +501,6 @@ class ImageFeaturizer:
             name_path, ext = os.path.splitext(new_csv_path)
 
         _create_csv_path(name_path)
-
         logger.warning("Saving full dataframe to csv as {}{}".format(name_path, ext))
         self.full_dataframe.to_csv("{}{}".format(name_path, ext), index=False)
 
