@@ -151,7 +151,7 @@ Automatic downsampling means that this model will downsample the final layer fro
 
 
 ```python
-featurizer = ImageFeaturizer(depth=1, auto_sample = False, model='squeezenet')
+featurizer = ImageFeaturizer(depth=1, autosample = False, model='squeezenet')
 ```
 
     INFO - Building the featurizer.
@@ -171,7 +171,7 @@ Now that the featurizer is built, we can actually load our data into the network
 
 
 ```python
-featurized_df = featurizer.featurize(image_column_headers='images',
+featurized_df = featurizer.featurize(image_columns='images',
                                      image_path = image_path,
                                      csv_path = csv_path)
 ```
@@ -1236,12 +1236,12 @@ The dataframe can be saved in CSV form either by calling the pandas `DataFrame.t
 featurizer.save_csv()
 ```
 
-    WARNING - Saving full dataframe to csv as /Users/jett.oristaglio/workspace/cats_vs_dogs_squeezenet_depth-1_output-512_(02-Aug-2018-03.03.49)_full.csv
+    WARNING - Saving full dataframe to csv as /Users/jett.oristaglio/Downloads/cats_vs_dogs_squeezenet_depth-1_output-512_(02-Aug-2018-03.03.49)_full.csv
 
 
 
 ```python
-pd.read_csv(WORKING_DIRECTORY + 'cats_vs_dogs_squeezenet_depth-1_output-512_(02-Aug-2018-03.03.49)_full.csv')
+pd.read_csv('/Users/jett.oristaglio/Downloads/cats_vs_dogs_squeezenet_depth-1_output-512_(02-Aug-2018-03.03.49)_full.csv')
 ```
 
 

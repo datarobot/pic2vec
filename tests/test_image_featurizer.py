@@ -26,14 +26,14 @@ MODELS = ['squeezenet', 'vgg16', 'vgg19', 'resnet50', 'inceptionv3', 'xception']
 
 # Arguments to load the data into the featurizers
 LOAD_DATA_ARGS = {
-    'image_column_headers': 'images',
+    'image_columns': 'images',
     'image_path': 'tests/feature_preprocessing_testing/test_images',
 }
 
 # Static expected attributes to compare with the featurizer attributes
 COMPARE_ARGS = {
     'downsample_size': 0,
-    'image_column_headers': ['images'],
+    'image_columns': ['images'],
     'automatic_downsample': False,
     'csv_path': '',
     'image_dict': {'images': IMAGE_LIST},
@@ -41,19 +41,19 @@ COMPARE_ARGS = {
 }
 
 LOAD_DATA_ARGS_MULT_ERROR = {
-    'image_column_headers': ['images_1', 'images_2'],
+    'image_columns': ['images_1', 'images_2'],
     'image_path': 'tests/feature_preprocessing_testing/test_images',
 }
 
 LOAD_DATA_ARGS_MULT = {
-    'image_column_headers': ['images_1', 'images_2'],
+    'image_columns': ['images_1', 'images_2'],
     'image_path': 'tests/feature_preprocessing_testing/test_images',
     'csv_path': CSV_NAME_MULT
 }
 
 COMPARE_ARGS_MULT = {
     'downsample_size': 0,
-    'image_column_headers': ['images_1', 'images_2'],
+    'image_columns': ['images_1', 'images_2'],
     'automatic_downsample': True,
     'csv_path': CSV_NAME_MULT,
     'image_dict': {'images_1': IMAGE_LIST_MULT[0], 'images_2': IMAGE_LIST_MULT[1]},
@@ -88,7 +88,7 @@ def compare_featurizer_class(featurizer,
                              scaled_size,
                              featurized_data,
                              downsample_size,
-                             image_column_headers,
+                             image_columns,
                              automatic_downsample,
                              csv_path,
                              image_dict,
@@ -101,7 +101,7 @@ def compare_featurizer_class(featurizer,
     assert featurizer.scaled_size == scaled_size
     assert np.allclose(featurizer.features.astype(float).values, featurized_data, atol=ATOL)
     assert featurizer.downsample_size == downsample_size
-    assert featurizer.image_column_headers == image_column_headers
+    assert featurizer.image_columns == image_columns
     assert featurizer.autosample == automatic_downsample
     assert featurizer.csv_path == csv_path
     assert featurizer.image_dict == image_dict
@@ -118,7 +118,7 @@ def compare_empty_input(featurizer):
     assert featurizer.full_dataframe.equals(pd.DataFrame())
     assert featurizer.csv_path == ''
     assert featurizer.image_list == ''
-    assert featurizer.image_column_headers == ''
+    assert featurizer.image_columns == ''
     assert featurizer.image_path == ''
 
 
@@ -150,7 +150,7 @@ def test_featurize_first(featurizer):
 
 def test_featurize_without_image_or_csv(featurizer):
     with pytest.raises(ValueError, match='Must specify either image_path or csv_path as input'):
-        return featurizer.featurize(image_column_headers=['images_1', 'images_2'])
+        return featurizer.featurize(image_columns=['images_1', 'images_2'])
 
 
 def test_featurizer_build(featurizer):
@@ -212,13 +212,15 @@ def test_named_path_finder_all_omitted():
 
 def test_save_csv(featurizer_with_data):
     with patch('pandas.DataFrame.to_csv') as mock:
-        featurizer_with_data.save_csv()
+        with patch('pic2vec.image_featurizer._create_csv_path'):
+            featurizer_with_data.save_csv()
     assert 'images_featurized_squeezenet_depth-1_output-512_(' in mock.call_args[0][0]
 
 
 def test_save_csv_with_named_path(featurizer_with_data):
     with patch('pandas.DataFrame.to_csv') as mock:
-        featurizer_with_data.save_csv(new_csv_path='foo/bar.csv')
+        with patch('pic2vec.image_featurizer._create_csv_path'):
+            featurizer_with_data.save_csv(new_csv_path='foo/bar.csv')
     assert mock.call_args[0][0] == 'foo/bar.csv'
 
 

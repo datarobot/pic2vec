@@ -1,10 +1,12 @@
 =======
 History
 =======
-0.99.3 (2018-10-9)
+0.999.0 (2018-10-9)
 ------------------
 * Added test coverage and increased error checking
 * Changed default csv name
+* Changed `image_column_headers` to `image_columns` everywhere
+* Updated examples
 
 0.99.2 (2018-08-01)
 ------------------

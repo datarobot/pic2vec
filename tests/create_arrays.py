@@ -4,12 +4,12 @@ import numpy as np
 MULT_CSV_NAME = 'tests/image_featurizer_testing/csv_checking/mult_check_csv'
 MODELS = ['squeezenet', 'vgg16', 'vgg19', 'resnet50', 'inceptionv3', 'xception']
 LOAD_DATA_ARGS_MULT = {
-    'image_column_headers': ['images_1', 'images_2'],
+    'image_columns': ['images_1', 'images_2'],
     'image_path': 'tests/feature_preprocessing_testing/test_images',
     'csv_path': MULT_CSV_NAME
 }
 LOAD_DATA_ARGS_SINGLE = {
-    'image_column_headers': 'images_2',
+    'image_columns': 'images_2',
     'image_path': 'tests/feature_preprocessing_testing/test_images',
     'csv_path': MULT_CSV_NAME
 }
@@ -28,6 +28,6 @@ if __name__ == "__main__":
     for model in MODELS:
         f = create_numpy_arrays(model)
         print f.featurized_data.shape
-        print f.image_column_headers
+        print f.image_columns
         print f.image_list
         assert np.array_equal(f.featurized_data, np.load(CHECK_ARRAY_MULT.format(model)))
