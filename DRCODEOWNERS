@@ -12,9 +12,6 @@
 # 2. Only domains (github team) own code, not individuals
 #    see list at https://github.com/orgs/datarobot/teams
 #
-# Please see DataRobot repo ./tools/code_owners.py tool to find which particular file
-# or directory is owned by what domain.
-#
 # Default owners for everything in the repo.
 # Unless a later match takes precedence, these groups will be requested for
 # review when someone opens a pull request.
