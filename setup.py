@@ -11,8 +11,8 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'h5py>=2.7.0,<3',
-    'scipy>=0.19.1,<1',
-    'numpy>=1.13.0,<2',
+    'scipy>=1.1,<2',
+    'numpy>=1.15.4,<2',
     'tensorflow>=1.2.0,<2',
     'keras>=2.0.8,<2.1.5',
     'pandas>=0.20.2,<1',
@@ -33,7 +33,7 @@ test_requirements = [
 
 setup(
     name='pic2vec',
-    version='0.999.0',
+    version='0.100.0',
     description='Featurize images using a decapitated, pre-trained deep learning network',
     long_description=readme + '\n\n' + history,
     author='Jett Oristaglio',

@@ -1,12 +1,14 @@
 =======
 History
 =======
-0.999.0 (2018-10-9)
+0.100.0 (2018-12-10)
 ------------------
 * Added test coverage and increased error checking
 * Changed default csv name
 * Changed `image_column_headers` to `image_columns` everywhere
 * Updated examples
+* Updated version of scipy to 1.1 and numpy to 1.15
+
 
 0.99.2 (2018-08-01)
 ------------------
