@@ -16,7 +16,7 @@ requirements = [
     'tensorflow>=1.2.0,<2',
     'keras>=2.0.8,<2.1.5',
     'pandas>=0.20.2,<1',
-    'Pillow>=4.1.1,<5',
+    'Pillow>=5.4.1,<6',
     'trafaret>=0.10.2,<0.11'
 ]
 
@@ -57,6 +57,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
     test_suite='tests',
     tests_require=test_requirements,

@@ -1,6 +1,11 @@
 =======
 History
 =======
+0.200.0 (2019-3-24)
+------------------
+* Updated version of Pillow to 5.4.1, in order to support Python 3.7
+* Updated the README
+
 0.100.0 (2018-12-10)
 ------------------
 * Added test coverage and increased error checking
