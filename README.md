@@ -12,11 +12,13 @@ Featurize images using a small, contained pre-trained deep learning network
 Features
 --------
 
-This is the prototype for image features engineering. Supports Python 2.7, 3.4, 3.5, and 3.6.
+This is the prototype for image features engineering. Supports Python 2.7, 3.4, 3.5, 3.6, and 3.7
 
 ``pic2vec`` is a python package that performs automated feature extraction
-for image data. It supports training models via the
-DataRobot modeling API, as well as feature engineering on new image data.
+for image data. It supports feature engineering on new image data, and allows
+traditional machine learning algorithms (such as tree-based algorithms) to
+train on image data.
+
 
 ## Input Specification
 
@@ -67,8 +69,7 @@ To get started, see the following example:
 1. [Cats vs. Dogs](examples/Cats_v_Dogs_Test_Example.ipynb): Dataset from combined directory + CSV
 
 Examples coming soon:
-1. [Facebook Like Prediction](examples/Facebook_Like_Predictor.ipynb): Dataset from unsupervised directory only, with PCA visualization
-1. [URLs](examples/): Dataset from CSV with URLs and no image directory
+2. Hot Dog, Not Hot Dog: Dataset from a CSV with URLs and no image directory
 
 
 ## Installation
@@ -80,7 +81,9 @@ If you run into trouble installing Keras or Tensorflow as a dependency, read the
 
 
 ## Using Featurizer Output With DataRobot
-``pic2vec`` generates a CSV that is ready to be dropped directly into the DataRobot application, if the data has been labelled with a variable that can be considered a target in the CSV. The image features are each treated like regular columns containing data.
+``pic2vec`` generates a flat CSV which is ready for supervised modeling, if the data has been labelled with a variable that
+can be used as a target. The images are transformed into a set of regular columns containing numeric data.
+Additionally, if unlabelled, it can be used for unsupervised learning (such as anomaly detection).
 
 
 ### Running tests
