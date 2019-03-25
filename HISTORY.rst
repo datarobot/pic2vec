@@ -1,6 +1,10 @@
 =======
 History
 =======
+0.100.2 (2019-3-25)
+------------------
+* Updated version of Trafaret to a non-beta version
+
 0.100.1 (2019-3-24)
 ------------------
 * Updated version of Pillow to 5.4.1, in order to support Python 3.7
