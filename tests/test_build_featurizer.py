@@ -190,7 +190,7 @@ def check_model_equal(model1, model2):
 
 def test_initialize_model_weights_not_found():
     """Test error raised when the model can't find weights to load"""
-    error_weight = 'htraenoytinutroppodnocesaevahtondideduti\losfosraeyderdnuhenootdenmednocsecar'
+    error_weight = 'htraenoytinutroppodnocesaevahtondideduti/losfosraeyderdnuhenootdenmednocsecar'
     try:
         assert not os.path.isfile(error_weight)
     except AssertionError:
@@ -228,12 +228,12 @@ def test_initialize_model_wrong_weights():
 
 
 INITIALIZE_MODEL_CASES = [
-    ('squeezenet', 67, (1, 227, 227, 3)),
-    ('vgg16', 23, (1, 224, 224, 3)),
-    ('vgg19', 26, (1, 224, 224, 3)),
-    ('resnet50', 176, (1, 224, 224, 3)),
-    ('inceptionv3', 313, (1, 299, 299, 3)),
-    ('xception', 134, (1, 299, 299, 3)),
+    ('squeezenet', [67], (1, 227, 227, 3)),
+    ('vgg16', [23], (1, 224, 224, 3)),
+    ('vgg19', [26], (1, 224, 224, 3)),
+    ('resnet50', [176, 177], (1, 224, 224, 3)),
+    ('inceptionv3', [313], (1, 299, 299, 3)),
+    ('xception', [134], (1, 299, 299, 3)),
 ]
 
 
@@ -250,7 +250,10 @@ def test_initialize_model(model_str, expected_layers, test_size):
             raise AssertionError('Problem loading SqueezeNet weights.')
         check_model_equal(model, model_downloaded_weights)
 
-    assert len(model.layers) == expected_layers
+    # Versions of Keras 2.1.5 and later sometimes use different numbers of layers for these models,
+    # without changing any behavior for predictions.
+    # This checks that the model uses at least one of the expected numbers of layers.
+    assert len(model.layers) in expected_layers
 
     # Create the test array to be predicted on
     test_array = np.zeros(test_size)

@@ -14,7 +14,7 @@ requirements = [
     'scipy>=1.1,<2',
     'numpy>=1.15.4,<2',
     'tensorflow>=1.2.0,<2',
-    'keras>=2.0.8,<2.1.5',
+    'keras==2.1.5',
     'pandas>=0.20.2,<1',
     'Pillow>=5.4.1,<6',
     'trafaret>=1,<2'
