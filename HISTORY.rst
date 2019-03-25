@@ -1,7 +1,7 @@
 =======
 History
 =======
-0.200.0 (2019-3-24)
+0.100.1 (2019-3-24)
 ------------------
 * Updated version of Pillow to 5.4.1, in order to support Python 3.7
 * Updated the README
