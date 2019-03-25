@@ -16,7 +16,7 @@ IMAGE_LIST = ['arendt.bmp', 'borges.jpg', 'sappho.png']
 CHECK_ARRAY = 'tests/image_featurizer_testing/array_tests/check_prediction_array_{}.npy'
 CHECK_CSV = 'tests/image_featurizer_testing/csv_checking/{}_check_csv'
 
-CSV_NAME_MULT = 'tests/image_featurizer_testing/csv_checking/mult_check_csv.csv'
+CSV_NAME_MULT = 'tests/image_featurizer_testing/csv_checking/testing_data.csv'
 CHECK_CSV_MULT = 'tests/image_featurizer_testing/csv_checking/{}_check_csv_mult'
 IMAGE_LIST_MULT = [['arendt.bmp', 'sappho.png', ''], ['borges.jpg', '', '']]
 CHECK_ARRAY_MULT = 'tests/image_featurizer_testing/array_tests/check_prediction_array_{}_mult.npy'
@@ -278,7 +278,6 @@ def test_load_then_featurize_save_csv(featurizer):
             os.remove(feature_check)
         if os.path.isfile(full_check):
             os.remove(full_check)
-
 
 
 def test_clear_input(featurizer):
