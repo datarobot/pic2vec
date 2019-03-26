@@ -1,9 +1,10 @@
 =======
 History
 =======
-0.100.2 (2019-3-25)
+0.101.0 (2019-3-25)
 ------------------
 * Updated version of Trafaret to a non-beta version
+* Updated keras to 2.2.3 or greater
 
 0.100.1 (2019-3-24)
 ------------------

@@ -11,23 +11,23 @@ from pic2vec.image_featurizer import ImageFeaturizer, _create_csv_path, _named_p
 from .test_build_featurizer import ATOL
 
 # Constant paths
-TEST_CSV_NAME = 'tests/image_featurizer_testing/csv_tests/generated_images_csv_test'
-IMAGE_LIST = ['arendt.bmp', 'borges.jpg', 'sappho.png']
-CHECK_ARRAY = 'tests/image_featurizer_testing/array_tests/check_prediction_array_{}.npy'
-CHECK_CSV = 'tests/image_featurizer_testing/csv_checking/{}_check_csv'
+CSV_NAME = 'tests/image_featurizer_testing/csv_checking/testing_data.csv'
 
-CSV_NAME_MULT = 'tests/image_featurizer_testing/csv_checking/testing_data.csv'
-CHECK_CSV_MULT = 'tests/image_featurizer_testing/csv_checking/{}_check_csv_mult'
+IMAGE_LIST_SINGLE = ['arendt.bmp', 'borges.jpg', 'sappho.png']
+CHECK_CSV_SINGLE = 'tests/image_featurizer_testing/csv_checking/{}_check_csv'
+CHECK_ARRAY_SINGLE = 'tests/image_featurizer_testing/array_tests/check_prediction_array_{}.npy'
+
 IMAGE_LIST_MULT = [['arendt.bmp', 'sappho.png', ''], ['borges.jpg', '', '']]
+CHECK_CSV_MULT = 'tests/image_featurizer_testing/csv_checking/{}_check_csv_mult'
 CHECK_ARRAY_MULT = 'tests/image_featurizer_testing/array_tests/check_prediction_array_{}_mult.npy'
 
 # Supported models
 MODELS = ['squeezenet', 'vgg16', 'vgg19', 'resnet50', 'inceptionv3', 'xception']
 
 # Arguments to load the data into the featurizers
-LOAD_DATA_ARGS = {
+LOAD_DATA_ARGS_SINGLE = {
     'image_columns': 'images',
-    'image_path': 'tests/feature_preprocessing_testing/test_images',
+    'image_path': 'tests/feature_preprocessing_testing/test_images'
 }
 
 # Static expected attributes to compare with the featurizer attributes
@@ -36,7 +36,7 @@ COMPARE_ARGS = {
     'image_columns': ['images'],
     'automatic_downsample': False,
     'csv_path': '',
-    'image_dict': {'images': IMAGE_LIST},
+    'image_dict': {'images': IMAGE_LIST_SINGLE},
     'depth': 1
 }
 
@@ -48,25 +48,25 @@ LOAD_DATA_ARGS_MULT_ERROR = {
 LOAD_DATA_ARGS_MULT = {
     'image_columns': ['images_1', 'images_2'],
     'image_path': 'tests/feature_preprocessing_testing/test_images',
-    'csv_path': CSV_NAME_MULT
+    'csv_path': CSV_NAME
 }
 
 COMPARE_ARGS_MULT = {
     'downsample_size': 0,
     'image_columns': ['images_1', 'images_2'],
     'automatic_downsample': True,
-    'csv_path': CSV_NAME_MULT,
+    'csv_path': CSV_NAME,
     'image_dict': {'images_1': IMAGE_LIST_MULT[0], 'images_2': IMAGE_LIST_MULT[1]},
     'depth': 1,
 }
 # Variable attributes to load the featurizer with
 LOAD_PARAMS = [
-    ('squeezenet', (227, 227), CHECK_ARRAY.format('squeezenet')),
-    ('vgg16', (224, 224), CHECK_ARRAY.format('vgg16')),
-    ('vgg19', (224, 224), CHECK_ARRAY.format('vgg19')),
-    ('resnet50', (224, 224), CHECK_ARRAY.format('resnet50')),
-    ('inceptionv3', (299, 299), CHECK_ARRAY.format('inceptionv3')),
-    ('xception', (299, 299), CHECK_ARRAY.format('xception'))
+    ('squeezenet', (227, 227), CHECK_ARRAY_SINGLE.format('squeezenet')),
+    ('vgg16', (224, 224), CHECK_ARRAY_SINGLE.format('vgg16')),
+    ('vgg19', (224, 224), CHECK_ARRAY_SINGLE.format('vgg19')),
+    ('resnet50', (224, 224), CHECK_ARRAY_SINGLE.format('resnet50')),
+    ('inceptionv3', (299, 299), CHECK_ARRAY_SINGLE.format('inceptionv3')),
+    ('xception', (299, 299), CHECK_ARRAY_SINGLE.format('xception'))
 ]
 
 LOAD_PARAMS_MULT = [
@@ -131,7 +131,7 @@ def featurizer():
 @pytest.fixture()
 def featurizer_with_data():
     featurizer_with_data = ImageFeaturizer()
-    featurizer_with_data.featurize(save_features=True, **LOAD_DATA_ARGS)
+    featurizer_with_data.featurize(save_features=True, **LOAD_DATA_ARGS_SINGLE)
     return featurizer_with_data
 
 
@@ -160,7 +160,7 @@ def test_featurizer_build(featurizer):
 
 def test_load_data_single_column(featurizer):
     """Test that the featurizer saves attributes correctly after loading data"""
-    featurizer.load_data(**LOAD_DATA_ARGS)
+    featurizer.load_data(**LOAD_DATA_ARGS_SINGLE)
     compare_featurizer_class(featurizer, (227, 227), np.zeros((1)), **COMPARE_ARGS)
 
 
@@ -235,10 +235,10 @@ def test_load_data_multiple_columns(featurizer_autosample):
     compare_featurizer_class(featurizer_autosample, (227, 227), np.zeros((1)), **COMPARE_ARGS_MULT)
 
 
-def test_load_and_featurize_save_csv_and_features(featurizer):
+def test_featurize_save_csv_and_features(featurizer):
     """Make sure the featurizer writes the name correctly to csv with robust naming config"""
 
-    name, ext = os.path.splitext(CSV_NAME_MULT)
+    name, ext = os.path.splitext(CSV_NAME)
     check_array_path = '{}_featurized_squeezenet_depth-1_output-512'.format(name)
     featurizer.featurize(save_csv=True, save_features=True, omit_time=True,
                          **LOAD_DATA_ARGS_MULT)
@@ -260,7 +260,7 @@ def test_load_and_featurize_save_csv_and_features(featurizer):
 def test_load_then_featurize_save_csv(featurizer):
     """Make sure the featurizer writes the name correctly to csv with robust naming config"""
 
-    name, ext = os.path.splitext(CSV_NAME_MULT)
+    name, ext = os.path.splitext(CSV_NAME)
     check_array_path = '{}_featurized_squeezenet_depth-1_output-512'.format(name)
     featurizer.load_data(**LOAD_DATA_ARGS_MULT)
     featurizer.featurize_preloaded_data(save_csv=True, save_features=True, omit_time=True,
@@ -282,7 +282,7 @@ def test_load_then_featurize_save_csv(featurizer):
 
 def test_clear_input(featurizer):
     featurizer.featurize(save_features=True, omit_time=True, omit_model=True,
-                         omit_depth=True, omit_output=True, **LOAD_DATA_ARGS)
+                         omit_depth=True, omit_output=True, **LOAD_DATA_ARGS_SINGLE)
 
     featurizer.clear_input(confirm=True)
     compare_empty_input(featurizer)
@@ -293,8 +293,20 @@ def test_clear_input_no_confirm(featurizer):
         featurizer.clear_input()
 
 
+def test_load_then_featurize_data_single_column(featurizer):
+    """Test featurizations and attributes for each model are correct with a single image column"""
+    featurizer.load_data(**LOAD_DATA_ARGS_SINGLE)
+    featurizer.featurize_preloaded_data(save_features=True)
+    check_array = np.load(CHECK_ARRAY_SINGLE.format('squeezenet'))
+    compare_featurizer_class(featurizer, (227, 227), check_array, featurized=True,
+                             check_csv=CHECK_CSV_SINGLE.format('squeezenet'), **COMPARE_ARGS)
+
+
 def test_load_then_featurize_data_multiple_columns(featurizer_autosample):
-    """Test featurizations and attributes for each model are correct with multiple image columns"""
+    """
+    Test that the base featurizer works properly if you first load the data,
+    and then featurize it later
+    """
     featurizer_autosample.load_data(**LOAD_DATA_ARGS_MULT)
     featurizer_autosample.featurize_preloaded_data(save_features=True)
     check_array = np.load(CHECK_ARRAY_MULT.format('squeezenet'))
@@ -303,27 +315,36 @@ def test_load_then_featurize_data_multiple_columns(featurizer_autosample):
                              check_csv=CHECK_CSV_MULT.format('squeezenet'), **COMPARE_ARGS_MULT)
 
 
-def test_load_then_featurize_data_single_column(featurizer):
-    """Test featurizations and attributes for each model are correct with multiple image columns"""
-    featurizer.load_data(**LOAD_DATA_ARGS)
-    featurizer.featurize_preloaded_data(save_features=True)
-    check_array = np.load(CHECK_ARRAY.format('squeezenet'))
-    compare_featurizer_class(featurizer, (227, 227), check_array, featurized=True,
-                             check_csv=CHECK_CSV.format('squeezenet'), **COMPARE_ARGS)
-
-
-def test_load_then_featurize_data_no_save_features(featurizer):
-    """Test featurizations and attributes for each model are correct with multiple image columns"""
-    featurizer.load_data(**LOAD_DATA_ARGS)
+def test_featurize_data_no_save_features(featurizer):
+    """
+    Test that the base featurizer works properly if you first load the data,
+    and then featurize it later, without saving the features in the intermediate step.
+    """
+    featurizer.load_data(**LOAD_DATA_ARGS_SINGLE)
     featurizer.featurize_preloaded_data()
     check_array = np.array([])
 
     compare_featurizer_class(featurizer, (227, 227), check_array,
-                             check_csv=CHECK_CSV.format('squeezenet'), **COMPARE_ARGS)
+                             check_csv=CHECK_CSV_SINGLE.format('squeezenet'), **COMPARE_ARGS)
 
 
-def test_load_and_featurize_data_multiple_columns_batch_overflow(featurizer_autosample):
-    """Test featurizations and attributes for each model are correct with multiple image columns"""
+def test_featurize_data_single_column_batch_overflow(featurizer):
+    """
+    Test that the base featurizer works properly if the batch size overflows the remaining rows
+    with a single image column
+    """
+    featurizer.featurize(save_features=True, **LOAD_DATA_ARGS_SINGLE)
+    check_array = np.load(CHECK_ARRAY_SINGLE.format('squeezenet'))
+
+    compare_featurizer_class(featurizer, (227, 227), check_array, featurized=True,
+                             check_csv=CHECK_CSV_SINGLE.format('squeezenet'), **COMPARE_ARGS)
+
+
+def test_featurize_data_multiple_columns_batch_overflow(featurizer_autosample):
+    """
+    Test that the base featurizer works properly if the batch size overflows the remaining rows
+    with multiple image columns
+    """
     featurizer_autosample.featurize(save_features=True, **LOAD_DATA_ARGS_MULT)
     check_array = np.load(CHECK_ARRAY_MULT.format('squeezenet'))
 
@@ -331,17 +352,20 @@ def test_load_and_featurize_data_multiple_columns_batch_overflow(featurizer_auto
                              check_csv=CHECK_CSV_MULT.format('squeezenet'), **COMPARE_ARGS_MULT)
 
 
-def test_load_and_featurize_data_single_column_batch_overflow(featurizer):
-    """Test featurizations and attributes for each model are correct with multiple image columns"""
-    featurizer.featurize(save_features=True, **LOAD_DATA_ARGS)
-    check_array = np.load(CHECK_ARRAY.format('squeezenet'))
+@pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS, ids=MODELS)
+def test_featurize_single_column_no_batch_processing(model, size, array_path):
+    """Test that all of the featurizations and attributes for each model are correct"""
+    feat = ImageFeaturizer(model=model)
+    feat.featurize(batch_size=0, save_features=True, **LOAD_DATA_ARGS_SINGLE)
 
-    compare_featurizer_class(featurizer, (227, 227), check_array, featurized=True,
-                             check_csv=CHECK_CSV.format('squeezenet'), **COMPARE_ARGS)
+    check_array = np.load(array_path)
+
+    compare_featurizer_class(feat, size, check_array, featurized=True,
+                             check_csv=CHECK_CSV_SINGLE.format(model), **COMPARE_ARGS)
 
 
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
-def test_load_and_featurize_data_multiple_columns_no_batch_processing(model, size, array_path):
+def test_featurize_data_multiple_columns_no_batch_processing(model, size, array_path):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
     feat = ImageFeaturizer(model=model, autosample=True)
     feat.featurize(batch_processing=False, save_features=True, **LOAD_DATA_ARGS_MULT)
@@ -351,8 +375,20 @@ def test_load_and_featurize_data_multiple_columns_no_batch_processing(model, siz
                              check_csv=CHECK_CSV_MULT.format(model), **COMPARE_ARGS_MULT)
 
 
+@pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS, ids=MODELS)
+def test_featurize_single_column_with_batch_processing(model, size, array_path):
+    """Test that all of the featurizations and attributes for each model are correct"""
+    feat = ImageFeaturizer(model=model)
+    feat.featurize(batch_size=2, save_features=True, **LOAD_DATA_ARGS_SINGLE)
+
+    check_array = np.load(array_path)
+
+    compare_featurizer_class(feat, size, check_array, featurized=True,
+                             check_csv=CHECK_CSV_SINGLE.format(model), **COMPARE_ARGS)
+
+
 @pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS_MULT, ids=MODELS)
-def test_load_and_featurize_data_multiple_columns_with_batch_processing(model, size, array_path):
+def test_featurize_data_multiple_columns_with_batch_processing(model, size, array_path):
     """Test featurizations and attributes for each model are correct with multiple image columns"""
     feat = ImageFeaturizer(model=model, autosample=True)
     feat.featurize(batch_size=2, save_features=True, **LOAD_DATA_ARGS_MULT)
@@ -360,27 +396,3 @@ def test_load_and_featurize_data_multiple_columns_with_batch_processing(model, s
 
     compare_featurizer_class(feat, size, check_array, featurized=True,
                              check_csv=CHECK_CSV_MULT.format(model), **COMPARE_ARGS_MULT)
-
-
-@pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS, ids=MODELS)
-def test_load_and_featurize_single_column_no_batch_processing(model, size, array_path):
-    """Test that all of the featurizations and attributes for each model are correct"""
-    feat = ImageFeaturizer(model=model)
-    feat.featurize(batch_size=0, save_features=True, **LOAD_DATA_ARGS)
-
-    check_array = np.load(array_path)
-
-    compare_featurizer_class(feat, size, check_array, featurized=True,
-                             check_csv=CHECK_CSV.format(model), **COMPARE_ARGS)
-
-
-@pytest.mark.parametrize('model,size,array_path', LOAD_PARAMS, ids=MODELS)
-def test_load_and_featurize_single_column_with_batch_processing(model, size, array_path):
-    """Test that all of the featurizations and attributes for each model are correct"""
-    feat = ImageFeaturizer(model=model)
-    feat.featurize(batch_size=2, save_features=True, **LOAD_DATA_ARGS)
-
-    check_array = np.load(array_path)
-
-    compare_featurizer_class(feat, size, check_array, featurized=True,
-                             check_csv=CHECK_CSV.format(model), **COMPARE_ARGS)

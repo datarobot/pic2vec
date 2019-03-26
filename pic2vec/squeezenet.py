@@ -13,8 +13,11 @@ Keras documentation:
 https://keras.io/
 """
 
+try:
+    from keras.applications.imagenet_utils import _obtain_input_shape
+except ImportError:
+    from keras_applications.imagenet_utils import _obtain_input_shape
 
-from keras.applications.imagenet_utils import _obtain_input_shape
 from keras import backend as K
 from keras.layers import Input, Convolution2D, MaxPooling2D, Activation, concatenate, Dropout, \
     GlobalAveragePooling2D, warnings
