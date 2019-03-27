@@ -14,11 +14,11 @@ from .test_build_featurizer import ATOL
 CSV_NAME = 'tests/image_featurizer_testing/csv_checking/testing_data.csv'
 
 IMAGE_LIST_SINGLE = ['arendt.bmp', 'borges.jpg', 'sappho.png']
-CHECK_CSV_SINGLE = 'tests/image_featurizer_testing/csv_checking/{}_check_csv'
+CHECK_CSV_SINGLE = 'tests/image_featurizer_testing/csv_checking/{}_check_csv.csv'
 CHECK_ARRAY_SINGLE = 'tests/image_featurizer_testing/array_tests/check_prediction_array_{}.npy'
 
 IMAGE_LIST_MULT = [['arendt.bmp', 'sappho.png', ''], ['borges.jpg', '', '']]
-CHECK_CSV_MULT = 'tests/image_featurizer_testing/csv_checking/{}_check_csv_mult'
+CHECK_CSV_MULT = 'tests/image_featurizer_testing/csv_checking/{}_check_csv_mult.csv'
 CHECK_ARRAY_MULT = 'tests/image_featurizer_testing/array_tests/check_prediction_array_{}_mult.npy'
 
 # Supported models
