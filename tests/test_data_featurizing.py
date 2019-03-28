@@ -5,7 +5,7 @@ import pytest
 from keras.layers import Conv2D, Dense, Flatten
 from keras.models import Sequential
 
-from pic2vec.enums import ATOL, IMAGE_LIST_SINGLE
+from pic2vec.enums import ATOL
 from pic2vec.data_featurizing import (featurize_data,
                                       create_features,
                                       _create_features_df_helper)

@@ -7,7 +7,3 @@ MODELS = ['squeezenet', 'vgg16', 'vgg19', 'resnet50', 'inceptionv3', 'xception']
 
 # Tolerance for prediction error
 ATOL = 0.00001
-
-# List of images used in testing
-IMAGE_LIST_SINGLE = ['arendt.bmp', 'borges.jpg', 'sappho.png']
-IMAGE_LIST_MULT = [['arendt.bmp', 'sappho.png', ''], ['borges.jpg', '', '']]
