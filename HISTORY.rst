@@ -5,6 +5,9 @@ History
 ------------------
 * Updated version of Trafaret to a non-beta version
 * Updated keras to 2.2.3 or greater
+* This library upgrade changes prediction consistency across past versions of pic2vec.
+  ResNet50 is the model that has changed the most, due to changes in implementation.
+  Other models have small floating point changes, but still pass np.testing.assert_allclose tests.
 
 0.100.1 (2019-3-24)
 ------------------
