@@ -8,21 +8,22 @@ import numpy as np
 import pandas as pd
 
 from pic2vec.image_featurizer import ImageFeaturizer, _create_csv_path, _named_path_finder
-from .test_build_featurizer import ATOL
+from pic2vec.enums import MODELS,  ATOL
 
 # Constant paths
 CSV_NAME = 'tests/image_featurizer_testing/csv_checking/testing_data.csv'
 
+# List of images for datasets with single and multiple image columns
 IMAGE_LIST_SINGLE = ['arendt.bmp', 'borges.jpg', 'sappho.png']
+IMAGE_LIST_MULT = [['arendt.bmp', 'sappho.png', ''], ['borges.jpg', '', '']]
+
+# CSVs and arrays for testing predictions on datasets with a single image column
 CHECK_CSV_SINGLE = 'tests/image_featurizer_testing/csv_checking/{}_check_csv.csv'
 CHECK_ARRAY_SINGLE = 'tests/image_featurizer_testing/array_tests/check_prediction_array_{}.npy'
 
-IMAGE_LIST_MULT = [['arendt.bmp', 'sappho.png', ''], ['borges.jpg', '', '']]
+# CSVs and arrays for testing predictions on datasets with multiple image columns
 CHECK_CSV_MULT = 'tests/image_featurizer_testing/csv_checking/{}_check_csv_mult.csv'
 CHECK_ARRAY_MULT = 'tests/image_featurizer_testing/array_tests/check_prediction_array_{}_mult.npy'
-
-# Supported models
-MODELS = ['squeezenet', 'vgg16', 'vgg19', 'resnet50', 'inceptionv3', 'xception']
 
 # Arguments to load the data into the featurizers
 LOAD_DATA_ARGS_SINGLE = {

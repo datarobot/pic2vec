@@ -9,7 +9,7 @@ import logging
 
 from tests.test_build_featurizer import INITIALIZE_MODEL_CASES, INITIALIZED_MODEL_TEST_ARRAY
 from pic2vec.build_featurizer import _initialize_model
-from pic2vec.utils.enums import MODELS
+from pic2vec.enums import MODELS
 from pic2vec import ImageFeaturizer
 
 TEST_DATA_NAME = 'tests/image_featurizer_testing/csv_checking/testing_data.csv'

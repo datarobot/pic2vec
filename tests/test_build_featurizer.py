@@ -17,11 +17,9 @@ from pic2vec.build_featurizer import (_decapitate_model, _find_pooling_constant,
                                       build_featurizer)
 
 from pic2vec.squeezenet import SqueezeNet
+from pic2vec.enums import MODELS, ATOL
 
 random.seed(5102020)
-
-# Tolerance for prediction error
-ATOL = 0.00001
 
 # Create tensor for splicing
 SPLICING_TENSOR = K.constant(3, shape=(3, 12))
@@ -32,7 +30,6 @@ POOLING_FEATURES = K.constant(2, shape=(3, 60))
 # Path to checking prediction arrays for each model in _initialize_model
 INITIALIZED_MODEL_TEST_ARRAY = 'tests/build_featurizer_testing/{}_test_prediction.npy'
 
-MODELS = ['squeezenet', 'vgg16', 'vgg19', 'resnet50', 'inceptionv3', 'xception']
 
 
 @pytest.fixture(scope='module')

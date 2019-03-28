@@ -5,21 +5,18 @@ import pytest
 from keras.layers import Conv2D, Dense, Flatten
 from keras.models import Sequential
 
-from .test_build_featurizer import ATOL
+from pic2vec.enums import ATOL, IMAGE_LIST_SINGLE
 from pic2vec.data_featurizing import (featurize_data,
                                       create_features,
                                       _create_features_df_helper)
 
 np.random.seed(5102020)
 
-# The paths to the toy csvs
+# The paths to the test csvs
 CHECK_CSV_IMAGES_PATH = 'tests/data_featurizing_testing/csv_testing/featurize_data_check_csv_images'
 CHECK_CSV_FULL_PATH = 'tests/data_featurizing_testing/csv_testing/featurize_data_check_csv_full'
 CHECK_CSV_FEATURES_ONLY_PATH = ('tests/data_featurizing_testing/csv_testing/'
                                 'featurize_data_check_csv_features_only')
-
-# The image list from the csv
-CHECK_IMAGE_LIST = ['borges.jpg', 'arendt.bmp', 'sappho.png']
 
 
 # The mock array being treated as the vectorized data

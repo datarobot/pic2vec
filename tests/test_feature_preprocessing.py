@@ -6,7 +6,8 @@ import pandas as pd
 import numpy as np
 import pytest
 
-from tests.test_build_featurizer import ATOL
+from pic2vec.enums import ATOL, IMAGE_LIST_SINGLE
+
 from pic2vec.feature_preprocessing import (_create_df_with_image_paths,
                                            _find_directory_image_paths,
                                            _find_csv_image_paths,
@@ -30,7 +31,6 @@ IMG_COL_HEAD = 'images'
 NEW_IMG_COL_HEAD = 'new_images'
 
 # Image lists for directory and url
-IMAGE_LIST = ['arendt.bmp', 'borges.jpg', 'sappho.png']
 URL_LIST = ['https://s3.amazonaws.com/datarobot_public_datasets/images/pic2vec/borges.jpg',
             'https://s3.amazonaws.com/datarobot_public_datasets/images/pic2vec/arendt.bmp',
             'https://s3.amazonaws.com/datarobot_public_datasets/images/pic2vec/sappho.png'
