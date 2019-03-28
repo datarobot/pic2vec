@@ -17,11 +17,19 @@ from pic2vec.build_featurizer import (_decapitate_model, _find_pooling_constant,
                                       build_featurizer)
 
 from pic2vec.squeezenet import SqueezeNet
+from pic2vec.enums import MODELS, ATOL
 
 random.seed(5102020)
 
-# Tolerance for prediction error
-ATOL = 0.00001
+# Create tensor for splicing
+SPLICING_TENSOR = K.constant(3, shape=(3, 12))
+
+# Create featurization for finding the pooling constant
+POOLING_FEATURES = K.constant(2, shape=(3, 60))
+
+# Path to checking prediction arrays for each model in _initialize_model
+INITIALIZED_MODEL_TEST_ARRAY = 'tests/build_featurizer_testing/{}_test_prediction.npy'
+
 
 
 @pytest.fixture(scope='module')
@@ -40,18 +48,6 @@ def check_model():
     check_model = Model(inputs=input_layer, outputs=output_layer)
 
     return check_model
-
-
-# Create tensor for splicing
-SPLICING_TENSOR = K.constant(3, shape=(3, 12))
-
-# Create featurization for finding the pooling constant
-POOLING_FEATURES = K.constant(2, shape=(3, 60))
-
-# Path to checking prediction arrays for each model in _initialize_model
-INITIALIZE_ARRAY = 'tests/build_featurizer_testing/{}_test_prediction.npy'
-
-MODELS = ['squeezenet', 'vgg16', 'vgg19', 'resnet50', 'inceptionv3', 'xception']
 
 
 def test_decapitate_model_lazy_input():
@@ -190,7 +186,7 @@ def check_model_equal(model1, model2):
 
 def test_initialize_model_weights_not_found():
     """Test error raised when the model can't find weights to load"""
-    error_weight = 'htraenoytinutroppodnocesaevahtondideduti\losfosraeyderdnuhenootdenmednocsecar'
+    error_weight = 'htraenoytinutroppodnocesaevahtondideduti/losfosraeyderdnuhenootdenmednocsecar'
     try:
         assert not os.path.isfile(error_weight)
     except AssertionError:
@@ -228,12 +224,12 @@ def test_initialize_model_wrong_weights():
 
 
 INITIALIZE_MODEL_CASES = [
-    ('squeezenet', 67, (1, 227, 227, 3)),
-    ('vgg16', 23, (1, 224, 224, 3)),
-    ('vgg19', 26, (1, 224, 224, 3)),
-    ('resnet50', 176, (1, 224, 224, 3)),
-    ('inceptionv3', 313, (1, 299, 299, 3)),
-    ('xception', 134, (1, 299, 299, 3)),
+    ('squeezenet', [67], (1, 227, 227, 3)),
+    ('vgg16', [23], (1, 224, 224, 3)),
+    ('vgg19', [26], (1, 224, 224, 3)),
+    ('resnet50', [176, 177], (1, 224, 224, 3)),
+    ('inceptionv3', [313], (1, 299, 299, 3)),
+    ('xception', [134], (1, 299, 299, 3)),
 ]
 
 
@@ -250,16 +246,21 @@ def test_initialize_model(model_str, expected_layers, test_size):
             raise AssertionError('Problem loading SqueezeNet weights.')
         check_model_equal(model, model_downloaded_weights)
 
-    assert len(model.layers) == expected_layers
+    # Versions of Keras 2.1.5 and later sometimes use different numbers of layers for these models,
+    # without changing any behavior for predictions.
+    # This checks that the model uses at least one of the expected numbers of layers.
+    assert len(model.layers) in expected_layers
 
-    # Create the test array to be predicted on
-    test_array = np.zeros(test_size)
+    # Create the test image to be predicted on
+    blank_image = np.zeros(test_size)
 
     # Pre-checked prediction
-    check_prediction = np.load(INITIALIZE_ARRAY.format(model_str))
+    existing_test_array = np.load(INITIALIZED_MODEL_TEST_ARRAY.format(model_str))
+
+    generated_test_array = model.predict_on_batch(blank_image)
 
     # Check that each model predicts correctly to see if weights were correctly loaded
-    assert np.allclose(model.predict_on_batch(test_array), check_prediction, atol=ATOL)
+    assert np.allclose(generated_test_array, existing_test_array, atol=ATOL)
     del model
 
 

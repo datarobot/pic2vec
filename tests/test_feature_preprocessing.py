@@ -6,7 +6,8 @@ import pandas as pd
 import numpy as np
 import pytest
 
-from tests.test_build_featurizer import ATOL
+from pic2vec.enums import ATOL
+
 from pic2vec.feature_preprocessing import (_create_df_with_image_paths,
                                            _find_directory_image_paths,
                                            _find_csv_image_paths,
@@ -17,6 +18,9 @@ from pic2vec.feature_preprocessing import (_create_df_with_image_paths,
 
 # Initialize seed to cut out any randomness (such as in image interpolation, etc)
 random.seed(5102020)
+
+# List of images used in testing
+IMAGE_LIST_SINGLE = ['arendt.bmp', 'borges.jpg', 'sappho.png']
 
 # Shared paths
 IMAGE_PATH = 'tests/feature_preprocessing_testing/test_images/'
@@ -30,7 +34,6 @@ IMG_COL_HEAD = 'images'
 NEW_IMG_COL_HEAD = 'new_images'
 
 # Image lists for directory and url
-IMAGE_LIST = ['arendt.bmp', 'borges.jpg', 'sappho.png']
 URL_LIST = ['https://s3.amazonaws.com/datarobot_public_datasets/images/pic2vec/borges.jpg',
             'https://s3.amazonaws.com/datarobot_public_datasets/images/pic2vec/arendt.bmp',
             'https://s3.amazonaws.com/datarobot_public_datasets/images/pic2vec/sappho.png'
@@ -63,7 +66,7 @@ BATCH_ARRAYS_DIR = [arendt_array, borges_array]
 
 def test_create_df_with_image_paths():
     """Test method creates csv correctly from list of images"""
-    df = _create_df_with_image_paths(IMAGE_LIST, IMG_COL_HEAD)
+    df = _create_df_with_image_paths(IMAGE_LIST_SINGLE, IMG_COL_HEAD)
 
     assert pd.read_csv('{}create_csv_check'.format(CSV_PATH)).equals(df)
 
@@ -82,7 +85,7 @@ def test_find_directory_image_paths():
     """
     test_image_paths = _find_directory_image_paths(IMAGE_PATH)
 
-    assert test_image_paths == IMAGE_LIST
+    assert test_image_paths == IMAGE_LIST_SINGLE
 
 
 def test_find_csv_image_paths():
@@ -151,7 +154,7 @@ def test_convert_single_image(image_source, image_path, size, grayscale):
 
 
 PATHS_FINDER_CASES = [
-    (IMAGE_PATH, '', NEW_IMG_COL_HEAD, IMAGE_LIST),
+    (IMAGE_PATH, '', NEW_IMG_COL_HEAD, IMAGE_LIST_SINGLE),
 
     ('', URL_PATH, IMG_COL_HEAD, URL_LIST),
 
@@ -190,7 +193,8 @@ def test_preprocess_data_fake_dir():
         logging.error('Whoops, that labyrinth exists. '
                       'Change error_dir to a directory path that does not exist.')
     with pytest.raises(TypeError):
-        preprocess_data(IMG_COL_HEAD, 'xception', list_of_images=IMAGE_LIST, image_path=error_dir)
+        preprocess_data(IMG_COL_HEAD, 'xception', list_of_images=IMAGE_LIST_SINGLE,
+                        image_path=error_dir)
 
     assert not os.path.isfile(ERROR_NEW_CSV_PATH_PREPROCESS)
 
@@ -205,14 +209,16 @@ def test_preprocess_data_fake_csv():
         logging.error(
             'Whoops, that dreamer exists. change to error_file to a file path that does not exist.')
     with pytest.raises(TypeError):
-        preprocess_data(IMG_COL_HEAD, 'xception', csv_path=error_file, list_of_images=IMAGE_LIST)
+        preprocess_data(IMG_COL_HEAD, 'xception', csv_path=error_file,
+                        list_of_images=IMAGE_LIST_SINGLE)
 
     assert not os.path.isfile(ERROR_NEW_CSV_PATH_PREPROCESS)
 
 
 def test_preprocess_data_invalid_url_or_dir():
     """Raise an error if the image in the column is an invalid path"""
-    preprocess_data(IMG_COL_HEAD, 'xception', list_of_images=IMAGE_LIST, csv_path=ERROR_ROW_CSV)
+    preprocess_data(IMG_COL_HEAD, 'xception', list_of_images=IMAGE_LIST_SINGLE,
+                    csv_path=ERROR_ROW_CSV)
 
 
 def test_preprocess_data_invalid_model_str():
@@ -255,7 +261,7 @@ def test_preprocess_data_grayscale():
 PREPROCESS_DATA_CASES = [
     # Tests an image directory-only preprocessing step
     (IMAGE_PATH, '',
-     DIRECTORY_ARRAYS, IMAGE_LIST),
+     DIRECTORY_ARRAYS, IMAGE_LIST_SINGLE),
 
     # Tests a CSV-only URL-based preprocessing step
     ('', URL_PATH,

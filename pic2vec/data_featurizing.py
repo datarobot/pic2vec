@@ -9,7 +9,6 @@ which contains binary values of whether the image in that row is missing.
 """
 
 import logging
-import time
 
 import trafaret as t
 import numpy as np
