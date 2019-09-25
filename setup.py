@@ -35,6 +35,7 @@ setup(
     name='pic2vec',
     version='0.101.1',
     description='Featurize images using a decapitated, pre-trained deep learning network',
+    long_description_content_type='text/markdown',
     long_description=readme + '\n\n' + history,
     author='Jett Oristaglio',
     author_email='jettori88@gmail.com',
