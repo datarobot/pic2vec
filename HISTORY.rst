@@ -1,6 +1,10 @@
 =======
 History
 =======
+0.101.1 (2019-9-25)
+------------------
+* Limited Keras version to pre-2.3.0 to fix issues from Keras' breaking changes
+
 0.101.0 (2019-3-25)
 ------------------
 * Updated version of Trafaret to a non-beta version
