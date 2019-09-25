@@ -12,6 +12,7 @@ https://github.com/DeepScale/SqueezeNet
 Keras documentation:
 https://keras.io/
 """
+import warnings
 
 try:
     from keras.applications.imagenet_utils import _obtain_input_shape
@@ -20,7 +21,7 @@ except ImportError:
 
 from keras import backend as K
 from keras.layers import Input, Convolution2D, MaxPooling2D, Activation, concatenate, Dropout, \
-    GlobalAveragePooling2D, warnings
+    GlobalAveragePooling2D
 from keras.models import Model
 from keras.engine.topology import get_source_inputs
 from keras.utils import get_file
