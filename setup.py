@@ -36,6 +36,7 @@ setup(
     version='0.101.0',
     description='Featurize images using a decapitated, pre-trained deep learning network',
     long_description=readme + '\n\n' + history,
+    long_description_content_type='text/markdown',
     author='Jett Oristaglio',
     author_email='jettori88@gmail.com',
     url='https://github.com/datarobot/pic2vec',
